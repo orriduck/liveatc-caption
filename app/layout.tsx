@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
-import "./globals.css";
 import { Toaster } from "@/components/ui/sonner"
+import "./styles/globals.css";
 
 export const metadata: Metadata = {
   title: "LiveATC Caption - Air Traffic Control with Captions",
