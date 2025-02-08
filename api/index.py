@@ -24,7 +24,7 @@ app = FastAPI(
 app.include_router(api_router)
 
 
-@app.get("/")
+@app.get("/api/healthcheck")
 async def read_root():
     """Root endpoint to check API status"""
     return {
