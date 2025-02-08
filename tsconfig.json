@@ -18,13 +18,9 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
+    "baseUrl": "app",
     "paths": {
-      "@/components/*": ["app/components/*"],
-      "@/lib/*": ["app/lib/*"],
-      "@/hooks/*": ["app/hooks/*"],
-      "@/ui/*": ["app/components/ui/*"],
-      "@/*": ["app/*"]
+      "@/*": ["./*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "tailwind.config.js"],
