@@ -1,9 +1,6 @@
 from typing import Optional
 import os
-from dotenv import load_dotenv
 from supabase import create_client, Client
-
-load_dotenv()
 
 class Database:
     def __init__(self):

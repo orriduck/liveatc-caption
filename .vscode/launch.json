@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "FastAPI: Development",
             "type": "debugpy",
@@ -26,16 +27,12 @@
             "name": "Supabase: DB Migration",
             "type": "debugpy",
             "request": "launch",
-            "module": "supabase",
-            "args": [
-                "db",
-                "push"
-            ],
-            "cwd": "${workspaceFolder}/liveatc_backend/supabase",
+            "module": "package.db_migration.run_migrations",
+            "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
-            "envFile": "${workspaceFolder}/liveatc_backend/.env.local"
+            "envFile": "${workspaceFolder}/.env.local"
         }
     ]
 }

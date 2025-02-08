@@ -1,2 +1,11 @@
 .DS_Store
 .lprof
+
+.env.local
+.env.development
+.env.production
+
+**/__pycache__
+**/.temp
+
+node_modules

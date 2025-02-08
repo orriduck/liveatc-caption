@@ -9,8 +9,3 @@ api_router.include_router(
     prefix="/airport",
     tags=["airport"]
 )
-api_router.include_router(
-    search.router,
-    prefix="/search",
-    tags=["search"]
-) 

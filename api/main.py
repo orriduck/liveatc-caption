@@ -1,15 +1,20 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from .api.router import api_router
-from .services.db_init import init_database
+from api.router import api_router
+from api.database import Database
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize database connection
+    db = Database()
+    yield
 
 app = FastAPI(
     title="LiveATC Backend API",
     description="Backend service for LiveATC audio channel metadata and streaming",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=lifespan
 )
-
-# Initialize database once
-db = init_database()
 
 # Include routers
 app.include_router(api_router)
@@ -23,9 +28,3 @@ async def read_root():
         "version": "0.1.0"
     }
 
-# Remove duplicate initialization
-# @app.on_event("startup")
-# async def startup_event():
-#     """Run startup tasks"""
-#     # Initialize database connection
-#     init_database() 

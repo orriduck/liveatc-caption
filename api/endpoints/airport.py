@@ -84,28 +84,3 @@ async def update_airport(icao: str):
             status_code=500,
             detail=f"Error updating airport information: {str(e)}"
         )
-
-@router.get("/{icao}/channels")
-async def get_airport_channels(icao: str):
-    """Get audio channels for a specific airport from database"""
-    try:
-        # First get airport ID
-        result = db.get_airport_by_icao(icao)
-        
-        if not result.data:
-            raise HTTPException(status_code=404, detail=f"Airport {icao} not found")
-            
-        airport_id = result.data[0]["id"]
-        channels = db.get_audio_channels(airport_id)
-        
-        return {
-            "icao": icao,
-            "channels": channels.data
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error fetching airport channels: {str(e)}"
-        ) 

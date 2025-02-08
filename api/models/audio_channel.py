@@ -11,4 +11,4 @@ class AudioChannel(BaseModel):
     airport_icao: str                      # e.g., "KBOS"
     feed_status: bool = True               # UP/DOWN status
     frequencies: List[Frequency] = []      # List of frequencies
-    mp3_url: Optional[str] = None         # MP3 stream URL (optional) 
+    mp3_url: Optional[str] = None         # MP3 stream URL (optional)

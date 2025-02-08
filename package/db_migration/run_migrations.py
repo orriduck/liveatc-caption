@@ -4,7 +4,7 @@ from pathlib import Path
 
 def run_migrations():
     """Run Supabase database migrations"""
-    supabase_dir = Path(__file__).parent.parent / "supabase"
+    supabase_dir = os.path.join(os.path.dirname(__file__), "supabase")
     
     try:
         result = subprocess.run(
