@@ -1,9 +1,11 @@
-from typing import Optional
 import os
+from typing import Optional
+
 from dotenv import load_dotenv
-from supabase import create_client, Client
+from supabase import Client, create_client
 
 load_dotenv()
+
 
 class Database:
     def __init__(self):
@@ -25,37 +27,42 @@ class Database:
         """Insert or update airport"""
         # Remove None values to prevent column not found errors
         cleaned_data = {k: v for k, v in airport_data.items() if v is not None}
-        return self.supabase.table("airports")\
-            .upsert(cleaned_data, on_conflict="icao")\
+        return (
+            self.supabase.table("airports")
+            .upsert(cleaned_data, on_conflict="icao")
             .execute()
+        )
 
     def upsert_audio_channel(self, channel_data: dict):
         """Insert or update audio channel"""
         # Convert frequencies list to JSONB
-        if 'frequencies' in channel_data:
-            channel_data['frequencies'] = [freq.dict() for freq in channel_data['frequencies']]
-        
+        if "frequencies" in channel_data:
+            channel_data["frequencies"] = [
+                freq.dict() for freq in channel_data["frequencies"]
+            ]
+
         # Only include essential fields
-        valid_fields = {
-            'name', 'airport_icao', 'feed_status', 'frequencies', 'mp3_url'
+        valid_fields = {"name", "airport_icao", "feed_status", "frequencies", "mp3_url"}
+        cleaned_data = {
+            k: v for k, v in channel_data.items() if k in valid_fields and v is not None
         }
-        cleaned_data = {k: v for k, v in channel_data.items() 
-                       if k in valid_fields and v is not None}
-        
+
         try:
             # First try to update existing record
-            result = self.supabase.table("audio_channels")\
-                .update(cleaned_data)\
-                .eq("airport_icao", cleaned_data["airport_icao"])\
-                .eq("name", cleaned_data["name"])\
+            result = (
+                self.supabase.table("audio_channels")
+                .update(cleaned_data)
+                .eq("airport_icao", cleaned_data["airport_icao"])
+                .eq("name", cleaned_data["name"])
                 .execute()
-            
+            )
+
             if not result.data:
                 # If no record was updated, insert new record
-                result = self.supabase.table("audio_channels")\
-                    .insert(cleaned_data)\
-                    .execute()
-            
+                result = (
+                    self.supabase.table("audio_channels").insert(cleaned_data).execute()
+                )
+
             return result
         except Exception as e:
             print(f"Error upserting audio channel: {e}")
@@ -63,14 +70,18 @@ class Database:
 
     def get_audio_channels(self, icao: str):
         """Get audio channels for an airport"""
-        return self.supabase.table("audio_channels")\
-            .select("*")\
-            .eq("airport_icao", icao.upper())\
+        return (
+            self.supabase.table("audio_channels")
+            .select("*")
+            .eq("airport_icao", icao.upper())
             .execute()
+        )
 
     def get_airport_by_icao(self, icao: str):
         """Get airport by ICAO code"""
-        return self.supabase.table("airports")\
-            .select("*")\
-            .eq("icao", icao.upper())\
-            .execute() 
+        return (
+            self.supabase.table("airports")
+            .select("*")
+            .eq("icao", icao.upper())
+            .execute()
+        )

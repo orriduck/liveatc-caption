@@ -1,7 +1,10 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from api.router import api_router
+
 from api.database import Database
+from api.router import api_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -9,15 +12,17 @@ async def lifespan(app: FastAPI):
     db = Database()
     yield
 
+
 app = FastAPI(
     title="LiveATC Backend API",
     description="Backend service for LiveATC audio channel metadata and streaming",
     version="0.1.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Include routers
 app.include_router(api_router)
+
 
 @app.get("/")
 async def read_root():
@@ -25,6 +30,5 @@ async def read_root():
     return {
         "status": "ok",
         "message": "LiveATC Backend API is running",
-        "version": "0.1.0"
+        "version": "0.1.0",
     }
-

@@ -1,1 +1,1 @@
-LIVEATC_BASE_URL="https://www.liveatc.net"
+LIVEATC_BASE_URL = "https://www.liveatc.net"

@@ -1,9 +1,13 @@
-from pydantic import BaseModel
 from typing import List, Optional
+
+from pydantic import BaseModel
+
 from .audio_channel import AudioChannel
+
 
 class Airport(BaseModel):
     """Model for airport information"""
+
     icao: str
     name: str
     iata: Optional[str] = None
@@ -15,4 +19,4 @@ class Airport(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     metar: Optional[str] = None
-    audio_channels: List[AudioChannel] = [] 
+    audio_channels: List[AudioChannel] = []
