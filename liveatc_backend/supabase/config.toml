@@ -1,0 +1,5 @@
+# Project Configuration
+project_id = "vxxwtxqwnzedypuopaqo"
+[api]
+enabled = true
+port = 54321
