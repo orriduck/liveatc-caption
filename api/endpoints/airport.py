@@ -11,6 +11,15 @@ liveatc = LiveATCCrawler()
 
 app = FastAPI()
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with your frontend domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @router.get("/{icao}", response_model=Airport)
 async def get_airport(icao: str):
     """Get airport information and audio channels from database"""

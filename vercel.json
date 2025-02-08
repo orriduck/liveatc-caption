@@ -1,0 +1,25 @@
+{
+  "buildCommand": "cd frontend && pnpm install && pnpm build",
+  "builds": [
+    {
+      "src": "api/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "main.py"
+    }
+  ],
+  "excludeFiles": [
+    "**/*.pyc",
+    "**/__pycache__/**",
+    ".env",
+    ".git/**",
+    ".venv/**",
+    "tests/**",
+    "package/",
+    "README.md"
+  ]
+} 
