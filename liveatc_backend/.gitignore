@@ -1,0 +1,12 @@
+.lprof
+.mypy_cache
+.DS_Store
+
+.env.local
+.env.dev
+.env.prod
+
+**/__pycache__
+**/.temp
+
+node_modules

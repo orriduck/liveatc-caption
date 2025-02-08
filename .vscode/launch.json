@@ -20,7 +20,7 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/liveatc_backend/.env.local"
         },
         {
             "name": "Supabase: DB Migration",
@@ -35,7 +35,7 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/liveatc_backend/.env.local"
         }
     ]
 }

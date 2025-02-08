@@ -16,7 +16,6 @@ class LiveATCClient:
             response.raise_for_status()
             
             soup = BeautifulSoup(response.text, 'lxml')
-            print(f"Got response for {icao}")
             
             # Find the main airport info table
             airport_table = soup.find('table', {'class': 'body'})
@@ -106,7 +105,6 @@ class LiveATCClient:
                     mp3_url=mp3_url
                 )
                 
-                print(f"Created channel: {channel.model_dump()}")
                 return channel
             else:
                 print(f"Skipping channel {feed_name} - insufficient data")
@@ -143,10 +141,16 @@ class LiveATCClient:
                 info['country'] = region_match.group(1).strip()
                 info['continent'] = region_match.group(2).strip()
             
-            # Extract METAR
-            metar_match = re.search(r"METAR Weather:\s*(.+?)(?=\$|$)", text)
+            # Extract and clean METAR with a more lenient pattern
+            metar_match = re.search(r"METAR Weather:\s*(.+?)(?=\$|Click|$)", text)
             if metar_match:
-                info['metar'] = metar_match.group(1).strip()
+                metar = metar_match.group(1).strip()
+                # Clean up the METAR text
+                metar = re.sub(r'\s+Click.*$', '', metar)
+                metar = metar.split(info['icao'])[1].strip()
+                # Only set METAR if it's not empty after cleaning
+                if metar and not metar.isspace():
+                    info['metar'] = metar
             
             return info
         except Exception as e:

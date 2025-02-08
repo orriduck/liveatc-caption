@@ -1,6 +1,2 @@
-.lprof
-.mypy_cache
 .DS_Store
-.env
-**/__pycache__
-**/.temp
+.lprof
