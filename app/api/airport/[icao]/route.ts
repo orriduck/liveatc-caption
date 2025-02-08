@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { Airport } from '@/types/airport';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_LIVEATC_SERVICE_URL?.replace('localhost', '127.0.0.1');
+const API_BASE_URL = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+  : process.env.NEXT_PUBLIC_LOCAL_ENDPOINT_URL
 
 export async function GET(
   request: Request,
