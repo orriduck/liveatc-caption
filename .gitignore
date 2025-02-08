@@ -1,6 +1,5 @@
 .lprof
 .mypy_cache
-.vscode
 .DS_Store
 .env
 **/__pycache__
