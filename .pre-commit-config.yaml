@@ -19,3 +19,4 @@ repos:
       entry: uv pip compile pyproject.toml -o requirements.txt
       files: ^pyproject\.toml$
       pass_filenames: false
+      always_run: true
