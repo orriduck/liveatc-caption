@@ -3,12 +3,13 @@ import httpx
 from bs4 import BeautifulSoup
 from typing import Optional, List
 import re
+from api.constants import LIVEATC_BASE_URL
 from api.models.airport import Airport
 from api.models.audio_channel import AudioChannel, Frequency
 
-class LiveATCClient:
+class LiveATCCrawler:
 
-    BASE_URL = os.getenv("LIVEATC_BASE_URL")
+    BASE_URL = LIVEATC_BASE_URL
     
     async def search_airport(self, icao: str) -> Optional[Airport]:
         """Search for airport information by ICAO code."""

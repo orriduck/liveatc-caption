@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .endpoints import airport, search
+from .endpoints import airport
 
 api_router = APIRouter()
 

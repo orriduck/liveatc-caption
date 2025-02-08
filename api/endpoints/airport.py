@@ -1,11 +1,15 @@
 from fastapi import APIRouter, HTTPException
-from ...services.database import Database
-from ...services.liveatc import LiveATCClient
-from ...models.airport import Airport
+from api.database import Database
+from api.utils.liveatc_crawler import LiveATCCrawler
+from api.models.airport import Airport
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
 
 router = APIRouter()
 db = Database()
-liveatc = LiveATCClient()
+liveatc = LiveATCCrawler()
+
+app = FastAPI()
 
 @router.get("/{icao}", response_model=Airport)
 async def get_airport(icao: str):

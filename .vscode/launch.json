@@ -8,7 +8,7 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "liveatc_backend.main:app",
+                "api.main:app",
                 "--reload",
                 "--host",
                 "0.0.0.0",
@@ -21,7 +21,7 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
-            "envFile": "${workspaceFolder}/liveatc_backend/.env.local"
+            "envFile": "${workspaceFolder}/.env.local"
         },
         {
             "name": "Supabase: DB Migration",
@@ -33,6 +33,15 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
             "envFile": "${workspaceFolder}/.env.local"
-        }
+        },
+        {
+            "name": "Node: Frontend Dev",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
     ]
 }
