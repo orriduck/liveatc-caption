@@ -12,6 +12,8 @@ anyio==4.8.0
     # via
     #   httpx
     #   starlette
+async-timeout==5.0.1
+    # via aiohttp
 attrs==25.1.0
     # via aiohttp
 beautifulsoup4==4.13.3
@@ -27,6 +29,8 @@ click==8.1.8
     # via uvicorn
 deprecation==2.1.0
     # via postgrest
+exceptiongroup==1.2.2
+    # via anyio
 fastapi==0.115.8
     # via liveatc-caption (pyproject.toml)
 frozenlist==1.5.0
@@ -103,7 +107,9 @@ starlette==0.45.3
 storage3==0.11.3
     # via supabase
 strenum==0.4.15
-    # via supafunc
+    # via
+    #   postgrest
+    #   supafunc
 supabase==2.13.0
     # via liveatc-caption (pyproject.toml)
 supafunc==0.9.3
@@ -113,9 +119,12 @@ typing-extensions==4.12.2
     #   anyio
     #   beautifulsoup4
     #   fastapi
+    #   multidict
     #   pydantic
     #   pydantic-core
     #   realtime
+    #   starlette
+    #   uvicorn
 urllib3==2.3.0
     # via requests
 uvicorn==0.34.0
