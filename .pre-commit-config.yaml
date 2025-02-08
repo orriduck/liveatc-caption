@@ -12,3 +12,12 @@ repos:
     - id: isort
       additional_dependencies: [toml]
       files: ^.*\.py$
+
+- repo: local
+  hooks:
+    - id: export-requirements
+      name: Export requirements.txt
+      entry: bash -c 'uv pip compile pyproject.toml -o requirements.txt'
+      language: system
+      files: ^pyproject\.toml$
+      pass_filenames: false
