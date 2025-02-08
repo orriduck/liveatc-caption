@@ -11,15 +11,5 @@
       "src": "/(.*)",
       "dest": "main.py"
     }
-  ],
-  "excludeFiles": [
-    "**/*.pyc",
-    "**/__pycache__/**",
-    ".env",
-    ".git/**",
-    ".venv/**",
-    "tests/**",
-    "package/",
-    "README.md"
   ]
 } 
