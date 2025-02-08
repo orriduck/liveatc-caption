@@ -4,11 +4,21 @@ repos:
   hooks:
     - id: black
       language_version: python3.11
-      files: ^liveatc_backend/
+      files: ^.*\.py$
 
 - repo: https://github.com/pycqa/isort
   rev: 5.12.0
   hooks:
     - id: isort
-      files: ^liveatc_backend/
       additional_dependencies: [toml]
+      files: ^.*\.py$
+
+- repo: local
+  hooks:
+    - id: export-requirements
+      name: Export requirements.txt
+      entry: bash -c 'uv pip compile pyproject.toml -o requirements.txt'
+      language: system
+      files: ^pyproject\.toml$
+      pass_filenames: false
+      always_run: true
