@@ -12,3 +12,12 @@ repos:
     - id: isort
       files: ^api/
       additional_dependencies: [toml]
+
+- repo: local
+  hooks:
+    - id: uv-pip-compile
+      name: Generate requirements.txt with uv
+      language: system
+      entry: uv pip compile pyproject.toml -o requirements.txt
+      files: ^pyproject\.toml$
+      pass_filenames: false
