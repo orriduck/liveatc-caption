@@ -2,7 +2,7 @@
 
 # Install and setup uv for Python dependencies
 curl -LsSf https://astral.sh/uv/install.sh | sh
-uv pip install -r requirements.txt
+uv pip install -e .
 
 # Install and build frontend
 pnpm install
