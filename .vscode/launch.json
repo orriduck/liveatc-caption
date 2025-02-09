@@ -1,9 +1,8 @@
 {
     "version": "0.2.0",
     "configurations": [
-        
         {
-            "name": "FastAPI: Development",
+            "name": "Local Backend",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
@@ -24,7 +23,16 @@
             "envFile": "${workspaceFolder}/.env.local"
         },
         {
-            "name": "Supabase: DB Migration",
+            "name": "Local Frontend",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "next-dev"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "DB Update",
             "type": "debugpy",
             "request": "launch",
             "module": "package.db_migration.run_migrations",
@@ -33,15 +41,6 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
             "envFile": "${workspaceFolder}/.env.local"
-        },
-        {
-            "name": "Node: Frontend Dev",
-            "type": "node",
-            "request": "launch",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": ["run", "dev"],
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal"
         },
     ]
 }
