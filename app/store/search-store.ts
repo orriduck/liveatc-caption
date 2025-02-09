@@ -11,6 +11,10 @@ interface SearchState {
   searchAirports: (query: string) => Promise<void>;
 }
 
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api`
+  : `http://${process.env.NEXT_PUBLIC_LOCAL_ENDPOINT_URL}/api`;
+
 export const useSearchStore = create<SearchState>((set) => ({
   searchQuery: '',
   results: [],
@@ -24,12 +28,12 @@ export const useSearchStore = create<SearchState>((set) => ({
       const searchPromise = async () => {
         try {
           // First try GET request
-          const searchResponse = await fetch(`/api/airport/${query.toUpperCase()}`);
+          const searchResponse = await fetch(`${baseUrl}/airport/${query.toUpperCase()}`);
           
           if (!searchResponse.ok) {
             if (searchResponse.status === 404) {
               // Try POST request to update airport data
-              const updateResponse = await fetch(`/api/airport/${query.toUpperCase()}`, {
+              const updateResponse = await fetch(`${baseUrl}/airport/${query.toUpperCase()}`, {
                 method: 'POST',
               });
               
