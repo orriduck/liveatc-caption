@@ -5,9 +5,9 @@ const nextConfig = {
       {
         source: "/api/:path*",
         destination:
-          process.env.NODE_ENV !== "local"
-            ? "http://127.0.0.1:8000/api/:path*"
-            : "/api/",
+          process.env.VERCEL_ENV
+            ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/:path*`
+            : `http://${process.env.NEXT_PUBLIC_LOCAL_ENDPOINT_URL}/api/:path*`,
       },
     ];
   },
