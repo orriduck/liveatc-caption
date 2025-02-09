@@ -13,7 +13,7 @@ interface SearchState {
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api`
-  : `http://${process.env.NEXT_PUBLIC_LOCAL_ENDPOINT_URL}/api`;
+  : `http://127.0.0.1:8000/api`;
 
 export const useSearchStore = create<SearchState>((set) => ({
   searchQuery: '',
