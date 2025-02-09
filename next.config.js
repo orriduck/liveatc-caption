@@ -5,7 +5,7 @@ const nextConfig = {
       {
         source: "/api/:path*",
         destination:
-          process.env.VERCEL_ENV
+          process.env.NEXT_PUBLIC_VERCEL_ENV
             ? `/api/`
             : `http://${process.env.NEXT_PUBLIC_LOCAL_ENDPOINT_URL}/api/:path*`,
       },
