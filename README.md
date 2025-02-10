@@ -1,5 +1,7 @@
 # LiveATC Caption
 
+<img width="1410" alt="Screenshot 2025-02-09 at 21 37 40" src="https://github.com/user-attachments/assets/35f96257-0b79-43a0-8b70-b057c72bd143" />
+
 A real-time aviation communication transcription and captioning system that fetches live audio from LiveATC.net and provides transcription and captioning services.
 
 ## Tech Stack
