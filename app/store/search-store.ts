@@ -11,10 +11,6 @@ interface SearchState {
   searchAirports: (query: string) => Promise<void>;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api`
-  : `http://127.0.0.1:8000/api`;
-
 export const useSearchStore = create<SearchState>((set) => ({
   searchQuery: '',
   results: [],
@@ -28,12 +24,12 @@ export const useSearchStore = create<SearchState>((set) => ({
       const searchPromise = async () => {
         try {
           // First try GET request
-          const searchResponse = await fetch(`${baseUrl}/airport/${query.toUpperCase()}`);
+          const searchResponse = await fetch(`/api/airport/${query.toUpperCase()}`);
           
           if (!searchResponse.ok) {
             if (searchResponse.status === 404) {
               // Try POST request to update airport data
-              const updateResponse = await fetch(`${baseUrl}/airport/${query.toUpperCase()}`, {
+              const updateResponse = await fetch(`/api/airport/${query.toUpperCase()}`, {
                 method: 'POST',
               });
               
@@ -65,6 +61,7 @@ export const useSearchStore = create<SearchState>((set) => ({
         error: (error: Error) => {
           const message = error.message;
           set({ error: message, isLoading: false, results: [] });
+          console.log(error);
           return message;
         }
       });
@@ -72,7 +69,8 @@ export const useSearchStore = create<SearchState>((set) => ({
     } catch (error) {
       const message = (error as Error).message;
       set({ error: message, isLoading: false, results: [] });
-      toast.error(message);
+      toast.error(`Encountering uncaught error during the getting airport process :${message}`);
+      console.log(error)
     }
   },
-})); 
+}));
