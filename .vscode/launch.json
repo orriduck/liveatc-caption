@@ -2,27 +2,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Local Backend",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "uvicorn",
-            "args": [
-                "api.index:app",
-                "--reload",
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8000"
-            ],
-            "jinja": true,
-            "justMyCode": true,
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            },
-            "envFile": "${workspaceFolder}/.env.local"
-        },
-        {
             "name": "Local Frontend",
             "type": "node",
             "request": "launch",
@@ -30,17 +9,6 @@
             "runtimeArgs": ["run", "next-dev"],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
-        },
-        {
-            "name": "DB Update",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "package.db_migration.run_migrations",
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            },
-            "envFile": "${workspaceFolder}/.env.local"
         },
     ]
 }
