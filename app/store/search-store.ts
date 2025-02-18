@@ -65,16 +65,16 @@ export const useSearchStore = create<SearchState>((set) => ({
         error: (error: Error) => {
           const message = error.message;
           set({ error: message, isLoading: false, results: [] });
-          console.log(error);
+          console.error('Search error:', error);
           return message;
         }
       });
 
     } catch (error) {
-      const message = (error as Error).message;
+      const message = error instanceof Error ? error.message : String(error);
       set({ error: message, isLoading: false, results: [] });
-      toast.error(`Encountering uncaught error during the getting airport process :${message}`);
-      console.log(error)
+      toast.error(`Error during airport search: ${message}`);
+      console.error('Uncaught search error:', error);
     }
   },
 }));
