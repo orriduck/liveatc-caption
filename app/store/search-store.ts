@@ -40,16 +40,18 @@ export const useSearchStore = create<SearchState>((set) => ({
               if (!updateResponse.ok) {
                 throw new Error('Airport not found on LiveATC');
               }
-              
-              const airport = await updateResponse.json();
-              set({ results: [airport], isLoading: false });
+
+              const airportStr = await updateResponse.text();
+              const airports = JSON.parse(airportStr);
+              set({ results: [airports], isLoading: false });
               return 'Airport data acquired successfully';
             }
             throw new Error(`Failed to fetch airport data: ${searchResponse.statusText}`);
           }
 
-          const data = await searchResponse.json();
-          set({ results: [data], isLoading: false });
+          const airportStr = await searchResponse.text();
+          const airports = JSON.parse(airportStr);
+          set({ results: [airports], isLoading: false });
           return 'Found airport information';
         } catch (error) {
           if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
