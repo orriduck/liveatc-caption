@@ -6,7 +6,7 @@
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "npm",
-            "runtimeArgs": ["run", "next-dev"],
+            "runtimeArgs": ["run", "dev"],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
         },
