@@ -32,7 +32,7 @@ export function SearchResults() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           {airport.name}
-          <Badge className="text-yellow-300 text-sm">{airport.icao}</Badge>
+          <Badge className="text-yellow-300 dark:text-black dark:bg-gray-400 text-sm">{airport.icao}</Badge>
         </CardTitle>
         <CardDescription>
           {airport.city}, {airport.state_province}, {airport.country}
@@ -47,7 +47,7 @@ export function SearchResults() {
             <h3 className="font-semibold mb-2">
               Available Audio Channels ({airport.audio_channels.length})
             </h3>
-            <div className="h-[600px] rounded-lg border overflow-scroll">
+            <div className="h-[600px] rounded-lg border dark:border-gray-50/10 overflow-scroll">
               <Table>
                 <TableHeader>
                   <TableRow>
