@@ -87,14 +87,12 @@ export default function AudioChannelPlayer({
 
       updateVolume();
 
-      // 定期检查音频上下文状态
       const checkAudioContext = setInterval(() => {
         if (audio.audioContext?.state === 'suspended') {
           audio.audioContext.resume().catch(console.error);
         }
       }, 1000);
 
-      // 清理函数
       const cleanup = () => {
         clearInterval(checkAudioContext);
         cancelAnimationFrame(animationFrameId);
@@ -168,21 +166,6 @@ export default function AudioChannelPlayer({
         const cleanup = setupAudioAnalyser(audio);
         if (cleanup) audio.cleanup = cleanup;
 
-        audio.onerror = async (e) => {
-          console.error('Audio playback error:', e);
-          toast.error('Playback error occurred, attempting to reconnect...');
-          await resetAudioStream().then(newAudio => {
-            if (newAudio) playAudioStream(newAudio);
-          });
-        };
-
-        audio.onended = async () => {
-          console.log('Audio stream ended, attempting to reconnect...');
-          await resetAudioStream().then(newAudio => {
-            if (newAudio) playAudioStream(newAudio);
-          });
-        };
-
         setIsPlaying(true);
         setIsLoading(false);
       } catch (err) {
@@ -202,13 +185,13 @@ export default function AudioChannelPlayer({
       try {
         setIsLoading(true);
         setIsPlaying(false);
-        
-        // 清理旧的音频资源
-        await cleanupAudioResources(audioRef.current);
-        audioRef.current = null;
 
-        const audio = await resetAudioStream();
-        if (!audio || !isMounted) return;
+        const audio = new Audio(
+          `/api/audio?url=${encodeURIComponent(audioChannel.mp3_url || '')}&t=${Date.now()}`,
+        ) as CustomAudioElement;
+        audio.preload = "auto";
+
+        if (!isMounted) return;
 
         await playAudioStream(audio);
       } catch (err) {
@@ -224,15 +207,16 @@ export default function AudioChannelPlayer({
 
     return () => {
       isMounted = false;
-      cleanupAudioResources(audioRef.current).then(() => {
-        if (isMounted) {
-          audioRef.current = null;
-          setIsPlaying(false);
-          setIsLoading(false);
-        }
-      });
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current.cleanup?.();
+        audioRef.current = null;
+        setIsPlaying(false);
+        setIsLoading(false);
+      }
     };
-  }, [audioChannel.mp3_url, resetAudioStream, playAudioStream, cleanupAudioResources]);
+  }, [audioChannel.mp3_url, playAudioStream]);
 
   const handleClose = async () => {
     await cleanupAudioResources(audioRef.current);
@@ -294,7 +278,7 @@ export default function AudioChannelPlayer({
         <CardContent>
           <div className="text-sm text-muted-foreground">
             Frequencies:{" "}
-            {audioChannel.frequencies.map((f) => f.frequency).join(", ")}
+            {audioChannel.frequencies.map((f) => (typeof f === 'object' && f.frequency ? f.frequency : String(f))).join(", ")}
           </div>
         </CardContent>
       )}
