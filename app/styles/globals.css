@@ -5,16 +5,13 @@
 @tailwind utilities;
 
 @layer utilities {
-  .status-offline {
-    animation: glow-red 1s infinite;
-  }
 
   .status-online-1 {
-    animation: glow-green 1s infinite, flash-1 1s infinite;
+    animation: flash-1 1s infinite;
   }
 
   .status-online-2 {
-    animation: glow-green 1s infinite, flash-2 1s infinite;
+    animation: flash-2 1s infinite;
   }
 }
 
@@ -26,16 +23,6 @@
 @keyframes flash-2 {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 1; }
-}
-
-@keyframes glow-red {
-  0%, 100% { box-shadow: 0 0 5px #ef4444}
-  50% { box-shadow: 0 0 10px #ef4444}
-}
-
-@keyframes glow-green {
-  0%, 100% { box-shadow: 0 0 8px #22c55e}
-  50% { box-shadow: 0 0 15px #22c55e}
 }
 
 body {

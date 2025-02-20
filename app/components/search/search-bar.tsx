@@ -21,7 +21,7 @@ export function SearchBar() {
         <div className="flex items-center space-x-2">
           <Input
             type="text"
-            placeholder="Search airport (ICAO/IATA)"
+            placeholder="Search airport (ICAO)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 w-full"

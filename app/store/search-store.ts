@@ -1,14 +1,16 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
-import type { Airport } from '@/types/airport';
+import type { Airport, AudioChannel } from '@/types/airport';
 
 interface SearchState {
   searchQuery: string;
   results: Airport[];
   isLoading: boolean;
   error: string | null;
+  focusChannel: AudioChannel | null;
   setSearchQuery: (query: string) => void;
   searchAirports: (query: string) => Promise<void>;
+  setFocusChannel: (channel: AudioChannel | null) => void;
 }
 
 const URL = process.env.NEXT_PUBLIC_VERCEL_URL
@@ -20,6 +22,8 @@ export const useSearchStore = create<SearchState>((set) => ({
   results: [],
   isLoading: false,
   error: null,
+  focusChannel: null,
+  setFocusChannel: (channel) => set({ focusChannel: channel }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   searchAirports: async (query) => {
     set({ isLoading: true, error: null });
