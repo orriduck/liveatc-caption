@@ -127,37 +127,6 @@ export default function AudioChannelPlayer({
     }
   }, []);
 
-  const resetAudioStream = useCallback(async () => {
-    if (!audioChannel.mp3_url) {
-      setIsLoading(false);
-      return null;
-    }
-
-    await cleanupAudioResources(audioRef.current);
-    audioRef.current = null;
-
-    const encodedUrl = encodeURIComponent(audioChannel.mp3_url);
-    const audio = new Audio(
-      `/api/audio?url=${encodedUrl}&t=${Date.now()}`,
-    ) as CustomAudioElement;
-    audio.preload = "auto";
-
-    audio.cleanup = async () => {
-      if (audio.audioContext && audio.audioContext.state !== 'closed') {
-        try {
-          await audio.audioContext.close();
-        } catch (err) {
-          console.error("Error closing audio context:", err);
-        }
-      }
-      audio.pause();
-      audio.src = "";
-      URL.revokeObjectURL(audio.src);
-    };
-
-    return audio;
-  }, [audioChannel.mp3_url, cleanupAudioResources]);
-
   const playAudioStream = useCallback(
     async (audio: CustomAudioElement) => {
       try {
