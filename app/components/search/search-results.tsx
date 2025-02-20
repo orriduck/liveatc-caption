@@ -21,7 +21,7 @@ import { Play } from "lucide-react";
 import { toast } from "sonner";
 
 export function SearchResults() {
-  const { results, error, setFocusChannel } = useSearchStore();
+  const { results, error } = useSearchStore();
 
   if (error || results.length === 0) return null;
 
@@ -72,10 +72,9 @@ export function SearchResults() {
                                   : "cursor-not-allowed pointer-events-none"
                               }
                               onClick={async () => {
-                                setFocusChannel(null);
-                                await new Promise(resolve => setTimeout(resolve, 100));
-                                setFocusChannel(channel);
-                                toast.success("Channel loaded successfully");
+                                const channelData = encodeURIComponent(JSON.stringify(channel));
+                                window.location.href = `/player?channel=${channelData}`;
+                                toast.success("Loading audio channel...");
                               }}
                             >
                               <Play

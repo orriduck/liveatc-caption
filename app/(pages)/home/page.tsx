@@ -1,5 +1,6 @@
 "use client"
 
+import PageHeader from '@/components/page-header';
 import AudioChannelPlayer from '@/components/player/audio-channel-player';
 import { SearchBar } from '@/components/search/search-bar'
 import { SearchResults } from '@/components/search/search-results'
@@ -9,16 +10,8 @@ export default function HomePage() {
   const { isLoading, focusChannel } = useSearchStore();
 
   return (
-    <div className="flex flex-col space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">
-          LiveATC Caption
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Search and listen to air traffic control communications with real-time captions
-        </p>
-      </div>
-      
+    <div className='flex flex-col space-y-8'>
+      <PageHeader />
       <SearchBar />
 
       {focusChannel && (

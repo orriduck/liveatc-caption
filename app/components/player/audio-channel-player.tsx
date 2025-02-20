@@ -33,6 +33,11 @@ export default function AudioChannelPlayer({
 
   const setupAudioAnalyser = useCallback((audio: CustomAudioElement) => {
     try {
+      if (audio.audioContext?.state === 'closed') {
+        console.error('AudioContext is closed, cannot setup analyser');
+        return;
+      }
+
       const audioContext = new AudioContext();
       const analyser = audioContext.createAnalyser();
       const source = audioContext.createMediaElementSource(audio);
@@ -48,54 +53,59 @@ export default function AudioChannelPlayer({
 
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
       let lastVolume = 0;
+      let animationFrameId: number;
 
       const updateVolume = () => {
-        if (!audio.analyser) return;
-        audio.analyser.getByteFrequencyData(dataArray);
-
-        // 计算加权平均值，偏重低频和中频
-        let weightedSum = 0;
-        let weightSum = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-          const weight = Math.exp(-i / (dataArray.length / 4));
-          weightedSum += dataArray[i] * weight;
-          weightSum += weight;
+        if (!audio.analyser || audio.audioContext?.state === 'closed') {
+          cancelAnimationFrame(animationFrameId);
+          return;
         }
 
-        const average = weightedSum / weightSum;
-        const normalizedVolume = Math.min(average / 200, 1);
+        try {
+          audio.analyser.getByteFrequencyData(dataArray);
 
-        // 平滑过渡
-        const smoothedVolume = lastVolume * 0.6 + normalizedVolume * 0.4;
-        lastVolume = smoothedVolume;
+          let weightedSum = 0;
+          let weightSum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            const weight = Math.exp(-i / (dataArray.length / 4));
+            weightedSum += dataArray[i] * weight;
+            weightSum += weight;
+          }
 
-        setVolumeLevel(smoothedVolume);
-        requestAnimationFrame(updateVolume);
+          const average = weightedSum / weightSum;
+          const normalizedVolume = Math.min(average / 200, 1);
+          const smoothedVolume = lastVolume * 0.6 + normalizedVolume * 0.4;
+          lastVolume = smoothedVolume;
+
+          setVolumeLevel(smoothedVolume);
+          animationFrameId = requestAnimationFrame(updateVolume);
+        } catch (err) {
+          console.error('Error updating volume:', err);
+          cancelAnimationFrame(animationFrameId);
+        }
       };
 
       updateVolume();
+
+      // 定期检查音频上下文状态
+      const checkAudioContext = setInterval(() => {
+        if (audio.audioContext?.state === 'suspended') {
+          audio.audioContext.resume().catch(console.error);
+        }
+      }, 1000);
+
+      // 清理函数
+      const cleanup = () => {
+        clearInterval(checkAudioContext);
+        cancelAnimationFrame(animationFrameId);
+      };
+
+      return cleanup;
     } catch (err) {
-      console.error("Failed to setup audio analyser:", err);
+      console.error('Failed to setup audio analyser:', err);
+      return () => {};
     }
   }, []);
-
-  const playAudioStream = useCallback(
-    async (audio: CustomAudioElement) => {
-      try {
-        await audio.play();
-        audioRef.current = audio;
-        setupAudioAnalyser(audio);
-        setIsPlaying(true);
-        setIsLoading(false);
-      } catch (err) {
-        toast.error("Failed to play audio due to exception:" + err);
-        setIsLoading(false);
-        setIsPlaying(false);
-        audio.cleanup?.();
-      }
-    },
-    [setupAudioAnalyser],
-  );
 
   const cleanupAudioResources = useCallback(async (audio: CustomAudioElement | null) => {
     if (!audio) return;
@@ -110,7 +120,7 @@ export default function AudioChannelPlayer({
         await audio.audioContext?.close();
       }
       audio.pause();
-      audio.load(); // 强制重置音频元素状态
+      audio.load();
       audio.src = "";
       URL.revokeObjectURL(audio.src);
       audio.cleanup?.();
@@ -130,7 +140,7 @@ export default function AudioChannelPlayer({
 
     const encodedUrl = encodeURIComponent(audioChannel.mp3_url);
     const audio = new Audio(
-      `/api/audio?url=${encodedUrl}`,
+      `/api/audio?url=${encodedUrl}&t=${Date.now()}`,
     ) as CustomAudioElement;
     audio.preload = "auto";
 
@@ -149,6 +159,41 @@ export default function AudioChannelPlayer({
 
     return audio;
   }, [audioChannel.mp3_url, cleanupAudioResources]);
+
+  const playAudioStream = useCallback(
+    async (audio: CustomAudioElement) => {
+      try {
+        await audio.play();
+        audioRef.current = audio;
+        const cleanup = setupAudioAnalyser(audio);
+        if (cleanup) audio.cleanup = cleanup;
+
+        audio.onerror = async (e) => {
+          console.error('Audio playback error:', e);
+          toast.error('Playback error occurred, attempting to reconnect...');
+          await resetAudioStream().then(newAudio => {
+            if (newAudio) playAudioStream(newAudio);
+          });
+        };
+
+        audio.onended = async () => {
+          console.log('Audio stream ended, attempting to reconnect...');
+          await resetAudioStream().then(newAudio => {
+            if (newAudio) playAudioStream(newAudio);
+          });
+        };
+
+        setIsPlaying(true);
+        setIsLoading(false);
+      } catch (err) {
+        toast.error('Failed to play audio: ' + err);
+        setIsLoading(false);
+        setIsPlaying(false);
+        audio.cleanup?.();
+      }
+    },
+    [setupAudioAnalyser],
+  );
 
   useEffect(() => {
     let isMounted = true;
