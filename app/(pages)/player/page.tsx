@@ -2,12 +2,12 @@
 
 import AudioChannelPlayer from '@/components/player/audio-channel-player';
 import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { AudioChannel } from '@/types/airport';
 import PageHeader from '@/components/page-header';
 
-export default function PlayerPage() {
+function PlayerContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const channelParam = searchParams.get('channel');
@@ -35,5 +35,13 @@ export default function PlayerPage() {
 
       <AudioChannelPlayer audioChannel={channel} />
     </div>
+  );
+}
+
+export default function PlayerPage() {
+  return (
+    <Suspense fallback={<div className="flex flex-col space-y-8"><PageHeader /><div className="animate-pulse">Loading...</div></div>}>
+      <PlayerContent />
+    </Suspense>
   );
 }
