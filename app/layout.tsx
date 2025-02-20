@@ -4,6 +4,7 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { Toaster } from "@/components/ui/sonner"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react"
 
 export const metadata: Metadata = {
   title: "LiveATC Caption - Air Traffic Control with Captions",
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-background text-foreground">
         {children}
         <SpeedInsights/>
+        <Analytics/>
         <Toaster 
           className="font-['Jura']"
           toastOptions={{
