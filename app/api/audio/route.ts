@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
+
+  const enforceUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
   try {
     // 从查询参数中获取音频流URL
     const url = request.nextUrl.searchParams.get('url');
@@ -13,7 +16,11 @@ export async function GET(request: NextRequest) {
     }
 
     // 首先获取.pls文件内容
-    const plsResponse = await fetch(url);
+    const plsResponse = await fetch(url, {
+      headers: {
+        'User-Agent': enforceUserAgent,
+      }
+    });
     const plsContent = await plsResponse.text();
 
     // 解析.pls文件获取实际的音频流URL
@@ -30,7 +37,11 @@ export async function GET(request: NextRequest) {
     }
 
     // 获取音频流
-    const audioResponse = await fetch(streamUrl);
+    const audioResponse = await fetch(streamUrl, {
+      headers: {
+        'User-Agent': enforceUserAgent,
+      }
+    });
     
     // 创建一个新的Response对象，保持原始响应的headers
     const response = new NextResponse(audioResponse.body, {

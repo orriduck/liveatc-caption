@@ -1,8 +1,7 @@
 import { AudioChannel } from "@/types/airport";
 import { Button } from "@/components/ui/button";
-import { useSearchStore } from "@/store/search-store";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { X, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, Play, Pause } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -29,13 +28,17 @@ export default function AudioChannelPlayer({
     return parseInt(Math.floor(volumeLevel * 100).toFixed(0));
   }, [volumeLevel]);
 
-  const { setFocusChannel } = useSearchStore();
-
   const setupAudioAnalyser = useCallback((audio: CustomAudioElement) => {
     try {
-      if (audio.audioContext?.state === 'closed') {
-        console.error('AudioContext is closed, cannot setup analyser');
-        return;
+      // 清理现有的音频连接
+      if (audio.source) {
+        audio.source.disconnect();
+      }
+      if (audio.analyser) {
+        audio.analyser.disconnect();
+      }
+      if (audio.audioContext?.state !== 'closed') {
+        audio.audioContext?.close();
       }
 
       const audioContext = new AudioContext();
@@ -105,55 +108,12 @@ export default function AudioChannelPlayer({
     }
   }, []);
 
-  const cleanupAudioResources = useCallback(async (audio: CustomAudioElement | null) => {
-    if (!audio) return;
-    try {
-      if (audio.source) {
-        audio.source.disconnect();
-      }
-      if (audio.analyser) {
-        audio.analyser.disconnect();
-      }
-      if (audio.audioContext?.state !== 'closed') {
-        await audio.audioContext?.close();
-      }
-      audio.pause();
-      audio.load();
-      audio.src = "";
-      URL.revokeObjectURL(audio.src);
-      audio.cleanup?.();
-    } catch (err) {
-      console.error("Error cleaning up audio resources:", err);
-    }
-  }, []);
-
-  const playAudioStream = useCallback(
-    async (audio: CustomAudioElement) => {
-      try {
-        await audio.play();
-        audioRef.current = audio;
-        const cleanup = setupAudioAnalyser(audio);
-        if (cleanup) audio.cleanup = cleanup;
-
-        setIsPlaying(true);
-        setIsLoading(false);
-      } catch (err) {
-        toast.error('Failed to play audio: ' + err);
-        setIsLoading(false);
-        setIsPlaying(false);
-        audio.cleanup?.();
-      }
-    },
-    [setupAudioAnalyser],
-  );
-
   useEffect(() => {
     let isMounted = true;
 
     const initializeAudio = async () => {
       try {
         setIsLoading(true);
-        setIsPlaying(false);
 
         const audio = new Audio(
           `/api/audio?url=${encodeURIComponent(audioChannel.mp3_url || '')}&t=${Date.now()}`,
@@ -162,12 +122,14 @@ export default function AudioChannelPlayer({
 
         if (!isMounted) return;
 
-        await playAudioStream(audio);
+        audioRef.current = audio;
+        const cleanup = setupAudioAnalyser(audio);
+        audio.cleanup = cleanup;
+        setIsLoading(false);
       } catch (err) {
         console.error("Audio initialization error:", err);
         if (isMounted) {
           setIsLoading(false);
-          setIsPlaying(false);
         }
       }
     };
@@ -181,16 +143,27 @@ export default function AudioChannelPlayer({
         audioRef.current.src = "";
         audioRef.current.cleanup?.();
         audioRef.current = null;
-        setIsPlaying(false);
         setIsLoading(false);
+        setIsPlaying(false);
       }
     };
-  }, [audioChannel.mp3_url, playAudioStream]);
+  }, [audioChannel.mp3_url, setupAudioAnalyser]);
 
-  const handleClose = async () => {
-    await cleanupAudioResources(audioRef.current);
-    audioRef.current = null;
-    setFocusChannel(null);
+  const togglePlayPause = async () => {
+    if (!audioRef.current) return;
+
+    try {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        await audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } catch (err) {
+      toast.error("Failed to toggle audio: " + err);
+      setIsPlaying(false);
+    }
   };
 
   const toggleMute = () => {
@@ -202,7 +175,7 @@ export default function AudioChannelPlayer({
 
   return (
     <Card
-      className={`transition-shadow ${volumeLevelInt > 0 ? `shadow-md shadow-green-500/${volumeLevelInt}` : ""}`}
+      className={`transition-shadow ease-in-out ${volumeLevelInt > 0 ? `drop-shadow drop-shadow-green-500/${volumeLevelInt}` : "drop-shadow-none"}`}
     >
       <CardHeader>
         <CardTitle>
@@ -210,7 +183,7 @@ export default function AudioChannelPlayer({
             <div className="flex items-center gap-2">
               <div className="flex gap-0.5">
                 <div
-                  className={`size-2 rounded-full ${isLoading ? "bg-yellow-500 animate-pulse" : "bg-gray-300"}`}
+                  className={`size-2 rounded-full ${isLoading ? "bg-yellow-500 animate-pulse" : "bg-green-500"}`}
                 ></div>
                 <div
                   className={`size-2 rounded-full ${isPlaying ? "bg-green-500 animate-pulse backdrop-blur-sm" : "bg-gray-300"}`}
@@ -219,6 +192,19 @@ export default function AudioChannelPlayer({
               Listening To {audioChannel.name}
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                onClick={togglePlayPause}
+                variant={"ghost"}
+                size={"icon"}
+                className="size-8"
+                disabled={isLoading}
+              >
+                {isPlaying ? (
+                  <Pause className="size-4" />
+                ) : (
+                  <Play className="size-4" />
+                )}
+              </Button>
               <Button
                 onClick={toggleMute}
                 variant={"ghost"}
@@ -230,14 +216,6 @@ export default function AudioChannelPlayer({
                 ) : (
                   <Volume2 className="size-4" />
                 )}
-              </Button>
-              <Button
-                onClick={handleClose}
-                variant={"ghost"}
-                size={"icon"}
-                className="size-8"
-              >
-                <X className="size-4" />
               </Button>
             </div>
           </div>
