@@ -2,7 +2,6 @@
 
 import { useSearchStore } from '@/store/search-store';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { SignalHigh, SignalLow } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table"
 import { Badge } from '@/components/ui/badge';
@@ -61,20 +60,12 @@ export function SearchResults() {
                           ).join(', ')}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm">
-                          <span className="inline-flex items-center gap-1.5 relative z-0">
-                            {channel.feed_status ? (
-                              <div className="relative">
-                                <SignalHigh className="w-4 h-4 text-green-600" />
-                                <div className="absolute inset-0 animate-ping-slow rounded-full bg-green-400/20" />
-                              </div>
-                            ) : (
-                              <SignalLow className="w-4 h-4 text-red-600" />
-                            )}
-                            <span className={`text-xs font-medium ${
-                              channel.feed_status 
-                                ? 'text-green-600' 
-                                : 'text-red-600'
-                            }`}>
+                          <span className="inline-flex items-center gap-2 relative z-0">
+                            <div className="flex gap-0.5">
+                              <div className={`size-2 rounded-full ${channel.feed_status ? 'bg-green-500 status-online-1' : 'bg-red-500 status-offline'}`}></div>
+                              <div className={`size-2 rounded-full ${channel.feed_status ? 'bg-green-500 status-online-2' : 'bg-red-500 status-offline'}`}></div>
+                            </div>
+                            <span className={`text-xs font-medium ${channel.feed_status ? 'text-green-600' : 'text-red-600'}`}>
                               {channel.feed_status ? 'Online' : 'Offline'}
                             </span>
                           </span>
@@ -90,4 +81,4 @@ export function SearchResults() {
       </Card>
     </div>
   );
-} 
+}
