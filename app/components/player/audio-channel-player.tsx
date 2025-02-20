@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Volume2, VolumeX, Play, Pause } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 
 interface AudioChannelPlayerProps {
   audioChannel: AudioChannel;
@@ -130,6 +129,7 @@ export default function AudioChannelPlayer({
         console.error("Audio initialization error:", err);
         if (isMounted) {
           setIsLoading(false);
+          setIsPlaying(false);
         }
       }
     };
@@ -149,27 +149,22 @@ export default function AudioChannelPlayer({
     };
   }, [audioChannel.mp3_url, setupAudioAnalyser]);
 
-  const togglePlayPause = async () => {
-    if (!audioRef.current) return;
-
-    try {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        await audioRef.current.play();
-        setIsPlaying(true);
-      }
-    } catch (err) {
-      toast.error("Failed to toggle audio: " + err);
-      setIsPlaying(false);
-    }
-  };
-
   const toggleMute = () => {
     if (audioRef.current) {
       audioRef.current.muted = !audioRef.current.muted;
       setIsMuted(!isMuted);
+    }
+  };
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
     }
   };
 
@@ -193,7 +188,7 @@ export default function AudioChannelPlayer({
             </div>
             <div className="flex items-center gap-2">
               <Button
-                onClick={togglePlayPause}
+                onClick={togglePlay}
                 variant={"ghost"}
                 size={"icon"}
                 className="size-8"
