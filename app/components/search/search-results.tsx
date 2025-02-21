@@ -47,7 +47,7 @@ export function SearchResults() {
             <h3 className="font-semibold mb-2">
               Available Audio Channels ({airport.audio_channels.length})
             </h3>
-            <div className="h-[600px] rounded-lg border dark:border-gray-50/10 overflow-scroll">
+            <div className="h-[600px] rounded-lg border dark:border-gray-50/10 overflow-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
