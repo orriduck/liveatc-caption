@@ -14,17 +14,13 @@ interface AudioPlayerProps {
   isLoading: boolean;
 }
 
-interface CustomAudioElement extends HTMLAudioElement {
-  cleanup?: () => void;
-}
-
 export default function AudioPlayer({
   audioUrl,
   title,
   frequencies,
   isLoading,
 }: AudioPlayerProps) {
-  const audioRef = useRef<CustomAudioElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const {
     isPlaying,
@@ -40,7 +36,6 @@ export default function AudioPlayer({
     setBuffering,
     setHasStartedPlaying,
     initializeAudioContext,
-    cleanup: cleanupAudio,
   } = useAudioStore((state) => state.actions);
 
   // Initialize audio context once
@@ -52,7 +47,7 @@ export default function AudioPlayer({
 
   // Handle audio element setup and cleanup
   useEffect(() => {
-    const audio = new Audio(audioUrl) as CustomAudioElement;
+    const audio = new Audio(audioUrl);
     audio.preload = "auto";
 
     const onWaiting = () => setBuffering(true);
@@ -105,8 +100,7 @@ export default function AudioPlayer({
     if (audioRef.current) {
       // Create a new audio element with a fresh timestamp
       const newUrl = `${audioUrl.split("&t=")[0]}&t=${Date.now()}`;
-      const newAudio = new Audio(newUrl) as CustomAudioElement;
-      newAudio.preload = "auto";
+      const newAudio = new Audio(newUrl);
 
       // Clean up old audio
       audioRef.current.pause();
@@ -152,7 +146,7 @@ export default function AudioPlayer({
       <Card className="relative">
         <CardHeader>
           <CardTitle>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="flex gap-0.5">
                   <div
