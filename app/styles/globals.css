@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Jura:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Saira:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -13,6 +13,22 @@
   .status-online-2 {
     animation: flash-2 1s infinite;
   }
+
+  .status-runway-1 {
+    animation: runway-flash 1.5s infinite;
+    animation-delay: 0s;
+  }
+
+  .status-runway-2 {
+    animation: runway-flash 1.5s infinite;
+    animation-delay: 0.2s;
+  }
+
+  .status-runway-3 {
+    animation: runway-flash 1.5s infinite;
+    animation-delay: 0.4s;
+  }
+
 }
 
 @keyframes flash-1 {
@@ -25,12 +41,17 @@
   50% { opacity: 1; }
 }
 
+@keyframes runway-flash {
+  0%, 30% { opacity: 1; }
+  31%, 100% { opacity: 0.2; }
+}
+
 body {
-  font-family: 'Jura', var(--font-geist-sans);
+  font-family: 'Saira', sans-serif;
 }
 
 .font-mono {
-  font-family: var(--font-geist-mono);
+  font-family: 'Saira', sans-serif;
 }
 
 @layer base {
@@ -89,7 +110,6 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-
 
 }
 

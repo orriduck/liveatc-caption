@@ -4,6 +4,7 @@ import PageHeader from '@/components/page-header';
 import { SearchBar } from '@/components/search/search-bar'
 import { SearchResults } from '@/components/search/search-results'
 import { useSearchStore } from '@/store/search-store'
+import { LoadingDots } from '@/components/search/loading-dots';
 
 export default function HomePage() {
   const { isLoading } = useSearchStore();
@@ -15,7 +16,7 @@ export default function HomePage() {
 
       {isLoading ? (
         <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <LoadingDots />
         </div>
       ) : (
         <SearchResults />

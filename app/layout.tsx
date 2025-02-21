@@ -32,10 +32,10 @@ export default function RootLayout({
           {children}
           <ThemeSwitcher />
           <Toaster
-            className="font-['Jura']"
+            className="font-['Saira']"
             toastOptions={{
               style: {
-                fontFamily: "Jura, var(--font-geist-sans)",
+                fontFamily: "Saira, var(--font-geist-sans)",
               },
             }}
           />
