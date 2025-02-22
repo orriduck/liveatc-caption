@@ -16,7 +16,6 @@ interface AudioPlayerProps {
 }
 
 const RECONNECT_INTERVAL = 8500; // Slightly reduced to ensure overlap
-const RECONNECT_PREPARATION_TIME = 500; // Start preparing new connection 500ms before switch
 
 export default function AudioPlayer({
   audioUrl,
@@ -28,7 +27,6 @@ export default function AudioPlayer({
   const nextAudioRef = useRef<HTMLAudioElement | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const nextSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
-  const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
 
   const {
@@ -62,16 +60,21 @@ export default function AudioPlayer({
       const audioToClean = isNext ? nextAudioRef.current : audioRef.current;
 
       if (audioToClean) {
-        // Only pause if currently playing
+        // Force pause and remove event listeners
         if (!audioToClean.paused) {
           audioToClean.pause();
         }
+        audioToClean.oncanplay = null;
+        audioToClean.onplaying = null;
+        audioToClean.onerror = null;
+        audioToClean.onwaiting = null;
+        
         // Remove source before clearing it
         if (sourceToClean) {
           sourceToClean.disconnect();
         }
-        // Just remove the src attribute instead of using a blob
         audioToClean.removeAttribute('src');
+        audioToClean.load(); // Force browser to clear buffer
       } else if (sourceToClean) {
         // Clean up source even if audio element is gone
         sourceToClean.disconnect();
@@ -85,7 +88,15 @@ export default function AudioPlayer({
         audioRef.current = null;
       }
     } catch (error) {
-      console.error('Error cleaning up connection:', error);
+      console.error('Error during cleanup:', error);
+      // Reset references even if cleanup fails
+      if (isNext) {
+        nextSourceRef.current = null;
+        nextAudioRef.current = null;
+      } else {
+        sourceRef.current = null;
+        audioRef.current = null;
+      }
     }
   }, []);
 
@@ -319,6 +330,7 @@ export default function AudioPlayer({
   // Handle automatic reconnection
   useEffect(() => {
     let reconnectTimeout: NodeJS.Timeout | null = null;
+    let playbackTimeout: NodeJS.Timeout | null = null;
     
     const scheduleNextReconnect = () => {
       if (!isPlaying || !audioContext) return;
@@ -326,7 +338,7 @@ export default function AudioPlayer({
       const newUrl = `${audioUrl.split("&t=")[0]}&t=${Date.now()}`;
       
       try {
-        // Only clean up next audio if it exists
+        // Clean up any existing next connection
         if (nextAudioRef.current || nextSourceRef.current) {
           cleanupAudioConnection(true);
         }
@@ -334,71 +346,63 @@ export default function AudioPlayer({
         // Setup new audio connection
         const cleanup = setupNewAudioElement(newUrl, true);
         if (!cleanup) {
-          console.warn('Failed to setup next audio element');
-          reconnectTimeout = setTimeout(scheduleNextReconnect, 1000);
+          console.error('Failed to setup next audio element');
+          reconnectTimeout = setTimeout(scheduleNextReconnect, 2000); // Increased retry delay
           return;
         }
 
         cleanupRef.current = cleanup;
 
-        // Attempt to start playing the next audio
         const nextAudio = nextAudioRef.current;
         if (!nextAudio) {
-          console.warn('Next audio not available after setup');
-          reconnectTimeout = setTimeout(scheduleNextReconnect, 1000);
+          console.error('Next audio not available after setup');
+          reconnectTimeout = setTimeout(scheduleNextReconnect, 2000);
           return;
         }
 
         // Load the audio first
         nextAudio.load();
         
-        // Wait for canplay event or timeout
-        const playPromise = new Promise<void>((resolve, reject) => {
-          const timeoutDuration = 3000; // Increased timeout duration
-          
-          const onCanPlay = () => {
-            nextAudio.removeEventListener('canplay', onCanPlay);
-            clearTimeout(timeoutId);
-            resolve();
-          };
-          
-          const timeoutId = setTimeout(() => {
-            nextAudio.removeEventListener('canplay', onCanPlay);
-            reject(new Error('Audio load timeout'));
-          }, timeoutDuration);
-          
-          nextAudio.addEventListener('canplay', onCanPlay);
-        });
+        // Set a timeout for the entire operation
+        const operationTimeout = setTimeout(() => {
+          console.error('Connection operation timed out');
+          cleanupAudioConnection(true);
+          reconnectTimeout = setTimeout(scheduleNextReconnect, 2000);
+        }, 10000); // 10 second timeout
 
-        void playPromise
-          .then(() => {
-            // Double check audio is still valid before playing
-            if (nextAudio === nextAudioRef.current && nextAudio.src) {
-              return nextAudio.play();
-            }
-            throw new Error('Audio element changed during load');
-          })
-          .then(() => {
-            switchToNextAudio();
-            // Schedule the next reconnection
-            reconnectTimeout = setTimeout(scheduleNextReconnect, RECONNECT_INTERVAL);
-          })
-          .catch((error: Error) => {
-            console.error('Error during reconnection:', error);
-            setBuffering(true);
-            
-            // Clean up failed connection
-            if (nextAudioRef.current === nextAudio) {
+        const onCanPlay = () => {
+          clearTimeout(operationTimeout);
+          
+          if (nextAudio !== nextAudioRef.current || !nextAudio.src) {
+            console.error('Audio element changed during setup');
+            cleanupAudioConnection(true);
+            reconnectTimeout = setTimeout(scheduleNextReconnect, 2000);
+            return;
+          }
+
+          void nextAudio.play()
+            .then(() => {
+              // Delay the switch slightly to ensure smooth transition
+              playbackTimeout = setTimeout(() => {
+                switchToNextAudio();
+                // Schedule the next reconnection
+                reconnectTimeout = setTimeout(scheduleNextReconnect, RECONNECT_INTERVAL);
+              }, 100);
+            })
+            .catch((error) => {
+              console.error('Error starting playback:', error);
               cleanupAudioConnection(true);
-            }
-            
-            // Try again with backoff
-            const backoffDelay = error.message.includes('timeout') ? 2000 : 1000;
-            reconnectTimeout = setTimeout(scheduleNextReconnect, backoffDelay);
-          });
+              reconnectTimeout = setTimeout(scheduleNextReconnect, 2000);
+            });
+        };
+
+        nextAudio.addEventListener('canplay', onCanPlay, { once: true });
+        
       } catch (error) {
-        console.error('Error setting up next audio:', error);
-        // Try again with backoff
+        console.error('Error in reconnection cycle:', error);
+        if (nextAudioRef.current || nextSourceRef.current) {
+          cleanupAudioConnection(true);
+        }
         reconnectTimeout = setTimeout(scheduleNextReconnect, 2000);
       }
     };
@@ -412,12 +416,15 @@ export default function AudioPlayer({
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
       }
-      // Only clean up next audio if it exists
+      if (playbackTimeout) {
+        clearTimeout(playbackTimeout);
+      }
+      // Clean up next audio if it exists
       if (nextAudioRef.current || nextSourceRef.current) {
         cleanupAudioConnection(true);
       }
     };
-  }, [isPlaying, audioUrl, audioContext, setupNewAudioElement, switchToNextAudio, setBuffering, cleanupAudioConnection]);
+  }, [isPlaying, audioUrl, audioContext, setupNewAudioElement, switchToNextAudio, cleanupAudioConnection]);
 
   // Handle initial audio setup
   useEffect(() => {
