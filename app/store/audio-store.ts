@@ -10,6 +10,9 @@ export interface AudioState {
   audioContext: AudioContext | null;
   analyserNode: AnalyserNode | null;
   audioData: Uint8Array | null;
+  connectionStartTime: number | null;
+  reconnectCount: number;
+  lastReconnectTime: number | null;
   actions: {
     setCurrentChannel: (channel: AudioChannel | null) => void;
     setPlaying: (isPlaying: boolean) => void;
@@ -19,6 +22,8 @@ export interface AudioState {
     initializeAudioContext: () => void;
     setAudioData: (data: Uint8Array) => void;
     cleanup: () => void;
+    updateConnectionTime: () => void;
+    incrementReconnectCount: () => void;
   };
 }
 
@@ -31,6 +36,9 @@ export const useAudioStore = create<AudioState>((set, get) => ({
   audioContext: null,
   analyserNode: null,
   audioData: null,
+  connectionStartTime: null,
+  reconnectCount: 0,
+  lastReconnectTime: null,
   actions: {
     setCurrentChannel: (channel) => set({ currentChannel: channel }),
     setPlaying: (isPlaying) => set({ isPlaying }),
@@ -47,7 +55,8 @@ export const useAudioStore = create<AudioState>((set, get) => ({
       set({ 
         audioContext: newAudioContext,
         analyserNode,
-        audioData: new Uint8Array(analyserNode.frequencyBinCount)
+        audioData: new Uint8Array(analyserNode.frequencyBinCount),
+        connectionStartTime: Date.now()
       });
     },
     setAudioData: (data) => set({ audioData: data }),
@@ -61,7 +70,18 @@ export const useAudioStore = create<AudioState>((set, get) => ({
         analyserNode: null,
         audioData: null,
         isBuffering: false,
+        connectionStartTime: null,
+        reconnectCount: 0,
+        lastReconnectTime: null
       });
     },
+    updateConnectionTime: () => set({ 
+      connectionStartTime: Date.now(),
+      lastReconnectTime: Date.now()
+    }),
+    incrementReconnectCount: () => set((state) => ({ 
+      reconnectCount: state.reconnectCount + 1,
+      lastReconnectTime: Date.now()
+    })),
   },
 })); 
