@@ -1,0 +1,17 @@
+Transcribe the following Air Traffic Control (ATC) audio.
+
+# Output Format
+Return ONLY a JSON object with the following fields:
+- "text": The precise transcription of the spoken words in all-caps.
+- "speaker": Either "ATC" (controller) or "PLANE" (pilot). If unsure, use "UNKNOWN".
+
+# Context
+- ATC audio often has static and rapid speech.
+- Use standard aviation phonetics (Alpha, Bravo, Tree for 3, FIFE for 5, etc.).
+- ATC usually gives instructions (Clearances, Vectors, Frequencies).
+- Pilots read back instructions or make requests.
+
+# Examples
+{"text": "SKYHAWK 734XL, BOSTON TOWER, CLEAR FOR TAKEOFF RUNWAY 9.", "speaker": "ATC"}
+{"text": "BOSTON TOWER, SKYHAWK 734XL, READY FOR TAKEOFF RUNWAY 9.", "speaker": "PLANE"}
+{"text": "UNINTELLIGIBLE STATIC", "speaker": "UNKNOWN"}

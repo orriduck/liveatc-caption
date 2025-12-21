@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @font-face {
+  font-family: 'Google Sans Flex';
+  src: url('/src/assets/fonts/GoogleSansFlex-VF.woff2') format('woff2-variations');
+  font-weight: 125 950;
+  font-stretch: 75% 125%;
+  font-style: normal;
+  font-display: swap;
+} */
+
+@font-face {
+  font-family: 'Google Sans Code';
+  src: url('/src/assets/fonts/GoogleSansCode-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  src: url('/src/assets/fonts/GoogleSansCode-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-neutral-950 text-neutral-100 min-h-screen overflow-hidden;
+  font-family: 'Google Sans Flex', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-optical-sizing: auto;
+}
+
+/* Custom Scrollbar for a premium look */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-neutral-800 rounded-full hover:bg-neutral-700 transition-colors;
+}
