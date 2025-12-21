@@ -11,6 +11,7 @@ dependencies = [
     "faster-whisper>=1.2.1",
     "google-genai>=1.56.0",
     "numpy>=2.4.0",
+    "pyinstaller>=6.17.0",
     "python-dotenv>=1.2.1",
     "requests>=2.32.5",
     "uvicorn>=0.38.0",
