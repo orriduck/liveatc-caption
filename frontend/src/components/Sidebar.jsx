@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Search, Radio, Activity, ChevronDown } from 'lucide-react'
+import { Search, Radio, Activity, ChevronDown, Settings } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 import { clsx } from 'clsx'
 
@@ -21,9 +21,11 @@ export function Sidebar({
     currentChannelId,
     selectChannel,
     isCollapsed,
-    onToggle
+    onToggle,
+    onOpenSettings
 }) {
     const [feedSearch, setFeedSearch] = useState('')
+    const isMac = navigator.userAgent.toUpperCase().indexOf('MAC') >= 0
 
     const filteredChannels = useMemo(() => {
         if (!sortedChannels) return []
@@ -35,7 +37,10 @@ export function Sidebar({
     if (isCollapsed) return null
 
     return (
-        <aside className="w-80 border-none bg-neutral-950 p-3 flex flex-col h-full relative group">
+        <aside className={cn(
+            "w-80 border-none bg-neutral-950 p-3 flex flex-col h-full relative group",
+            isMac && "pt-10"
+        )}>
             <div className="flex-1 bg-neutral-900/40 backdrop-blur-3xl border border-white/[0.08] rounded-2xl overflow-hidden flex flex-col relative shadow-2xl">
                 {/* Header Section (Fixed) */}
                 <div className="p-4 pb-2 flex flex-col gap-6">
@@ -185,6 +190,22 @@ export function Sidebar({
                             <p className="text-xs font-bold uppercase tracking-widest leading-relaxed">Search by ICAO code<br />to list live feeds</p>
                         </div>
                     )}
+                </div>
+
+                {/* Footer Section */}
+                <div className="p-4 border-t border-white/5 bg-black/20">
+                    <button
+                        onClick={onOpenSettings}
+                        className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-neutral-800 transition-all group/settings"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-1.5 bg-neutral-900 rounded-lg group-hover/settings:bg-neutral-800 transition-colors">
+                                <Settings className="w-4 h-4 text-neutral-500 group-hover/settings:text-blue-500" />
+                            </div>
+                            <span className="text-xs font-bold text-neutral-500 group-hover/settings:text-neutral-200 uppercase tracking-widest">Settings</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-neutral-700 font-black">v0.1.0</span>
+                    </button>
                 </div>
             </div>
         </aside>

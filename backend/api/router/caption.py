@@ -10,14 +10,14 @@ router = APIRouter(prefix="/caption", tags=["caption"])
 # Better to have a pool if many users, but for a standalone app, one is fine.
 
 @router.websocket("/{mount}")
-async def websocket_caption(websocket: WebSocket, mount: str):
+async def websocket_caption(websocket: WebSocket, mount: str, api_key: str = None):
     await websocket.accept()
     
     # Construct stream URL
     # Use the balancer URL which is more robust
     stream_url = f"https://d.liveatc.net/{mount}"
     
-    transcriber = GeminiTranscriber()
+    transcriber = GeminiTranscriber(api_key=api_key)
     
     try:
         # We run the transcription generator in a separate thread or use an async approach

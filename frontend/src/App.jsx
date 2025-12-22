@@ -14,6 +14,7 @@ const WS_BASE = "ws://localhost:8000/ws"
 import { Sidebar } from './components/Sidebar'
 import { ChannelInfoScreen } from './components/screens/ChannelInfoScreen'
 import { LiveCaptionScreen } from './components/screens/LiveCaptionScreen'
+import { SettingsScreen } from './components/screens/SettingsScreen'
 import { Player } from './components/Player'
 
 function LiveATCApp() {
@@ -29,6 +30,8 @@ function LiveATCApp() {
   const [sortBy, setSortBy] = useState('listeners') // 'listeners' | 'name'
   const [isSortOpen, setIsSortOpen] = useState(false)
   const [isSidebarVisible, setIsSidebarVisible] = useState(true)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('gemini_api_key') || '')
 
   const wsRef = useRef(null)
   const audioRef = useRef(null)
@@ -117,7 +120,14 @@ function LiveATCApp() {
 
     // WebSocket
     if (wsRef.current) wsRef.current.close()
-    const ws = new WebSocket(`${WS_BASE}/caption/${activeChannel.id}`)
+
+    // Pass API key via query param to WebSocket
+    const wsUrl = new URL(`${WS_BASE}/caption/${activeChannel.id}`)
+    if (geminiApiKey) {
+      wsUrl.searchParams.append('api_key', geminiApiKey)
+    }
+
+    const ws = new WebSocket(wsUrl.toString())
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data)
@@ -173,7 +183,10 @@ function LiveATCApp() {
       {!isSidebarVisible && (
         <button
           onClick={() => setIsSidebarVisible(true)}
-          className="fixed top-6 left-6 z-[60] bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg shadow-blue-900/40 flex items-center gap-2 animate-in fade-in zoom-in slide-in-from-left-4 duration-300 font-bold text-xs"
+          className={cn(
+            "fixed left-6 z-[60] bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg shadow-blue-900/40 flex items-center gap-2 animate-in fade-in zoom-in slide-in-from-left-4 duration-300 font-bold text-xs",
+            navigator.userAgent.toUpperCase().indexOf('MAC') >= 0 ? "top-12" : "top-6"
+          )}
         >
           <Radio className="w-4 h-4" />
           <span>LIVEATC</span>
@@ -200,12 +213,22 @@ function LiveATCApp() {
           selectChannel={selectChannel}
           isCollapsed={!isSidebarVisible}
           onToggle={() => setIsSidebarVisible(false)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
         />
       </div>
 
       {/* Main Content (Caption Panel) */}
       <main className="flex-1 flex flex-col relative overflow-hidden h-full">
-        {activeChannel ? (
+        {isSettingsOpen ? (
+          <SettingsScreen
+            initialApiKey={geminiApiKey}
+            onClose={() => setIsSettingsOpen(false)}
+            onSave={(newKey) => {
+              setGeminiApiKey(newKey)
+              localStorage.setItem('gemini_api_key', newKey)
+            }}
+          />
+        ) : activeChannel ? (
           isConnected ? (
             <LiveCaptionScreen
               channel={activeChannel}

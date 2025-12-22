@@ -1,0 +1,46 @@
+{
+    "name": "liveatc-caption",
+    "version": "0.1.0",
+    "description": "LiveATC Real-time Captioning App",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "dist": "electron-builder"
+    },
+    "devDependencies": {
+        "electron": "^33.0.0",
+        "electron-builder": "^25.1.8"
+    },
+    "dependencies": {
+        "get-port": "^5.1.1"
+    },
+    "build": {
+        "appId": "com.liveatc.caption",
+        "productName": "LiveATC Caption",
+        "mac": {
+            "category": "public.app-category.utilities",
+            "target": [
+                "dmg"
+            ],
+            "hardenedRuntime": true,
+            "gatekeeperAssess": false
+        },
+        "directories": {
+            "output": "dist"
+        },
+        "extraResources": [
+            {
+                "from": "../../backend/dist/backend_app",
+                "to": "backend_dist",
+                "filter": [
+                    "**/*"
+                ]
+            }
+        ],
+        "files": [
+            "main.js",
+            "package.json",
+            "node_modules/**/*"
+        ]
+    }
+}
