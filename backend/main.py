@@ -35,9 +35,18 @@ else:
 if os.path.exists(frontend_path):
     app.mount("/", StaticFiles(directory=frontend_path, html=True), name="static")
 
+from dotenv import load_dotenv
+load_dotenv()
+
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
+
+@app.get("/api/config")
+async def config():
+    return {
+        "has_env_key": bool(os.environ.get("GEMINI_API_KEY")),
+    }
 
 # Catch-all route to serve index.html for SPA routing
 @app.get("/{full_path:path}")

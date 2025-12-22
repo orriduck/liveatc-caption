@@ -3,6 +3,16 @@ import { Settings, X, Key, Info, Github } from 'lucide-react'
 
 export function SettingsScreen({ onClose, onSave, initialApiKey }) {
     const [apiKey, setApiKey] = useState(initialApiKey || '')
+    const [hasEnvKey, setHasEnvKey] = useState(false)
+
+    useEffect(() => {
+        fetch('http://localhost:8000/api/config')
+            .then(res => res.json())
+            .then(data => {
+                if (data.has_env_key) setHasEnvKey(true)
+            })
+            .catch(err => console.error("Failed to fetch backend config", err))
+    }, [])
 
     const handleSave = () => {
         onSave(apiKey)
@@ -41,11 +51,32 @@ export function SettingsScreen({ onClose, onSave, initialApiKey }) {
                         <div className="relative group">
                             <input
                                 type="password"
-                                placeholder="Paste your API key here..."
+                                placeholder={hasEnvKey ? "Using environment variable..." : "Paste your API key here..."}
                                 className="w-full bg-neutral-900/50 border border-neutral-800 rounded-2xl py-4 pl-6 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-mono text-sm"
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
                             />
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mt-4">
+                            {hasEnvKey && (
+                                <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-full" title="Provided via .env file on the server">
+                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                                    <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">Environment Env Set</span>
+                                </div>
+                            )}
+                            {apiKey && (
+                                <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-full" title="Typed key takes precedence over environment variable">
+                                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                                    <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Local Key Active</span>
+                                </div>
+                            )}
+                            {!hasEnvKey && !apiKey && (
+                                <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full">
+                                    <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                                    <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Key Missing</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -67,7 +98,7 @@ export function SettingsScreen({ onClose, onSave, initialApiKey }) {
 
                         <div className="flex items-center gap-6 pt-4">
                             <a
-                                href="https://github.com/ruyyi/liveatc-caption"
+                                href="https://github.com/orriduck/liveatc-caption"
                                 target="_blank"
                                 rel="noreferrer"
                                 className="flex items-center gap-2 text-xs font-bold text-neutral-500 hover:text-blue-400 transition-colors uppercase tracking-wider"
