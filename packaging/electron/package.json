@@ -27,7 +27,7 @@
             "target": [
                 "dmg",
                 "zip",
-                "app"
+                "pkg"
             ],
             "hardenedRuntime": true,
             "gatekeeperAssess": false
