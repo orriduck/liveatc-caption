@@ -80,7 +80,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add Casks/liveatc-caption.rb
           git commit -m "chore: update homebrew cask to ${GITHUB_REF#refs/tags/}"
-          git push origin main
+          git push origin HEAD:main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
