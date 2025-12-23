@@ -25,7 +25,9 @@
         "mac": {
             "category": "public.app-category.utilities",
             "target": [
-                "dmg"
+                "dmg",
+                "zip",
+                "app"
             ],
             "hardenedRuntime": true,
             "gatekeeperAssess": false

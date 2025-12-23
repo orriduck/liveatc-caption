@@ -14,6 +14,15 @@ LiveATC Caption captures live air traffic control audio streams and provides rea
 - **Real-time**: WebSockets for low-latency caption delivery.
 - **Typography**: Google Sans Flex & Google Sans Code.
 
+## Installation (macOS)
+You can install LiveATC Caption directly via Homebrew:
+
+```bash
+brew install --cask https://raw.githubusercontent.com/orriduck/liveatc-caption/main/Casks/liveatc-caption.rb
+```
+
+Alternatively, you can download the latest `.dmg` or `.app.zip` from the [Releases](https://github.com/orriduck/liveatc-caption/releases) page.
+
 ## Getting Started
 
 ### Prerequisites
