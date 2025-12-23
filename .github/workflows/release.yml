@@ -50,14 +50,20 @@ jobs:
         run: |
           cd packaging/electron
           export CSC_IDENTITY_AUTO_DISCOVERY=false
-          npm run dist
+          npm run dist -- --publish never
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Homebrew Cask
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          DMG_PATH=packaging/electron/dist/LiveATC.Caption-${VERSION}-arm64.dmg
+          # Find the DMG file regardless of exact name/spaces
+          DMG_PATH=$(find packaging/electron/dist -maxdepth 1 -name "*.dmg" | head -n 1)
+          if [ -z "$DMG_PATH" ]; then
+            echo "Error: No DMG file found in packaging/electron/dist"
+            exit 1
+          fi
+          echo "Found DMG at $DMG_PATH"
           SHA256=$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')
           
           # Update version and sha256 in the cask file
