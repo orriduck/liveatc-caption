@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            packaging/electron/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Build Backend
+        run: |
+          ./packaging/scripts/build_backend.sh
+
+      - name: Install Electron Packaging Dependencies
+        run: |
+          cd packaging/electron
+          npm ci
+
+      - name: Build and Package Electron App
+        run: |
+          cd packaging/electron
+          export CSC_IDENTITY_AUTO_DISCOVERY=false
+          npm run dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Homebrew Cask
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          DMG_PATH=packaging/electron/dist/LiveATC.Caption-${VERSION}-arm64.dmg
+          SHA256=$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')
+          
+          # Update version and sha256 in the cask file
+          sed -i '' "s/version \".*\"/version \"$VERSION\"/" Casks/liveatc-caption.rb
+          sed -i '' "s/sha256 \".*\"/sha256 \"$SHA256\"/" Casks/liveatc-caption.rb
+          # also handle :no_check placeholder if it exists
+          sed -i '' "s/sha256 :no_check/sha256 \"$SHA256\"/" Casks/liveatc-caption.rb
+          
+          echo "Updated Cask with version $VERSION and SHA256 $SHA256"
+
+      - name: Commit Cask Update
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/liveatc-caption.rb
+          git commit -m "chore: update homebrew cask to ${GITHUB_REF#refs/tags/}"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: packaging/electron/dist/*.dmg
+          draft: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

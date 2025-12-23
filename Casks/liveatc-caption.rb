@@ -1,11 +1,11 @@
 cask "liveatc-caption" do
   version "0.1.0"
-  sha256 :no_check # Replace with actual SHA256 of the DMG
+  sha256 :no_check # Updated automatically by CI
 
-  url "https://github.com/YOUR_USERNAME/liveatc-caption/releases/download/v#{version}/LiveATC.Caption-#{version}-arm64.dmg"
+  url "https://github.com/orriduck/liveatc-caption/releases/download/v#{version}/LiveATC.Caption-#{version}-arm64.dmg"
   name "LiveATC Caption"
   desc "Real-time ATC communication captioning app"
-  homepage "https://github.com/YOUR_USERNAME/liveatc-caption"
+  homepage "https://github.com/orriduck/liveatc-caption"
 
   app "LiveATC Caption.app"
 
