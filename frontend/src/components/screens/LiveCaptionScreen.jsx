@@ -6,17 +6,14 @@ function cn(...inputs) {
     return twMerge(clsx(inputs))
 }
 
-export function LiveCaptionScreen({ channel, captions, onStop, msgRef }) {
+// eslint-disable-next-line no-unused-vars
+export function LiveCaptionScreen({ _channel, captions, _onStop, msgRef }) {
     return (
         <>
             {/* Captions Feed */}
             <div className="flex-1 overflow-y-auto p-12 pt-24 pb-32 scrollbar-hide flex flex-col justify-end">
                 <div className="space-y-6">
                     {captions.length > 0 ? captions.map((cap, i) => {
-                        // Safety check: if text looks like JSON, don't show it as raw text
-                        const isRawJson = cap.text && cap.text.startsWith('{') && cap.text.endsWith('}')
-                        const displayText = isRawJson ? "PARSING ERROR" : cap.text
-
                         return (
                             <div
                                 key={cap.id}

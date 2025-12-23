@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Activity, Square, Volume2 } from 'lucide-react'
-import { twMerge } from 'tailwind-merge'
-import { clsx } from 'clsx'
-
-function cn(...inputs) {
-    return twMerge(clsx(inputs))
-}
+import { Activity, Square } from 'lucide-react'
 
 export function Player({ channel, onStop }) {
     const [duration, setDuration] = useState(0)

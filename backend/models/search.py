@@ -1,9 +1,11 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+
 class Frequency(BaseModel):
     facility: str
     frequency: str
+
 
 class Channel(BaseModel):
     name: str
@@ -11,9 +13,10 @@ class Channel(BaseModel):
     status: str
     is_up: bool
     listeners: int
-    data_source: Optional[str] = None # 'local' or 'liveatc'
+    data_source: Optional[str] = None  # 'local' or 'liveatc'
     stream_url: Optional[str] = None
     frequencies: List[Frequency]
+
 
 class AirportInfo(BaseModel):
     icao: Optional[str] = None
@@ -21,6 +24,7 @@ class AirportInfo(BaseModel):
     city: Optional[str] = None
     region: Optional[str] = None
     metar: Optional[str] = None
+
 
 class SearchResponse(BaseModel):
     airport: AirportInfo = AirportInfo()

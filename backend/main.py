@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Dict
 import uvicorn
+from dotenv import load_dotenv
 import os
 import sys
 from fastapi.staticfiles import StaticFiles
@@ -24,7 +24,7 @@ app.include_router(search_router, prefix="/api")
 app.include_router(caption_router, prefix="/ws")
 
 # Serve static files from the frontend build
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     # Running in a bundle
     base_path = sys._MEIPASS
     frontend_path = os.path.join(base_path, "static")
@@ -35,18 +35,21 @@ else:
 if os.path.exists(frontend_path):
     app.mount("/", StaticFiles(directory=frontend_path, html=True), name="static")
 
-from dotenv import load_dotenv
+
 load_dotenv()
+
 
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
+
 
 @app.get("/api/config")
 async def config():
     return {
         "has_env_key": bool(os.environ.get("GEMINI_API_KEY")),
     }
+
 
 # Catch-all route to serve index.html for SPA routing
 @app.get("/{full_path:path}")
@@ -55,6 +58,7 @@ async def serve_spa(full_path: str):
     if os.path.exists(index_file):
         return FileResponse(index_file)
     return {"error": "Frontend build not found"}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

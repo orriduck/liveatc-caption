@@ -97,6 +97,7 @@ function LiveATCApp() {
       const result = await resp.json()
       setData(result)
     } catch (err) {
+      console.error("Failed to fetch data", err)
       setError("Failed to fetch data. Is the backend running?")
     } finally {
       setLoading(false)
