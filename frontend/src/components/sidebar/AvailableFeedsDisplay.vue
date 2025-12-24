@@ -1,38 +1,38 @@
 <template>
-  <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col min-h-0">
-    <div class="p-3 bg-zinc-900/50 border-b border-zinc-800 sticky top-0 z-10 backdrop-blur-md">
+  <div class="border rounded-2xl overflow-hidden flex flex-col min-h-0">
+    <div class="p-3 border-b sticky top-0 z-10 backdrop-blur-md">
       <div class="flex items-center justify-between mb-2 px-1">
         <div class="flex items-center gap-2">
-          <ListFilter class="w-3 h-3 text-zinc-500" />
-          <h3 class="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Feeds</h3>
+          <ListFilter class="w-3 h-3" />
+          <h3 class="text-[10px] font-black tracking-widest uppercase">Feeds</h3>
         </div>
         <div class="flex items-center gap-1">
           <button 
             @click="$emit('refresh')"
-            class="btn btn-ghost btn-xs btn-square text-zinc-500 hover:text-white"
+            class="btn btn-ghost btn-xs btn-square"
             :class="{ 'animate-spin': isRefreshing }"
           >
             <RefreshCw class="w-3 h-3" />
           </button>
           <div class="dropdown dropdown-end">
-            <button tabindex="0" class="btn btn-ghost btn-xs btn-square text-zinc-500 hover:text-white">
+            <button tabindex="0" class="btn btn-ghost btn-xs btn-square">
               <ArrowUpDown class="w-3 h-3" />
             </button>
-            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-zinc-900 border border-zinc-800 rounded-xl w-40 mt-2 text-[10px] font-bold uppercase tracking-widest">
-              <li><a @click="sortBy = 'listeners'" :class="{ 'text-blue-500': sortBy === 'listeners' }">Most Active</a></li>
-              <li><a @click="sortBy = 'name'" :class="{ 'text-blue-500': sortBy === 'name' }">A-Z Name</a></li>
+            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow border rounded-xl w-40 mt-2 text-[10px] font-bold uppercase tracking-widest">
+              <li><a @click="sortBy = 'listeners'" :class="{ 'underline': sortBy === 'listeners' }">Most Active</a></li>
+              <li><a @click="sortBy = 'name'" :class="{ 'underline': sortBy === 'name' }">A-Z Name</a></li>
             </ul>
           </div>
         </div>
       </div>
       
       <div class="relative">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-600" />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3" />
         <input 
           v-model="searchQuery"
           type="text" 
           placeholder="Filter channels..." 
-          class="w-full bg-black/40 border border-zinc-800/50 rounded-lg py-1.5 pl-8 pr-3 text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all text-zinc-300"
+          class="w-full border rounded-lg py-1.5 pl-8 pr-3 text-[10px] focus:outline-none focus:ring-1 transition-all"
         />
       </div>
     </div>
@@ -47,25 +47,25 @@
           v-for="channel in filteredChannels"
           :key="channel.id"
           @click="$emit('select-channel', channel)"
-          class="w-full text-left p-3 flex items-center justify-between hover:bg-white/5 transition-colors group border-b border-zinc-800 last:border-0"
-          :class="{ 'bg-blue-500/10': currentChannelId === channel.id }"
+          class="w-full text-left p-3 flex items-center justify-between transition-colors group border-b last:border-0"
+          :class="{ 'bg-current/10': currentChannelId === channel.id }"
         >
           <div class="flex-1 min-w-0 pr-2">
             <h4 
               class="text-xs font-bold truncate transition-colors"
-              :class="currentChannelId === channel.id ? 'text-blue-400' : 'text-zinc-200 group-hover:text-white'"
+              :class="{ 'font-black': currentChannelId === channel.id }"
             >
               {{ channel.name }}
             </h4>
             <div class="flex items-center gap-2 mt-0.5">
-              <span class="flex items-center gap-1 text-[9px] font-bold text-zinc-500">
+              <span class="flex items-center gap-1 text-[9px] font-bold opacity-50">
                 <Users class="w-2.5 h-2.5" />
                 {{ channel.listeners }} listening
               </span>
-              <span v-if="channel.status === 'UP'" class="w-1.5 h-1.5 rounded-full bg-green-500/50 animate-pulse"></span>
+              <span v-if="channel.status === 'UP'" class="w-1.5 h-1.5 rounded-full opacity-50 animate-pulse"></span>
             </div>
           </div>
-          <ChevronRight class="w-3 h-3 text-zinc-700 group-hover:text-zinc-400 transition-colors" />
+          <ChevronRight class="w-3 h-3 opacity-30 group-hover:opacity-100 transition-colors" />
         </button>
       </div>
     </div>

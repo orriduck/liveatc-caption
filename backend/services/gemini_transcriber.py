@@ -9,17 +9,19 @@ from models.transcription import TranscriptionResult
 import json
 
 # Configure your model here
-MODEL_NAME = "gemini-3-flash-preview"
+MODEL_NAME = "gemini-2.0-flash-exp"
 
 
 class GeminiTranscriber:
     def __init__(self, api_key=None):
         load_dotenv()
-        self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
-        if not self.api_key:
-            print("WARNING: GEMINI_API_KEY not found in environment")
-
-        self.client = genai.Client(api_key=self.api_key)
+        self.api_key = (api_key or os.environ.get("GEMINI_API_KEY", "")).strip()
+        if self.api_key:
+            print(f"DEBUG: Using API key: ...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}")
+            self.client = genai.Client(api_key=self.api_key)
+        else:
+            print("DEBUG: No API key provided or found in ENV")
+            self.client = None
         self.chunk_queue = queue.Queue()
         self.is_running = False
         self.system_prompt = self._load_prompt("transcription_system.txt")

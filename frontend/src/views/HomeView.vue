@@ -1,11 +1,11 @@
 <template>
-  <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-base-100">
-    <div v-if="!activeChannel" class="hero min-h-screen bg-base-200">
+  <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+    <div v-if="!activeChannel" class="hero min-h-screen">
       <div class="hero-content text-center">
-        <div class="max-w-md opacity-20">
+        <div class="w-full opacity-20">
           <Radio class="w-24 h-24 mx-auto mb-6" />
           <h1 class="text-2xl font-black uppercase tracking-widest">Select Frequency</h1>
-          <p class="py-2 text-sm italic">Transmission captions will appear here in real-time</p>
+          <p class="py-2 text-sm italic">Transmission captions appear here in real-time</p>
         </div>
       </div>
     </div>

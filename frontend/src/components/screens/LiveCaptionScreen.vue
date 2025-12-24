@@ -1,21 +1,16 @@
 <template>
-  <div class="flex-1 overflow-y-auto p-12 pt-24 pb-32 flex flex-col justify-end min-h-0">
+  <div class="flex-1 overflow-y-auto p-6 md:p-12 pt-24 pb-32 flex flex-col justify-end min-h-0">
     <div class="space-y-6">
       <div v-if="captions.length > 0">
         <div
           v-for="(cap, i) in captions"
           :key="cap.id"
-          class="flex flex-col gap-1.5 max-w-5xl transition-all duration-700 ease-out"
+          class="flex flex-col gap-1.5 transition-all duration-700 ease-out"
           :class="i === captions.length - 1 ? 'opacity-100 translate-y-0' : 'opacity-50 -translate-y-2 scale-[0.98]'"
         >
           <div class="flex items-center gap-3">
             <div 
               class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 shadow-sm border"
-              :class="{
-                'bg-blue-600/20 text-blue-400 border-blue-500/20': cap.speaker === 'ATC',
-                'bg-emerald-600/20 text-emerald-400 border-emerald-500/20': cap.speaker === 'PLANE',
-                'bg-white/5 text-neutral-500 border-white/5': !['ATC', 'PLANE'].includes(cap.speaker)
-              }"
             >
               <TowerControl v-if="cap.speaker === 'ATC'" class="w-4 h-4" />
               <Plane v-else-if="cap.speaker === 'PLANE'" class="w-4 h-4" />
@@ -24,11 +19,7 @@
 
             <span 
               class="text-[11px] font-black uppercase tracking-[.2em] leading-none"
-              :class="{
-                'text-blue-400/80': cap.speaker === 'ATC',
-                'text-emerald-400/80': cap.speaker === 'PLANE',
-                'text-neutral-500': !['ATC', 'PLANE'].includes(cap.speaker)
-              }"
+              :class="{ 'opacity-80': ['ATC', 'PLANE'].includes(cap.speaker) }"
             >
               {{ cap.speaker || 'UNKNOWN' }}
             </span>
@@ -41,12 +32,8 @@
 
           <div class="pl-0.5 mt-1">
             <p 
-              class="text-2xl md:text-4xl font-black italic tracking-tighter leading-[1.1] uppercase antialiased"
-              :class="{
-                'text-blue-50/95': cap.speaker === 'ATC',
-                'text-emerald-50/95': cap.speaker === 'PLANE',
-                'text-white': !['ATC', 'PLANE'].includes(cap.speaker)
-              }"
+              class="text-2xl md:text-5xl lg:text-6xl font-black italic tracking-tighter leading-[1.1] uppercase antialiased"
+              :class="{ 'opacity-95': ['ATC', 'PLANE'].includes(cap.speaker) }"
             >
               {{ cap.text }}
             </p>

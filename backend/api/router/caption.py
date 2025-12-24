@@ -1,4 +1,4 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from services.gemini_transcriber import GeminiTranscriber
 import asyncio
 
@@ -10,7 +10,8 @@ router = APIRouter(prefix="/caption", tags=["caption"])
 
 
 @router.websocket("/{mount}")
-async def websocket_caption(websocket: WebSocket, mount: str, api_key: str = None):
+async def websocket_caption(websocket: WebSocket, mount: str, api_key: str = Query(None)):
+    print(f"DEBUG: WS Request for {mount} | Key: ...{api_key[-4:] if api_key and len(api_key) > 4 else 'NONE'}")
     await websocket.accept()
 
     # Construct stream URL

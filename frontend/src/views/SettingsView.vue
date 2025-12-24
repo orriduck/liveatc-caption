@@ -1,16 +1,16 @@
 <template>
-  <div class="flex-1 flex flex-col h-full bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
+  <div class="flex-1 flex flex-col h-full bg-base-100 backdrop-blur-md animate-in fade-in duration-300">
     <div class="max-w-xl w-full mx-auto mt-20 p-8">
       <div class="flex items-center justify-between mb-10">
         <div class="flex items-center gap-4">
-          <div class="p-3 bg-neutral-900 rounded-2xl border border-white/5 shadow-2xl">
-            <SettingsIcon class="w-6 h-6 text-blue-500" />
+          <div class="p-3 border rounded-2xl shadow-2xl">
+            <SettingsIcon class="w-6 h-6" />
           </div>
           <h1 class="text-3xl font-black uppercase tracking-tighter">Settings</h1>
         </div>
         <button
           @click="$router.back()"
-          class="p-2 hover:bg-neutral-800 rounded-full transition-all text-neutral-500 hover:text-white"
+          class="p-2 border rounded-full transition-all hover:bg-current/10"
         >
           <X class="w-6 h-6" />
         </button>
@@ -19,62 +19,70 @@
       <div class="space-y-12">
         <!-- Gemini API Key Section -->
         <div class="space-y-4">
-          <div class="flex items-center gap-2 mb-2">
-            <Key class="w-4 h-4 text-blue-500" />
-            <h2 class="text-sm font-bold uppercase tracking-widest text-neutral-400">Gemini API Key</h2>
+          <div class="flex items-center gap-2 mb-2 opacity-50 font-black uppercase tracking-widest">
+            <Key class="w-4 h-4" />
+            <h2 class="text-sm">Gemini API Key</h2>
           </div>
-          <p class="text-xs text-neutral-500 leading-relaxed max-w-sm mb-4">
+          <p class="text-xs opacity-50 leading-relaxed max-w-sm mb-4">
             Enter your Google Gemini API key to enable high-quality transcriptions.
             Your key is stored locally on this device.
           </p>
           <div class="relative group">
             <input
-              type="password"
+              :type="showApiKey ? 'text' : 'password'"
               :placeholder="hasEnvKey ? 'Using environment variable...' : 'Paste your API key here...'"
-              class="w-full bg-neutral-900/50 border border-neutral-800 rounded-2xl py-4 pl-6 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-mono text-sm"
+              class="w-full border rounded-2xl py-4 pl-6 pr-12 focus:outline-none focus:ring-2 transition-all font-mono text-sm"
               v-model="apiKey"
             />
+            <button
+              type="button"
+              @click="showApiKey = !showApiKey"
+              class="absolute right-4 top-1/2 -translate-y-1/2 p-1 opacity-50 hover:opacity-100 transition-opacity"
+            >
+              <Eye v-if="!showApiKey" class="w-5 h-5" />
+              <EyeOff v-else class="w-5 h-5" />
+            </button>
           </div>
 
           <div class="flex flex-wrap gap-2 mt-4">
             <div 
               v-if="hasEnvKey" 
-              class="flex items-center gap-2 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-full" 
+              class="flex items-center gap-2 border px-3 py-1.5 rounded-full" 
               title="Provided via .env file on the server"
             >
-              <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-              <span class="text-[10px] font-black text-green-500 uppercase tracking-widest">Environment Env Set</span>
+              <div class="w-1.5 h-1.5 border rounded-full animate-pulse"></div>
+              <span class="text-[10px] font-black uppercase tracking-widest">Environment Env Set</span>
             </div>
             <div 
               v-if="apiKey" 
-              class="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-full" 
+              class="flex items-center gap-2 border px-3 py-1.5 rounded-full" 
               title="Typed key takes precedence over environment variable"
             >
-              <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-              <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Local Key Active</span>
+              <div class="w-1.5 h-1.5 border rounded-full"></div>
+              <span class="text-[10px] font-black uppercase tracking-widest">Local Key Active</span>
             </div>
             <div 
               v-if="!hasEnvKey && !apiKey" 
-              class="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full"
+              class="flex items-center gap-2 border px-3 py-1.5 rounded-full opacity-50"
             >
-              <div class="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
-              <span class="text-[10px] font-black text-amber-500 uppercase tracking-widest">Key Missing</span>
+              <div class="w-1.5 h-1.5 border rounded-full"></div>
+              <span class="text-[10px] font-black uppercase tracking-widest">Key Missing</span>
             </div>
           </div>
         </div>
 
         <!-- About Section -->
-        <div class="pt-12 border-t border-white/5 space-y-6">
-          <div class="flex items-center gap-2">
-            <Info class="w-4 h-4 text-neutral-600" />
-            <h2 class="text-sm font-bold uppercase tracking-widest text-neutral-600">About</h2>
+        <div class="pt-12 border-t space-y-6">
+          <div class="flex items-center gap-2 opacity-50">
+            <Info class="w-4 h-4" />
+            <h2 class="text-sm font-bold uppercase tracking-widest">About</h2>
           </div>
           <div class="space-y-2">
             <div class="flex items-center gap-3">
-              <span class="text-2xl font-black text-white px-2 py-0.5 bg-blue-600 rounded">0.1.0</span>
-              <span class="text-neutral-500 font-bold uppercase tracking-widest text-xs">Stable Release</span>
+              <span class="text-2xl font-black px-2 py-0.5 border rounded">0.1.0</span>
+              <span class="opacity-50 font-bold uppercase tracking-widest text-xs">Stable Release</span>
             </div>
-            <p class="text-sm text-neutral-400 leading-relaxed italic">
+            <p class="text-sm opacity-50 leading-relaxed italic">
               Real-time ATC communication captioning powered by AI.
             </p>
           </div>
@@ -84,7 +92,7 @@
               href="https://github.com/orriduck/liveatc-caption"
               target="_blank"
               rel="noreferrer"
-              class="flex items-center gap-2 text-xs font-bold text-neutral-500 hover:text-blue-400 transition-colors uppercase tracking-wider"
+              class="flex items-center gap-2 text-xs font-bold opacity-50 hover:opacity-100 transition-colors uppercase tracking-wider"
             >
               <Github class="w-4 h-4" />
               GitHub Repository
@@ -96,7 +104,7 @@
       <div class="mt-16">
         <button
           @click="handleSave"
-          class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-900/20 active:scale-[0.98] transition-all uppercase tracking-widest"
+          class="w-full border font-black py-4 rounded-2xl shadow-xl active:scale-[0.98] transition-all uppercase tracking-widest"
         >
           Save Configuration
         </button>
@@ -107,13 +115,14 @@
 
 <script setup>
 import { ref, onMounted, inject } from 'vue'
-import { Settings as SettingsIcon, X, Key, Info, Github } from 'lucide-vue-next'
+import { Settings as SettingsIcon, X, Key, Info, Github, Eye, EyeOff } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const { geminiApiKey, setGeminiApiKey } = inject('liveATC')
 
 const apiKey = ref(geminiApiKey.value)
+const showApiKey = ref(false)
 const hasEnvKey = ref(false)
 
 onMounted(async () => {
@@ -127,7 +136,7 @@ onMounted(async () => {
 })
 
 const handleSave = () => {
-  setGeminiApiKey(apiKey.value)
+  setGeminiApiKey(apiKey.value?.trim() || "")
   router.back()
 }
 </script>
