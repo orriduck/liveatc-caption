@@ -2,15 +2,13 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{vue,js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        sans: ['"Google Sans Flex"', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-        mono: ['"Google Sans Code"', '"JetBrains Mono"', 'monospace'],
-      },
-    },
+    extend: {},
   },
-  plugins: [],
+  plugins: [require("daisyui")],
+  daisyui: {
+    themes: ["light", "dark", "cupcake"],
+  },
 }
