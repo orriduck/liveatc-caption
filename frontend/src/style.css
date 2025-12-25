@@ -67,9 +67,14 @@ body {
 }
 
 /* Global Theme Overrides */
+[data-theme='light'] {
+  --gemini-base: #f0f4f8;
+  --gemini-sidebar: #E9EEF6;
+}
+
 [data-theme='dark'] {
-  --bc: 220 13% 30%;
-  /* Darker content color in HSL */
+  --gemini-base: #000;
+  --gemini-sidebar: #1e1f20;
 }
 
 [data-theme='dark'] .border,

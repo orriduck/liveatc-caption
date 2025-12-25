@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <div class="overflow-y-auto max-h-[400px]">
+    <div class="overflow-y-auto flex-1">
       <div v-if="filteredChannels.length === 0" class="p-8 text-center opacity-20">
         <Radio class="w-8 h-8 mx-auto mb-2" />
         <p class="text-[10px] uppercase">No feeds found</p>

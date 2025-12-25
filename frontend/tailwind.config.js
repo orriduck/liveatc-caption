@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        "gemini-base": "#f0f4f8",
-        "gemini-sidebar": "#E9EEF6"
+        "gemini-base": "var(--gemini-base)",
+        "gemini-sidebar": "var(--gemini-sidebar)"
       }
     },
   },
@@ -17,8 +17,8 @@ export default {
     themes: [
       {
         light: {
-          "primary": "#1a73e8",
-          "secondary": "#e8f0fe",
+          "primary": "#fff",
+          "secondary": "#f9f9f9",
           "accent": "#1a73e8",
           "neutral": "#1f1f1f",
           "base-100": "#ffffff",
@@ -32,10 +32,10 @@ export default {
         },
         dark: {
           "primary": "#8ab4f8",
-          "secondary": "#131314",
+          "secondary": "#1e1f20",
           "accent": "#8ab4f8",
           "neutral": "#e3e3e3",
-          "base-100": "#131314",
+          "base-100": "#1d232b",
           "base-200": "#1f1f1f",
           "base-300": "#2d2e30",
           "base-content": "#e3e3e3",

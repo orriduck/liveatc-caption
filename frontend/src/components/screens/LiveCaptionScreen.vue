@@ -37,30 +37,28 @@
       <!-- Speaking Placeholder -->
       <div v-if="connectionState === 'SPEAKING'" class="flex flex-col gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
         <div class="flex items-center gap-2">
-           <div class="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <div class="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></div>
+           <div class="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
+              <div class="flex gap-0.5 items-end h-2.5 w-max">
+                <div class="w-0.5 bg-current animate-[bounce_1s_infinite] h-2.5 rounded-full"></div>
+                <div class="w-0.5 bg-current animate-[bounce_1.2s_infinite] h-1.5 rounded-full"></div>
+                <div class="w-0.5 bg-current animate-[bounce_0.8s_infinite] h-2 rounded-full"></div>
+              </div>
               Speaking
            </div>
-        </div>
-        <div class="flex gap-1 items-end h-8 opacity-20">
-            <div class="w-2 bg-current animate-[bounce_1s_infinite] h-8 rounded-full"></div>
-            <div class="w-2 bg-current animate-[bounce_1.2s_infinite] h-6 rounded-full"></div>
-            <div class="w-2 bg-current animate-[bounce_0.8s_infinite] h-8 rounded-full"></div>
         </div>
       </div>
 
       <!-- Transcribing Placeholder -->
       <div v-if="hasPendingTranscription" class="flex flex-col gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
         <div class="flex items-center gap-2">
-           <div class="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <div class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+           <div class="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
+              <div class="flex gap-0.5 items-end h-2.5 w-max">
+                <div class="w-0.5 bg-current animate-[pulse_1s_infinite] h-2.5 rounded-full opacity-60"></div>
+                <div class="w-0.5 bg-current animate-[pulse_1.2s_infinite] h-1.5 rounded-full opacity-60"></div>
+                <div class="w-0.5 bg-current animate-[pulse_0.8s_infinite] h-2 rounded-full opacity-60"></div>
+              </div>
               Transcribing
            </div>
-        </div>
-        <div class="flex gap-1 items-end h-8 opacity-10">
-            <div class="w-2 bg-current animate-[pulse_1s_infinite] h-4 rounded-full"></div>
-            <div class="w-2 bg-current animate-[pulse_1.2s_infinite] h-6 rounded-full"></div>
-            <div class="w-2 bg-current animate-[pulse_0.8s_infinite] h-4 rounded-full"></div>
         </div>
       </div>
       <div v-if="visibleCaptions.length === 0 && connectionState !== 'SPEAKING' && !hasPendingTranscription" class="h-[60vh] flex flex-col items-center justify-center opacity-10 pb-24">

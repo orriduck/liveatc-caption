@@ -13,13 +13,14 @@
     </div>
 
     <!-- Content Section -->
-    <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+    <div class="flex-1 min-h-0">
       <SidebarLoading v-if="loading" />
-      <div v-else class="flex flex-col gap-2 p-2">
-        <AirportInfo :airport="data?.airport" />
+      <div v-else class="flex flex-col h-full gap-2 p-2">
+        <AirportInfo :airport="data?.airport" class="shrink-0" />
         <AvailableFeedsDisplay
           v-if="data"
           :data="data"
+          class="flex-1 min-h-0"
           :currentChannelId="currentChannelId"
           :isRefreshing="isRefreshing"
           @refresh="$emit('refresh')"
