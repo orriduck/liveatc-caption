@@ -2,6 +2,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Header
 from fastapi import UploadFile, File
 from services.gemini_transcriber import GeminiTranscriber
 import asyncio
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/caption", tags=["caption"])
 
@@ -58,7 +59,9 @@ async def websocket_caption(
 
 @router.post("/transcribe")
 async def transcribe_audio(
-    file: UploadFile = File(...), x_api_key: str = Header(None, alias="X-API-Key")
+    file: UploadFile = File(...), 
+    x_api_key: str = Header(None, alias="X-API-Key"),
+    start_time: str = Query(None)
 ):
     try:
         audio_bytes = await file.read()
@@ -67,11 +70,17 @@ async def transcribe_audio(
         # Run this in a thread because it calls the blocking API
         result = await asyncio.to_thread(transcriber.transcribe_segment, audio_bytes)
 
+        # If start_time is provided, use it for the results
+        results = result.get("results", [])
+        if start_time:
+            for res in results:
+                res["timestamp"] = start_time
+
         # result is {"results": [...]}
         return {
-            "results": result.get("results", []),
+            "results": results,
             "type": "caption_list",
-            "timestamp": asyncio.get_event_loop().time(),
+            "timestamp": start_time or datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
         print(f"Transcription error: {e}")

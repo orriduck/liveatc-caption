@@ -119,9 +119,10 @@ export function useLiveATC() {
                     } else if (now - silenceStart > SILENCE_DURATION_MS) {
                         // Cutoff reached
                         isSpeaking = false
+                        const currentSpeechStart = speechStart
                         connectionState.value = 'TRANSCRIBING'
                         console.log("<<< SPEECH ENDED. Transcribing...")
-                        stopRecordingAndTranscribe()
+                        stopRecordingAndTranscribe(currentSpeechStart)
                     }
                 }
             }
@@ -152,7 +153,7 @@ export function useLiveATC() {
         }
     }
 
-    const stopRecordingAndTranscribe = async () => {
+    const stopRecordingAndTranscribe = async (startTime) => {
         if (!recorderRef.value || recorderRef.value.state === 'inactive') return
 
         recorderRef.value.stop()
@@ -161,7 +162,7 @@ export function useLiveATC() {
             const blob = new Blob(audioChunks, { type: 'audio/webm' })
 
             if (blob.size > 5000) {
-                await sendToTranscribe(blob)
+                await sendToTranscribe(blob, startTime)
             }
 
             audioChunks = []
@@ -175,7 +176,7 @@ export function useLiveATC() {
         setTimeout(finalize, 50)
     }
 
-    const sendToTranscribe = async (audioBlob) => {
+    const sendToTranscribe = async (audioBlob, startTime) => {
         try {
             const formData = new FormData()
             formData.append("file", audioBlob)
@@ -185,11 +186,14 @@ export function useLiveATC() {
                 id: mockId,
                 caption: "TRANSCRIPT_PENDING",
                 speaker: "...",
-                timestamp: new Date(),
+                timestamp: startTime ? new Date(startTime) : new Date(),
                 isTemp: true
             })
 
-            const url = `${WS_BASE.replace('ws://', 'http://').replace('wss://', 'https://')}/caption/transcribe`
+            let url = `${WS_BASE.replace('ws://', 'http://').replace('wss://', 'https://')}/caption/transcribe`
+            if (startTime) {
+                url += `?start_time=${new Date(startTime).toISOString()}`
+            }
 
             const headers = {}
             if (geminiApiKey.value) {
