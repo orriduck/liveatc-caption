@@ -17,7 +17,7 @@
         <Info class="w-4 h-4 opacity-70" />
         <span class="text-xs font-medium">About</span>
       </div>
-      <span class="text-[10px] font-google-sans-code opacity-40">v0.1.0</span>
+      <span class="text-[10px] font-google-sans-code opacity-40">v0.3.0</span>
     </button>
     <ThemeSwitcher />
   </div>
