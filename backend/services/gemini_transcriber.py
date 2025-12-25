@@ -17,7 +17,9 @@ class GeminiTranscriber:
         load_dotenv()
         self.api_key = (api_key or os.environ.get("GEMINI_API_KEY", "")).strip()
         if self.api_key:
-            print(f"DEBUG: Using API key: ...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}")
+            print(
+                f"DEBUG: Using API key: ...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}"
+            )
             self.client = genai.Client(api_key=self.api_key)
         else:
             print("DEBUG: No API key provided or found in ENV")
@@ -270,7 +272,7 @@ class GeminiTranscriber:
         Expected to be WAV or identifiable format.
         """
         import json
-        
+
         if not self.api_key:
             return {
                 "text": "[Error: GEMINI_API_KEY not configured]",
@@ -279,13 +281,13 @@ class GeminiTranscriber:
 
         # Ensure we have a client
         if not self.client:
-             self.client = genai.Client(api_key=self.api_key)
+            self.client = genai.Client(api_key=self.api_key)
 
         try:
             # If the client sends raw PCM/WebM, we might need to wrap it or just send it if Gemini supports it.
             # Assuming the client sends a Blob that is a valid container (WAV/WebM).
             # If it's raw PCM, we'd need to wrap it. Let's try sending directly first.
-            
+
             response = self.client.models.generate_content(
                 model=MODEL_NAME,
                 config=types.GenerateContentConfig(
@@ -295,21 +297,26 @@ class GeminiTranscriber:
                     temperature=0.1,
                 ),
                 contents=[
-                    types.Part.from_bytes(data=audio_data, mime_type="audio/wav") # Optimistically assume WAV or let Gemini sniff
+                    types.Part.from_bytes(
+                        data=audio_data, mime_type="audio/wav"
+                    )  # Optimistically assume WAV or let Gemini sniff
                 ],
             )
-            
+
             if response.text:
                 data = json.loads(response.text)
                 data = {k.lower(): v for k, v in data.items()}
-                
-                if data.get("speaker") == "PILOT" or data.get("speaker_type") == "PILOT":
+
+                if (
+                    data.get("speaker") == "PILOT"
+                    or data.get("speaker_type") == "PILOT"
+                ):
                     data["speaker"] = "PLANE"
                 elif data.get("speaker_type") == "ATC":
                     data["speaker"] = "ATC"
 
                 return TranscriptionResult(**data).model_dump()
-            
+
             return {}
 
         except Exception as e:

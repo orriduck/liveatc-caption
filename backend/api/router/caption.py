@@ -11,8 +11,12 @@ router = APIRouter(prefix="/caption", tags=["caption"])
 
 
 @router.websocket("/{mount}")
-async def websocket_caption(websocket: WebSocket, mount: str, api_key: str = Query(None)):
-    print(f"DEBUG: WS Request for {mount} | Key: ...{api_key[-4:] if api_key and len(api_key) > 4 else 'NONE'}")
+async def websocket_caption(
+    websocket: WebSocket, mount: str, api_key: str = Query(None)
+):
+    print(
+        f"DEBUG: WS Request for {mount} | Key: ...{api_key[-4:] if api_key and len(api_key) > 4 else 'NONE'}"
+    )
     await websocket.accept()
 
     # Construct stream URL
@@ -58,22 +62,22 @@ async def websocket_caption(websocket: WebSocket, mount: str, api_key: str = Que
     finally:
         transcriber.is_running = False
 
+
 @router.post("/transcribe")
 async def transcribe_audio(
-    file: UploadFile = File(...),
-    x_api_key: str = Header(None, alias="X-API-Key")
+    file: UploadFile = File(...), x_api_key: str = Header(None, alias="X-API-Key")
 ):
     try:
         audio_bytes = await file.read()
         transcriber = GeminiTranscriber(api_key=x_api_key)
-        
+
         # We run this in a thread because it calls the blocking API
         result = await asyncio.to_thread(transcriber.transcribe_segment, audio_bytes)
-        
+
         return {
             **result,
             "type": "caption",
-            "timestamp": asyncio.get_event_loop().time()
+            "timestamp": asyncio.get_event_loop().time(),
         }
     except Exception as e:
         print(f"Transcription error: {e}")
