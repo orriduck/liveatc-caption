@@ -6,7 +6,7 @@
     >
       <div class="flex items-center gap-3">
         <Settings class="w-4 h-4 opacity-70" />
-        <span class="text-xs font-medium">Settings</span>
+        <span class="text-xs">Settings</span>
       </div>
     </button>
     <button
@@ -15,9 +15,9 @@
     >
       <div class="flex items-center gap-3">
         <Info class="w-4 h-4 opacity-70" />
-        <span class="text-xs font-medium">About</span>
+        <span class="text-xs">About</span>
       </div>
-      <span class="badge badge-ghost badge-sm font-mono opacity-50">v0.1.0</span>
+      <span class="badge badge-ghost badge-sm font-google-sans-code opacity-50">v0.1.0</span>
     </button>
     <ThemeSwitcher />
   </div>

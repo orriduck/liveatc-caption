@@ -11,11 +11,11 @@
           <div class="absolute top-0.5 right-0.5 w-2 h-2 rounded-full border-2 shadow-sm"></div>
         </div>
         <div class="flex flex-col">
-          <h4 class="text-sm font-black uppercase tracking-wider">
+          <h4 class="text-sm uppercase">
             {{ channel?.name }}
           </h4>
           <div class="flex items-center gap-2 mt-0.5">
-            <span class="text-[10px] font-black uppercase tracking-widest animate-pulse opacity-50">Live</span>
+            <span class="text-[10px] uppercase animate-pulse opacity-50">Live</span>
           </div>
         </div>
       </div>
@@ -23,8 +23,8 @@
       <!-- Right: Timer & Control -->
       <div class="flex items-center gap-8 relative z-10">
         <div class="flex flex-col items-end">
-          <span class="text-[9px] font-bold uppercase tracking-widest mb-0.5 opacity-50">Connection Time</span>
-          <span class="text-sm font-mono font-bold tabular-nums tracking-tight">
+          <span class="text-[9px] uppercase mb-0.5 opacity-50">Connection Time</span>
+          <span class="text-sm font-google-sans-code tabular-nums">
             {{ formattedTime }}
           </span>
         </div>
@@ -34,7 +34,7 @@
           class="flex items-center gap-3 border hover:opacity-80 px-5 py-2 rounded-xl transition-all active:scale-95 group/stop"
         >
           <Square class="w-3.5 h-3.5 fill-current group-hover/stop:scale-110 transition-transform" />
-          <span class="text-[10px] font-black uppercase tracking-widest">Stop</span>
+          <span class="text-[10px] uppercase">Stop</span>
         </button>
       </div>
     </div>

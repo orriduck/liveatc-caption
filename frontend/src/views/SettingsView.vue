@@ -6,14 +6,14 @@
           <div class="p-3 border rounded-2xl shadow-2xl">
             <SettingsIcon class="w-6 h-6" />
           </div>
-          <h1 class="text-3xl font-black uppercase tracking-tighter">Settings</h1>
+          <h1 class="text-3xl uppercase">Settings</h1>
         </div>
       </div>
 
       <div class="space-y-12">
         <!-- Gemini API Key Section -->
         <div class="space-y-4">
-          <div class="flex items-center gap-2 mb-2 opacity-50 font-black uppercase tracking-widest">
+          <div class="flex items-center gap-2 mb-2 opacity-50 uppercase">
             <Key class="w-4 h-4" />
             <h2 class="text-sm">Gemini API Key</h2>
           </div>
@@ -45,7 +45,7 @@
               title="Provided via .env file on the server"
             >
               <div class="w-1.5 h-1.5 border rounded-full animate-pulse"></div>
-              <span class="text-[10px] font-black uppercase tracking-widest">Environment Env Set</span>
+              <span class="text-[10px] uppercase">Environment Env Set</span>
             </div>
             <div 
               v-if="apiKey" 
@@ -53,14 +53,14 @@
               title="Typed key takes precedence over environment variable"
             >
               <div class="w-1.5 h-1.5 border rounded-full"></div>
-              <span class="text-[10px] font-black uppercase tracking-widest">Local Key Active</span>
+              <span class="text-[10px] uppercase">Local Key Active</span>
             </div>
             <div 
               v-if="!hasEnvKey && !apiKey" 
               class="flex items-center gap-2 border px-3 py-1.5 rounded-full opacity-50"
             >
               <div class="w-1.5 h-1.5 border rounded-full"></div>
-              <span class="text-[10px] font-black uppercase tracking-widest">Key Missing</span>
+              <span class="text-[10px] uppercase">Key Missing</span>
             </div>
           </div>
         </div>
@@ -69,12 +69,12 @@
         <div class="pt-12 border-t space-y-6">
           <div class="flex items-center gap-2 opacity-50">
             <Info class="w-4 h-4" />
-            <h2 class="text-sm font-bold uppercase tracking-widest">About</h2>
+            <h2 class="text-sm uppercase">About</h2>
           </div>
           <div class="space-y-2">
             <div class="flex items-center gap-3">
-              <span class="text-2xl font-black px-2 py-0.5 border rounded">0.1.0</span>
-              <span class="opacity-50 font-bold uppercase tracking-widest text-xs">Stable Release</span>
+              <span class="text-2xl px-2 py-0.5 border rounded">0.1.0</span>
+              <span class="opacity-50 uppercase text-xs">Stable Release</span>
             </div>
             <p class="text-sm opacity-50 leading-relaxed italic">
               Real-time ATC communication captioning powered by AI.
@@ -86,7 +86,7 @@
               href="https://github.com/orriduck/liveatc-caption"
               target="_blank"
               rel="noreferrer"
-              class="flex items-center gap-2 text-xs font-bold opacity-50 hover:opacity-100 transition-colors uppercase tracking-wider"
+              class="flex items-center gap-2 text-xs opacity-50 hover:opacity-100 transition-colors uppercase"
             >
               <Github class="w-4 h-4" />
               GitHub Repository
@@ -98,7 +98,7 @@
       <div class="mt-16">
         <button
           @click="handleSave"
-          class="btn btn-outline btn-block h-14 rounded-2xl font-black uppercase tracking-widest shadow-xl border-opacity-20"
+          class="btn btn-outline btn-block h-14 rounded-2xl uppercase shadow-xl border-opacity-20"
         >
           Save Configuration
         </button>

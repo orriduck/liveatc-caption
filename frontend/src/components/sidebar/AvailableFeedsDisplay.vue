@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between mb-2 px-1">
         <div class="flex items-center gap-2">
           <ListFilter class="w-3 h-3" />
-          <h3 class="text-[10px] font-black tracking-widest uppercase">Feeds</h3>
+          <h3 class="text-[10px] uppercase">Feeds</h3>
         </div>
         <div class="flex items-center gap-1">
           <button 
@@ -18,7 +18,7 @@
             <button tabindex="0" class="btn btn-ghost btn-xs btn-square">
               <ArrowUpDown class="w-3 h-3" />
             </button>
-            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow border rounded-xl w-40 mt-2 text-[10px] font-bold uppercase tracking-widest">
+            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow border rounded-xl w-40 mt-2 text-[10px] uppercase">
               <li><a @click="sortBy = 'listeners'" :class="{ 'underline': sortBy === 'listeners' }">Most Active</a></li>
               <li><a @click="sortBy = 'name'" :class="{ 'underline': sortBy === 'name' }">A-Z Name</a></li>
             </ul>
@@ -40,7 +40,7 @@
     <div class="overflow-y-auto max-h-[400px]">
       <div v-if="filteredChannels.length === 0" class="p-8 text-center opacity-20">
         <Radio class="w-8 h-8 mx-auto mb-2" />
-        <p class="text-[10px] font-bold uppercase tracking-widest">No feeds found</p>
+        <p class="text-[10px] uppercase">No feeds found</p>
       </div>
       <div v-else>
         <button
@@ -52,15 +52,14 @@
         >
           <div class="flex-1 min-w-0 pr-2">
             <h4 
-              class="text-xs font-bold truncate transition-colors"
-              :class="{ 'font-black': currentChannelId === channel.id }"
+              class="text-xs truncate transition-colors"
             >
               {{ channel.name }}
             </h4>
             <div class="flex items-center gap-2 mt-0.5">
-              <span class="flex items-center gap-1 text-[9px] font-bold opacity-50">
+              <span class="flex items-center gap-1 text-[9px] opacity-50">
                 <Users class="w-2.5 h-2.5" />
-                {{ channel.listeners }} listening
+                <span class="font-google-sans-code">{{ channel.listeners }}</span> listening
               </span>
               <span v-if="channel.status === 'UP'" class="w-1.5 h-1.5 rounded-full opacity-50 animate-pulse"></span>
             </div>

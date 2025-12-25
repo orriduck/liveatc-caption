@@ -21,7 +21,7 @@
             </div>
 
             <span 
-              class="text-[11px] font-black uppercase tracking-[.2em] leading-none"
+              class="text-[11px] uppercase leading-none"
               :class="{ 'opacity-80': ['ATC', 'PLANE'].includes(cap.speaker) }"
             >
               {{ cap.speaker || 'UNKNOWN' }}
@@ -29,13 +29,13 @@
 
             <div class="flex items-center gap-1.5 opacity-20 ml-auto font-mono text-[10px]">
               <Clock class="w-3 h-3" />
-              <span>{{ formatTime(cap.timestamp) }}</span>
+              <span class="font-google-sans-code">{{ formatTime(cap.timestamp) }}</span>
             </div>
           </div>
 
           <div class="pl-0.5 mt-1">
             <p 
-              class="text-2xl md:text-5xl lg:text-6xl font-black italic tracking-tighter leading-[1.1] uppercase antialiased"
+              class="text-2xl md:text-5xl lg:text-6xl italic leading-[1.1] uppercase antialiased"
               :class="{ 'opacity-95': ['ATC', 'PLANE'].includes(cap.speaker) }"
             >
               {{ cap.text }}
@@ -50,7 +50,7 @@
           <div class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 shadow-sm border bg-red-500/10 border-red-500/20">
              <div class="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
           </div>
-          <span class="text-[11px] font-black uppercase tracking-[.2em] leading-none text-red-500">
+          <span class="text-[11px] uppercase leading-none text-red-500">
             Speaking
           </span>
         </div>
@@ -69,7 +69,7 @@
           <div class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 shadow-sm border bg-amber-500/10 border-amber-500/20">
              <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
           </div>
-          <span class="text-[11px] font-black uppercase tracking-[.2em] leading-none text-amber-500">
+          <span class="text-[11px] uppercase leading-none text-amber-500">
             Transcribing
           </span>
         </div>
@@ -83,7 +83,7 @@
       </div>
       <div v-if="visibleCaptions.length === 0 && connectionState !== 'SPEAKING' && !hasPendingTranscription" class="h-[60vh] flex flex-col items-center justify-center opacity-10 pb-24">
         <MessageSquare class="w-20 h-20 mb-4 animate-pulse" />
-        <h2 class="text-2xl font-black italic uppercase tracking-widest">Awaiting Transmission</h2>
+        <h2 class="text-2xl italic uppercase">Awaiting Transmission</h2>
       </div>
       <div ref="msgEnd" class="h-4" />
     </div>

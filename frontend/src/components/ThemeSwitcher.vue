@@ -5,23 +5,23 @@
         <Sun v-if="currentTheme === 'light'" class="w-4 h-4 opacity-70" />
         <Moon v-else-if="currentTheme === 'dark'" class="w-4 h-4 opacity-70" />
         <Monitor v-else class="w-4 h-4 opacity-70" />
-        <span class="text-xs font-medium capitalize">{{ currentTheme }}</span>
+        <span class="text-xs capitalize">{{ currentTheme }}</span>
       </div>
       <ChevronUp class="w-4 h-4 opacity-30" />
     </div>
     <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-xl bg-base-200 rounded-xl w-full mb-2 border border-base-content/5">
       <li>
-        <button @click="setTheme('light')" class="flex items-center gap-3 py-2 text-xs" :class="{ 'bg-primary/10 text-primary font-bold': currentTheme === 'light' }">
+        <button @click="setTheme('light')" class="flex items-center gap-3 py-2 text-xs" :class="{ 'bg-primary/10 text-primary': currentTheme === 'light' }">
           <Sun class="w-4 h-4" /> Light
         </button>
       </li>
       <li>
-        <button @click="setTheme('dark')" class="flex items-center gap-3 py-2 text-xs" :class="{ 'bg-primary/10 text-primary font-bold': currentTheme === 'dark' }">
+        <button @click="setTheme('dark')" class="flex items-center gap-3 py-2 text-xs" :class="{ 'bg-primary/10 text-primary': currentTheme === 'dark' }">
           <Moon class="w-4 h-4" /> Dark
         </button>
       </li>
       <li>
-        <button @click="setTheme('system')" class="flex items-center gap-3 py-2 text-xs" :class="{ 'bg-primary/10 text-primary font-bold': currentTheme === 'system' }">
+        <button @click="setTheme('system')" class="flex items-center gap-3 py-2 text-xs" :class="{ 'bg-primary/10 text-primary': currentTheme === 'system' }">
           <Monitor class="w-4 h-4" /> System
         </button>
       </li>

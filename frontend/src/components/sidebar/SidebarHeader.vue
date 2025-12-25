@@ -16,12 +16,12 @@
         </div>
         <div>
           <h1 
-            class="font-black tracking-tighter italic leading-none text-left"
+            class="italic leading-none text-left"
             :class="isMac ? 'text-lg' : 'text-xl'"
           >
             LIVE<span class="opacity-50">ATC</span>
           </h1>
-          <span class="text-[10px] font-bold tracking-[0.3em] opacity-40 ml-0.5 block text-left">CAPTION</span>
+          <span class="text-[10px] opacity-40 ml-0.5 block text-left">CAPTION</span>
         </div>
       </button>
 
