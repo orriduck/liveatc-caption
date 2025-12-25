@@ -23,11 +23,11 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="p-4 border rounded-2xl">
             <span class="block text-[10px] uppercase opacity-50 mb-1">Version</span>
-            <span class="text-sm">0.1.1 (ALPHA)</span>
+            <span class="text-sm">0.2.0 (Alpha)</span>
           </div>
           <div class="p-4 border rounded-2xl">
             <span class="block text-[10px] uppercase opacity-50 mb-1">Model</span>
-            <span class="text-sm">Gemini 2.0 Flash</span>
+            <span class="text-sm">Gemini 3.0 Flash</span>
           </div>
         </div>
 
