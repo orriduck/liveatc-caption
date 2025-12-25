@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
-from models.transcription import TranscriptionResponse, ATCCaptionResult
+from models.transcription import TranscriptionResponse
 from services.rag_service import RAGService
 
 # Configure your model here
@@ -218,7 +218,7 @@ class GeminiTranscriber:
                                     or len(speech_buffer) >= max_speech_bytes
                                 ):
                                     if len(speech_buffer) > sample_rate * 2 * 0.5:
-                                        print(f"  <<< [SPEECH ENDED] Transcribing...")
+                                        print("  <<< [SPEECH ENDED] Transcribing...")
                                         asyncio.create_task(_call_gemini(speech_buffer))
 
                                     speech_buffer = b""
