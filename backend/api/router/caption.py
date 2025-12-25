@@ -1,4 +1,5 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Header
+from fastapi import UploadFile, File
 from services.gemini_transcriber import GeminiTranscriber
 import asyncio
 
@@ -56,7 +57,24 @@ async def websocket_caption(websocket: WebSocket, mount: str, api_key: str = Que
             print(f"Could not send error to {mount}: {send_err}")
     finally:
         transcriber.is_running = False
-        try:
-            await websocket.close()
-        except Exception as send_err:
-            print(f"Could not close websocket for {mount}: {send_err}")
+
+@router.post("/transcribe")
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    x_api_key: str = Header(None, alias="X-API-Key")
+):
+    try:
+        audio_bytes = await file.read()
+        transcriber = GeminiTranscriber(api_key=x_api_key)
+        
+        # We run this in a thread because it calls the blocking API
+        result = await asyncio.to_thread(transcriber.transcribe_segment, audio_bytes)
+        
+        return {
+            **result,
+            "type": "caption",
+            "timestamp": asyncio.get_event_loop().time()
+        }
+    except Exception as e:
+        print(f"Transcription error: {e}")
+        return {"error": str(e), "type": "error"}

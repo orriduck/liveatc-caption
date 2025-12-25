@@ -40,6 +40,20 @@ body {
   background: rgba(128, 128, 128, 0.4);
 }
 
+/* Global Theme Overrides */
+[data-theme='dark'] {
+  --bc: 220 13% 30%;
+  /* Darker content color in HSL */
+}
+
+[data-theme='dark'] .border,
+[data-theme='dark'] .border-t,
+[data-theme='dark'] .border-b,
+[data-theme='dark'] .border-l,
+[data-theme='dark'] .border-r {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
 /* Firefox Support */
 * {
   scrollbar-width: thin;

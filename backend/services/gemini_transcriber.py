@@ -263,3 +263,55 @@ class GeminiTranscriber:
         finally:
             self.is_running = False
             processor_task.cancel()
+
+    def transcribe_segment(self, audio_data: bytes) -> dict:
+        """
+        Transcribes a single segment of audio data (bytes).
+        Expected to be WAV or identifiable format.
+        """
+        import json
+        
+        if not self.api_key:
+            return {
+                "text": "[Error: GEMINI_API_KEY not configured]",
+                "speaker": "UNKNOWN",
+            }
+
+        # Ensure we have a client
+        if not self.client:
+             self.client = genai.Client(api_key=self.api_key)
+
+        try:
+            # If the client sends raw PCM/WebM, we might need to wrap it or just send it if Gemini supports it.
+            # Assuming the client sends a Blob that is a valid container (WAV/WebM).
+            # If it's raw PCM, we'd need to wrap it. Let's try sending directly first.
+            
+            response = self.client.models.generate_content(
+                model=MODEL_NAME,
+                config=types.GenerateContentConfig(
+                    system_instruction=self.system_prompt,
+                    response_mime_type="application/json",
+                    response_schema=TranscriptionResult,
+                    temperature=0.1,
+                ),
+                contents=[
+                    types.Part.from_bytes(data=audio_data, mime_type="audio/wav") # Optimistically assume WAV or let Gemini sniff
+                ],
+            )
+            
+            if response.text:
+                data = json.loads(response.text)
+                data = {k.lower(): v for k, v in data.items()}
+                
+                if data.get("speaker") == "PILOT" or data.get("speaker_type") == "PILOT":
+                    data["speaker"] = "PLANE"
+                elif data.get("speaker_type") == "ATC":
+                    data["speaker"] = "ATC"
+
+                return TranscriptionResult(**data).model_dump()
+            
+            return {}
+
+        except Exception as e:
+            print(f"Segment Transcription Error: {e}")
+            return {"text": f"[Error: {str(e)}]", "speaker": "SYSTEM"}

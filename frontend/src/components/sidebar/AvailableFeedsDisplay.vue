@@ -27,12 +27,12 @@
       </div>
       
       <div class="relative">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3" />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 opacity-50 z-10 pointer-events-none" />
         <input 
           v-model="searchQuery"
           type="text" 
           placeholder="Filter channels..." 
-          class="w-full border rounded-lg py-1.5 pl-8 pr-3 text-[10px] focus:outline-none focus:ring-1 transition-all"
+          class="input border w-full pl-9 text-[10px] h-8 rounded-lg"
         />
       </div>
     </div>

@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 
 from api.router.search import router as search_router
 from api.router.caption import router as caption_router
+from api.router.proxy import router as proxy_router
 
 app = FastAPI(title="LiveATC Caption App")
 
@@ -21,7 +22,9 @@ app.add_middleware(
 )
 
 app.include_router(search_router, prefix="/api")
-app.include_router(caption_router, prefix="/ws")
+app.include_router(caption_router, prefix="/ws") # Keep old prefix for now or move transcribe to /api?
+# Ideally transcribe should be under /api/caption
+app.include_router(proxy_router, prefix="/api")
 
 # Serve static files from the frontend build
 if getattr(sys, "frozen", False):

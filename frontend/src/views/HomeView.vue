@@ -15,6 +15,7 @@
         v-if="isConnected"
         :channel="activeChannel"
         :captions="captions"
+        :connectionState="connectionState"
       />
       <ChannelInfoScreen
         v-else
@@ -37,6 +38,7 @@ const {
   activeChannel,
   isConnected,
   captions,
-  connect
+  connect,
+  connectionState
 } = inject('liveATC')
 </script>

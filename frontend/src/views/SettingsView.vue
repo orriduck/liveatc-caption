@@ -8,12 +8,6 @@
           </div>
           <h1 class="text-3xl font-black uppercase tracking-tighter">Settings</h1>
         </div>
-        <button
-          @click="$router.back()"
-          class="p-2 border rounded-full transition-all hover:bg-current/10"
-        >
-          <X class="w-6 h-6" />
-        </button>
       </div>
 
       <div class="space-y-12">
@@ -31,7 +25,7 @@
             <input
               :type="showApiKey ? 'text' : 'password'"
               :placeholder="hasEnvKey ? 'Using environment variable...' : 'Paste your API key here...'"
-              class="w-full border rounded-2xl py-4 pl-6 pr-12 focus:outline-none focus:ring-2 transition-all font-mono text-sm"
+              class="input input-bordered w-full rounded-2xl h-14 pl-6 pr-12 font-mono text-sm"
               v-model="apiKey"
             />
             <button
@@ -104,7 +98,7 @@
       <div class="mt-16">
         <button
           @click="handleSave"
-          class="w-full border font-black py-4 rounded-2xl shadow-xl active:scale-[0.98] transition-all uppercase tracking-widest"
+          class="btn btn-outline btn-block h-14 rounded-2xl font-black uppercase tracking-widest shadow-xl border-opacity-20"
         >
           Save Configuration
         </button>

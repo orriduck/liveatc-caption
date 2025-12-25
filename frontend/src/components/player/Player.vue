@@ -29,8 +29,6 @@
           </span>
         </div>
 
-        <div class="h-8 w-px border-l opacity-10"></div>
-
         <button
           @click="$emit('stop')"
           class="flex items-center gap-3 border hover:opacity-80 px-5 py-2 rounded-xl transition-all active:scale-95 group/stop"

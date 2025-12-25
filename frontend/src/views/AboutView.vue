@@ -8,12 +8,6 @@
           </div>
           <h1 class="text-3xl font-black uppercase tracking-tighter">About</h1>
         </div>
-        <button
-          @click="$router.back()"
-          class="p-2 border rounded-full transition-all hover:bg-current/10"
-        >
-          <X class="w-6 h-6" />
-        </button>
       </div>
 
       <div class="space-y-8">
@@ -29,7 +23,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="p-4 border rounded-2xl">
             <span class="block text-[10px] font-black uppercase tracking-widest opacity-50 mb-1">Version</span>
-            <span class="text-sm font-bold">0.1.0 (BETA)</span>
+            <span class="text-sm font-bold">0.1.1 (ALPHA)</span>
           </div>
           <div class="p-4 border rounded-2xl">
             <span class="block text-[10px] font-black uppercase tracking-widest opacity-50 mb-1">Model</span>

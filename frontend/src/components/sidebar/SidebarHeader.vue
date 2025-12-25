@@ -35,12 +35,12 @@
 
     <form @submit.prevent="$emit('search', localIcao)">
       <div class="relative group">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50 transition-colors" />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50 transition-colors z-10 pointer-events-none" />
         <input
           v-model="localIcao"
           type="text"
           placeholder="Enter ICAO (e.g. KBOS)"
-          class="w-full border rounded-xl py-2 pl-10 pr-4 focus:outline-none focus:ring-2 transition-all text-xs"
+          class="input border w-full pl-10 text-xs h-10 rounded-xl"
         />
       </div>
     </form>

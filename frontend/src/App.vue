@@ -27,7 +27,7 @@
         </router-view>
 
         <!-- Floating Player -->
-        <Player v-if="isConnected && activeChannel" :channel="activeChannel" @stop="disconnect" />
+        <Player v-if="isConnected && activeChannel" :channel="activeChannel" @stop="handleStop" />
 
         <!-- Error Toast -->
         <div v-if="error" class="toast toast-end z-[100]">
@@ -78,11 +78,14 @@ const {
   error,
   activeChannel,
   isConnected,
+  connectionState,
+  isPlaying,
   captions,
   geminiApiKey,
   handleSearch: performSearch,
   connect,
   disconnect,
+  togglePlay,
   setGeminiApiKey
 } = useLiveATC()
 
@@ -96,10 +99,13 @@ provide('liveATC', {
   loading,
   activeChannel,
   isConnected,
+  connectionState,
+  isPlaying,
   captions,
   geminiApiKey,
   connect,
   disconnect,
+  togglePlay,
   setGeminiApiKey
 })
 
@@ -148,10 +154,15 @@ const handleRefresh = async () => {
 }
 
 const selectChannel = (channel) => {
+  // Always disconnect current stream before switching
+  disconnect()
   router.push(`/${currentIcao.value}/${channel.id}`)
-  if (activeChannel.value?.id !== channel.id) {
-    disconnect()
-  }
+}
+
+const handleStop = () => {
+  disconnect()
+  // Navigate back to channel info (remove channel ID from route)
+  router.push(`/${currentIcao.value}`)
 }
 </script>
 

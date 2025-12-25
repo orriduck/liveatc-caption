@@ -29,13 +29,6 @@
             ],
             "cwd": "${workspaceFolder}/frontend",
             "console": "integratedTerminal"
-        },
-        {
-            "name": "Debug Frontend in Chrome",
-            "type": "chrome",
-            "request": "launch",
-            "url": "http://localhost:5173",
-            "webRoot": "${workspaceFolder}/frontend/src"
         }
     ],
     "compounds": [
