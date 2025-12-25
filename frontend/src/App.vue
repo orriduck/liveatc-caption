@@ -8,7 +8,7 @@
     />
 
     <!-- Drawer Content (Main Page) -->
-    <div class="drawer-content flex flex-col h-full overflow-hidden relative">
+    <div class="drawer-content flex flex-col h-full overflow-hidden relative bg-gemini-base">
       <!-- Sidebar Toggle - Visible ONLY on small screens when hidden -->
       <div 
         v-if="!isSidebarVisible"
@@ -42,7 +42,7 @@
     <!-- Drawer Side (Sidebar) -->
     <div class="drawer-side z-[60] lg:z-auto h-full">
       <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-      <div class="menu p-0 w-80 h-full border-r bg-base-100 overflow-hidden">
+      <div class="menu p-0 w-80 h-full border-r bg-gemini-sidebar overflow-hidden text-base-content">
         <Sidebar
           v-model:icaoInput="icaoInput"
           :data="data"

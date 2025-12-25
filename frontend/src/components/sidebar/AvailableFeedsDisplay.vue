@@ -1,5 +1,5 @@
 <template>
-  <div class="border rounded-2xl overflow-hidden flex flex-col min-h-0">
+  <div class="border rounded-2xl overflow-hidden flex flex-col min-h-0 bg-base-100">
     <div class="p-3 border-b sticky top-0 z-10 backdrop-blur-md">
       <div class="flex items-center justify-between mb-2 px-1">
         <div class="flex items-center gap-2">

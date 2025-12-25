@@ -1,6 +1,6 @@
 <template>
-  <div class="flex-1 flex flex-col h-full bg-base-100 backdrop-blur-md animate-in fade-in duration-300">
-    <div class="max-w-xl w-full mx-auto mt-20 p-8">
+  <div class="flex-1 flex flex-col h-full bg-gemini-base backdrop-blur-md animate-in fade-in duration-300">
+    <div class="max-w-xl w-full mx-auto mt-20 p-8 bg-base-100 rounded-2xl shadow-sm">
       <div class="flex items-center justify-between mb-10">
         <div class="flex items-center gap-4">
           <div class="p-3 border rounded-2xl shadow-2xl">

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="airport" class="p-4 border rounded-2xl space-y-3">
+  <div v-if="airport" class="p-4 border rounded-2xl space-y-3 bg-base-100">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="px-2 py-0.5 text-[10px] rounded uppercase border">

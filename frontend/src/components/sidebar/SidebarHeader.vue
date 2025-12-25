@@ -16,7 +16,7 @@
         </div>
         <div>
           <h1 
-            class="italic leading-none text-left"
+            class="leading-none text-left font-bold"
             :class="isMac ? 'text-lg' : 'text-xl'"
           >
             LIVE<span class="opacity-50">ATC</span>
@@ -40,7 +40,7 @@
           v-model="localIcao"
           type="text"
           placeholder="Enter ICAO (e.g. KBOS)"
-          class="input border w-full pl-10 text-xs h-10 rounded-xl"
+          class="input border w-full pl-10 text-xs h-10 rounded-xl bg-base-100"
         />
       </div>
     </form>

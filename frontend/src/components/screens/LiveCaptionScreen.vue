@@ -5,38 +5,28 @@
         <div
           v-for="(cap, i) in visibleCaptions"
           :key="cap.id"
-          class="flex flex-col gap-1.5 transition-all duration-700 ease-out"
+          class="flex flex-col gap-2 transition-all duration-700 ease-out mb-10"
           :class="[
-            i === captions.length - 1 ? 'opacity-100 translate-y-0' : 'opacity-50 -translate-y-2 scale-[0.98]',
+            i === captions.length - 1 ? 'opacity-100 translate-y-0' : 'opacity-40 -translate-y-2',
             cap.isTemp ? 'animate-pulse' : ''
           ]"
         >
-          <div class="flex items-center gap-3">
-            <div 
-              class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 shadow-sm border"
-            >
-              <TowerControl v-if="cap.speaker === 'ATC'" class="w-4 h-4" />
-              <Plane v-else-if="cap.speaker === 'PLANE'" class="w-4 h-4" />
-              <MessageSquare v-else class="w-4 h-4" />
+          <div class="flex items-center gap-2 text-[10px] font-bold tracking-wider uppercase opacity-30">
+            <div class="flex items-center gap-1.5 leading-none">
+              <TowerControl v-if="cap.speaker === 'ATC'" class="w-3.5 h-3.5" />
+              <Plane v-else-if="cap.speaker === 'PLANE'" class="w-3.5 h-3.5" />
+              <span>{{ cap.speaker || 'UNKNOWN' }}</span>
             </div>
-
-            <span 
-              class="text-[11px] uppercase leading-none"
-              :class="{ 'opacity-80': ['ATC', 'PLANE'].includes(cap.speaker) }"
-            >
-              {{ cap.speaker || 'UNKNOWN' }}
-            </span>
-
-            <div class="flex items-center gap-1.5 opacity-20 ml-auto font-mono text-[10px]">
+            <div class="flex items-center gap-1.5 ml-4">
               <Clock class="w-3 h-3" />
-              <span class="font-google-sans-code">{{ formatTime(cap.timestamp) }}</span>
+              <span class="font-google-sans-code font-normal">{{ formatTime(cap.timestamp) }}</span>
             </div>
           </div>
 
-          <div class="pl-0.5 mt-1">
+          <div class="mt-1">
             <p 
-              class="text-2xl md:text-5xl lg:text-6xl italic leading-[1.1] uppercase antialiased"
-              :class="{ 'opacity-95': ['ATC', 'PLANE'].includes(cap.speaker) }"
+              class="text-4xl md:text-5xl lg:text-7xl font-black leading-[1.05] uppercase tracking-tight antialiased"
+              :class="cap.speaker === 'PLANE' ? 'text-base-content' : 'text-base-content/60'"
             >
               {{ cap.text }}
             </p>
@@ -45,40 +35,32 @@
       </div>
 
       <!-- Speaking Placeholder -->
-      <div v-if="connectionState === 'SPEAKING'" class="flex flex-col gap-1.5 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
-        <div class="flex items-center gap-3">
-          <div class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 shadow-sm border bg-red-500/10 border-red-500/20">
-             <div class="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
-          </div>
-          <span class="text-[11px] uppercase leading-none text-red-500">
-            Speaking
-          </span>
-        </div>
-        <div class="pl-0.5 mt-1">
-           <div class="flex gap-1 items-end h-8">
-               <div class="w-2 bg-foreground/20 animate-[bounce_1s_infinite] h-8 rounded-full"></div>
-               <div class="w-2 bg-foreground/20 animate-[bounce_1.2s_infinite] h-6 rounded-full"></div>
-               <div class="w-2 bg-foreground/20 animate-[bounce_0.8s_infinite] h-8 rounded-full"></div>
+      <div v-if="connectionState === 'SPEAKING'" class="flex flex-col gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
+        <div class="flex items-center gap-2">
+           <div class="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <div class="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></div>
+              Speaking
            </div>
+        </div>
+        <div class="flex gap-1 items-end h-8 opacity-20">
+            <div class="w-2 bg-current animate-[bounce_1s_infinite] h-8 rounded-full"></div>
+            <div class="w-2 bg-current animate-[bounce_1.2s_infinite] h-6 rounded-full"></div>
+            <div class="w-2 bg-current animate-[bounce_0.8s_infinite] h-8 rounded-full"></div>
         </div>
       </div>
 
       <!-- Transcribing Placeholder -->
-      <div v-if="hasPendingTranscription" class="flex flex-col gap-1.5 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
-        <div class="flex items-center gap-3">
-          <div class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 shadow-sm border bg-amber-500/10 border-amber-500/20">
-             <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-          </div>
-          <span class="text-[11px] uppercase leading-none text-amber-500">
-            Transcribing
-          </span>
-        </div>
-        <div class="pl-0.5 mt-1">
-           <div class="flex gap-1 items-end h-8">
-               <div class="w-2 bg-foreground/10 animate-[pulse_1s_infinite] h-4 rounded-full"></div>
-               <div class="w-2 bg-foreground/10 animate-[pulse_1.2s_infinite] h-6 rounded-full"></div>
-               <div class="w-2 bg-foreground/10 animate-[pulse_0.8s_infinite] h-4 rounded-full"></div>
+      <div v-if="hasPendingTranscription" class="flex flex-col gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
+        <div class="flex items-center gap-2">
+           <div class="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <div class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+              Transcribing
            </div>
+        </div>
+        <div class="flex gap-1 items-end h-8 opacity-10">
+            <div class="w-2 bg-current animate-[pulse_1s_infinite] h-4 rounded-full"></div>
+            <div class="w-2 bg-current animate-[pulse_1.2s_infinite] h-6 rounded-full"></div>
+            <div class="w-2 bg-current animate-[pulse_0.8s_infinite] h-4 rounded-full"></div>
         </div>
       </div>
       <div v-if="visibleCaptions.length === 0 && connectionState !== 'SPEAKING' && !hasPendingTranscription" class="h-[60vh] flex flex-col items-center justify-center opacity-10 pb-24">

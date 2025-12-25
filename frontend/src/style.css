@@ -73,6 +73,7 @@ body {
 }
 
 [data-theme='dark'] .border,
+[data-theme='dark'] .border,
 [data-theme='dark'] .border-t,
 [data-theme='dark'] .border-b,
 [data-theme='dark'] .border-l,
