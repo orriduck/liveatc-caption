@@ -132,14 +132,16 @@ class GeminiTranscriber:
         async def _call_gemini(pcm_data):
             try:
                 wav_data = self._create_wav_header(pcm_data)
-                
+
                 # Extract mount from URL to get airport context
                 mount = url.split("/")[-1] if url else None
 
                 # Get RAG context
                 rag_context = self.rag_service.get_context(mount=mount)
-                full_system_prompt = f"{self.system_prompt}\n\n# RAG CONTEXT\n{rag_context}"
-                
+                full_system_prompt = (
+                    f"{self.system_prompt}\n\n# RAG CONTEXT\n{rag_context}"
+                )
+
                 response = await asyncio.to_thread(
                     self.client.models.generate_content,
                     model=MODEL_NAME,
@@ -159,7 +161,9 @@ class GeminiTranscriber:
                         data = json.loads(response.text)
                         # The schema is TranscriptionResponse (list of results)
                         await result_queue.put(data)
-                        print(f"  [RESULT] Processed {len(data.get('results', []))} items")
+                        print(
+                            f"  [RESULT] Processed {len(data.get('results', []))} items"
+                        )
                     except Exception as e:
                         print(f"JSON Error: {e} | Raw: {response.text}")
             except Exception as e:

@@ -38,7 +38,8 @@ async def websocket_caption(
                         {
                             **res,
                             "type": "caption",
-                            "timestamp": res.get("timestamp") or asyncio.get_event_loop().time(),
+                            "timestamp": res.get("timestamp")
+                            or asyncio.get_event_loop().time(),
                         }
                     )
             except Exception as e:
@@ -59,9 +60,9 @@ async def websocket_caption(
 
 @router.post("/transcribe")
 async def transcribe_audio(
-    file: UploadFile = File(...), 
+    file: UploadFile = File(...),
     x_api_key: str = Header(None, alias="X-API-Key"),
-    start_time: str = Query(None)
+    start_time: str = Query(None),
 ):
     try:
         audio_bytes = await file.read()
