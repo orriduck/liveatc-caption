@@ -1,5 +1,6 @@
 <template>
-  <div class="flex-1 overflow-y-auto p-6 md:p-12 pt-24 pb-32 flex flex-col justify-end min-h-0">
+  <div class="flex-1 overflow-y-auto p-6 md:p-12 pt-24 pb-32 flex flex-col min-h-0">
+    <div class="flex-1" /> <!-- Spacer to push content to bottom when few items -->
     <div class="space-y-6">
       <div v-if="visibleCaptions.length > 0">
         <div
@@ -15,7 +16,8 @@
             <div class="flex items-center gap-1.5 leading-none">
               <TowerControl v-if="cap.speaker === 'ATC'" class="w-3.5 h-3.5" />
               <Plane v-else-if="cap.speaker === 'PLANE'" class="w-3.5 h-3.5" />
-              <span>{{ cap.speaker || 'UNKNOWN' }}</span>
+              <AlertCircle v-else class="w-3.5 h-3.5 text-error" />
+              <span>{{ cap.speaker || 'SYSTEM' }}</span>
             </div>
             <div class="flex items-center gap-1.5 ml-4">
               <Clock class="w-3 h-3" />
@@ -24,12 +26,18 @@
           </div>
 
           <div class="mt-1">
-            <p 
-              class="text-4xl md:text-5xl lg:text-7xl font-black leading-[1.05] uppercase tracking-tight antialiased"
-              :class="cap.speaker === 'PLANE' ? 'text-base-content' : 'text-base-content/60'"
-            >
-              {{ cap.text }}
-            </p>
+            <DecryptedText 
+              :text="cap.caption || cap.details || 'UNINTELLIGIBLE'"
+              animate-on="view"
+              reveal-direction="start"
+              :speed="30"
+              :max-iterations="15"
+              class="text-lg md:text-1xl lg:text-2xl font-black leading-[1.05] uppercase tracking-tight antialiased"
+              :class="[
+                cap.speaker === 'PLANE' ? 'text-base-content' : 'text-base-content/60',
+                !cap.caption ? 'text-error/40 italic text-2xl md:text-3xl lg:text-4xl' : ''
+              ]"
+            />
           </div>
         </div>
       </div>
@@ -72,7 +80,8 @@
 
 <script setup>
 import { ref, watch, nextTick, computed } from 'vue'
-import { MessageSquare, Plane, TowerControl, Clock } from 'lucide-vue-next'
+import { MessageSquare, Plane, TowerControl, Clock, AlertCircle } from 'lucide-vue-next'
+import DecryptedText from '../ui/DecryptedText.vue'
 
 const props = defineProps({
   captions: {

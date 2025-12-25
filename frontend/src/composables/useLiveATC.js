@@ -183,14 +183,12 @@ export function useLiveATC() {
             const mockId = Date.now()
             captions.value.push({
                 id: mockId,
-                text: "TRANSCRIPT_PENDING", // Special marker or "..."
+                caption: "TRANSCRIPT_PENDING",
                 speaker: "...",
                 timestamp: new Date(),
                 isTemp: true
             })
 
-            // We used WS route structure in backend: /ws/caption (from main.py + caption.py)
-            // So path is /ws/caption/transcribe
             const url = `${WS_BASE.replace('ws://', 'http://').replace('wss://', 'https://')}/caption/transcribe`
 
             const headers = {}
@@ -208,26 +206,23 @@ export function useLiveATC() {
 
             const result = await resp.json()
 
+            // Remove the pending/mock caption
+            captions.value = captions.value.filter(c => c.id !== mockId)
+
             if (result.type === 'error') {
                 console.error("Transcription error:", result.error)
-                captions.value = captions.value.filter(c => c.id !== mockId)
                 return
             }
 
-            if (result.text && result.text !== "...") {
-                const idx = captions.value.findIndex(c => c.id === mockId)
-                if (idx !== -1) {
-                    captions.value[idx] = {
-                        ...result,
-                        id: Date.now(),
-                        timestamp: new Date()
-                    }
-                } else {
-                    // Just push if lost
-                    captions.value.push({ ...result, id: Date.now(), timestamp: new Date() })
-                }
-            } else {
-                captions.value = captions.value.filter(c => c.id !== mockId)
+            if (result.type === 'caption_list' && result.results) {
+                result.results.forEach(res => {
+                    // res is ATCCaption or ATCCaptionException
+                    captions.value.push({
+                        ...res,
+                        id: Math.random().toString(36).substr(2, 9),
+                        timestamp: res.timestamp ? new Date(res.timestamp) : new Date()
+                    })
+                })
             }
 
         } catch (e) {

@@ -1,0 +1,214 @@
+{
+    "runway_rules": {
+        "description": "Rules for pronouncing runway identifiers.",
+        "patterns": [
+            {
+                "regex": "RUNWAY \\d{1,2}[LRC]?",
+                "instruction": "State the word 'RUNWAY' followed by digits. Even if the pilot says 'Tree', output '3'.",
+                "examples": [
+                    "RUNWAY 27",
+                    "RUNWAY 33L",
+                    "RUNWAY 9R"
+                ]
+            }
+        ]
+    },
+    "tail_number_rules": {
+        "description": "Rules for pronouncing aircraft tail numbers (N-numbers).",
+        "patterns": [
+            {
+                "format": "N[1-9][0-9]{0,4}[A-Z]{0,2}",
+                "instruction": "All U.S. registration begins with 'NOVEMBER' (spoken) or 'N' (written). Use digits for the identification number. Even if spoken as 'TREE', output '3'.",
+                "examples": [
+                    "NOVEMBER 123AZ",
+                    "NOVEMBER 549C"
+                ]
+            },
+            {
+                "short_form": "Last 3 characters used after initial contact. Use digits.",
+                "examples": [
+                    "4AZ",
+                    "9C"
+                ]
+            }
+        ]
+    },
+    "waypoint_rules": {
+        "description": "Rules for pronouncing waypoints or reporting points (sometimes called tracepoints).",
+        "synonyms": [
+            "TRACEPOINT",
+            "REPORTING POINT",
+            "FIX",
+            "INTERSECTION"
+        ],
+        "patterns": [
+            {
+                "type": "5-letter waypoints",
+                "instruction": "Usually 5-letter names pronounced as words. If it sounds like a common word (e.g., 'STEP'), check if it matches a known waypoint (e.g., 'SZEP').",
+                "examples": [
+                    "KAIHO",
+                    "BOSTON",
+                    "GOLDA",
+                    "SZEP"
+                ]
+            },
+            {
+                "reporting": "Phraseology: [ID] OVER [WAYPOINT] [ALTITUDE]. Use digits for altitude.",
+                "examples": [
+                    "NOVEMBER 123 OVER KAIHO AT 4500"
+                ]
+            }
+        ]
+    },
+    "frequency_reporting": {
+        "description": "How frequencies are communicated.",
+        "patterns": [
+            {
+                "type": "Decimal frequencies",
+                "instruction": "Mentioned as 'POINT' followed by digits. Use digits in output.",
+                "examples": [
+                    "121.9",
+                    "POINT 9",
+                    "118.3"
+                ]
+            }
+        ]
+    },
+    "phonetic_alphabet_variations": {
+        "A": [
+            "ALPHA"
+        ],
+        "B": [
+            "BRAVO"
+        ],
+        "C": [
+            "CHARLIE"
+        ],
+        "D": [
+            "DELTA"
+        ],
+        "E": [
+            "ECHO"
+        ],
+        "F": [
+            "FOXTROT"
+        ],
+        "G": [
+            "GOLF"
+        ],
+        "H": [
+            "HOTEL"
+        ],
+        "I": [
+            "INDIA"
+        ],
+        "J": [
+            "JULIETT"
+        ],
+        "K": [
+            "KILO"
+        ],
+        "L": [
+            "LIMA"
+        ],
+        "M": [
+            "MIKE"
+        ],
+        "N": [
+            "NOVEMBER"
+        ],
+        "O": [
+            "OSCAR"
+        ],
+        "P": [
+            "PAPA"
+        ],
+        "Q": [
+            "QUEBEC"
+        ],
+        "R": [
+            "ROMEO"
+        ],
+        "S": [
+            "SIERRA"
+        ],
+        "T": [
+            "TANGO"
+        ],
+        "U": [
+            "UNIFORM"
+        ],
+        "V": [
+            "VICTOR"
+        ],
+        "W": [
+            "WHISKEY"
+        ],
+        "X": [
+            "X-RAY"
+        ],
+        "Y": [
+            "YANKEE"
+        ],
+        "Z": [
+            "ZULU"
+        ]
+    },
+    "number_pronunciation_variations": {
+        "0": [
+            "ZERO"
+        ],
+        "1": [
+            "ONE",
+            "WUN"
+        ],
+        "2": [
+            "TWO",
+            "TOO"
+        ],
+        "3": [
+            "TREE",
+            "THREE"
+        ],
+        "4": [
+            "FOW-ER",
+            "FOUR"
+        ],
+        "5": [
+            "FIFE",
+            "FIVE"
+        ],
+        "6": [
+            "SIX"
+        ],
+        "7": [
+            "SEVEN"
+        ],
+        "8": [
+            "AIT",
+            "EIGHT"
+        ],
+        "9": [
+            "NINER",
+            "NINE"
+        ]
+    },
+    "standard_output_mapping": {
+        "ZERO": "0",
+        "ONE": "1",
+        "TWO": "2",
+        "TREE": "3",
+        "THREE": "3",
+        "FOW-ER": "4",
+        "FOUR": "4",
+        "FIFE": "5",
+        "FIVE": "5",
+        "SIX": "6",
+        "SEVEN": "7",
+        "AIT": "8",
+        "EIGHT": "8",
+        "NINER": "9",
+        "NINE": "9",
+        "POINT": "."
+    }
+}
