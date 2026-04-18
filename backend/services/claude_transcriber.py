@@ -13,21 +13,44 @@ import av
 from services.rag_service import RAGService
 
 CLAUDE_MODEL = "claude-haiku-4-5-20251001"
-WHISPER_MODEL_SIZE = "base.en"
+WHISPER_MODEL_SIZE = "small.en"
 
-_ERR = lambda msg: {
-    "results": [{
-        "is_error": True, "speaker": None, "caption": None,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "error_type": "CONFIG_ERROR", "details": msg,
-    }]
-}
+# Vocabulary hint given to Whisper's decoder to bias toward aviation terminology.
+# This dramatically improves recognition of callsigns, phonetic alphabet, and ATC
+# phraseology without changing the model weights.
+_ATC_INITIAL_PROMPT = (
+    "Aviation radio communication. Aircraft callsigns, N-numbers, and phonetic "
+    "alphabet are common: Alpha Bravo Charlie Delta Echo Foxtrot Golf Hotel India "
+    "Juliet Kilo Lima Mike November Oscar Papa Quebec Romeo Sierra Tango Uniform "
+    "Victor Whiskey X-ray Yankee Zulu. "
+    "ATC phraseology: runway, heading, altitude, knots, squawk, cleared, contact, "
+    "frequency, wilco, roger, affirmative, negative, ident, traffic, radar contact, "
+    "hold short, line up and wait, cleared for takeoff, cleared to land, go around, "
+    "approach, departure, tower, center, ground, ATIS, QNH, ILS, visual approach."
+)
+
+
+def _ERR(msg):
+    return {
+        "results": [
+            {
+                "is_error": True,
+                "speaker": None,
+                "caption": None,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "error_type": "CONFIG_ERROR",
+                "details": msg,
+            }
+        ]
+    }
 
 
 class ClaudeTranscriber:
     def __init__(self, api_key=None):
         self.api_key = (api_key or os.environ.get("ANTHROPIC_API_KEY", "")).strip()
-        self.client = anthropic.Anthropic(api_key=self.api_key) if self.api_key else None
+        self.client = (
+            anthropic.Anthropic(api_key=self.api_key) if self.api_key else None
+        )
         self._whisper = None
         self.chunk_queue = queue.Queue()
         self.is_running = False
@@ -36,7 +59,11 @@ class ClaudeTranscriber:
 
     def _load_prompt(self):
         try:
-            path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "prompts", "transcription_system.txt")
+            path = os.path.join(
+                os.path.dirname(os.path.dirname(__file__)),
+                "prompts",
+                "transcription_system.txt",
+            )
             with open(path) as f:
                 return f.read().strip()
         except Exception:
@@ -45,13 +72,19 @@ class ClaudeTranscriber:
     def _get_whisper(self):
         if self._whisper is None:
             from faster_whisper import WhisperModel
-            print(f"[Whisper] Loading {WHISPER_MODEL_SIZE} model (first run may download)...")
-            self._whisper = WhisperModel(WHISPER_MODEL_SIZE, device="cpu", compute_type="int8")
+
+            print(
+                f"[Whisper] Loading {WHISPER_MODEL_SIZE} model (first run may download)..."
+            )
+            self._whisper = WhisperModel(
+                WHISPER_MODEL_SIZE, device="cpu", compute_type="int8"
+            )
             print("[Whisper] Model ready.")
         return self._whisper
 
     def _create_wav_header(self, pcm_data: bytes, sample_rate=16000) -> bytes:
         import struct
+
         nc, bps = 1, 16
         br = sample_rate * nc * bps // 8
         ba = nc * bps // 8
@@ -64,7 +97,14 @@ class ClaudeTranscriber:
     def _stt(self, audio_bytes: bytes) -> str:
         """Speech-to-text via faster-whisper. Accepts WAV or webm bytes."""
         whisper = self._get_whisper()
-        segments, _ = whisper.transcribe(io.BytesIO(audio_bytes), beam_size=5, language="en")
+        segments, _ = whisper.transcribe(
+            io.BytesIO(audio_bytes),
+            beam_size=5,
+            language="en",
+            initial_prompt=_ATC_INITIAL_PROMPT,
+            vad_filter=True,  # silero-VAD skips silence, reducing hallucinations
+            condition_on_previous_text=False,  # each segment is independent
+        )
         return " ".join(s.text.strip() for s in segments).strip()
 
     def _parse_with_claude(self, raw_text: str, rag_context: str = "") -> dict:
@@ -101,7 +141,7 @@ If empty or noise only, return one result with is_error=true, speaker=null, capt
             messages=[{"role": "user", "content": prompt}],
         )
         text = resp.content[0].text
-        match = re.search(r'\{.*\}', text, re.DOTALL)
+        match = re.search(r"\{.*\}", text, re.DOTALL)
         if match:
             try:
                 return json.loads(match.group())
@@ -124,7 +164,9 @@ If empty or noise only, return one result with is_error=true, speaker=null, capt
                     self.chunk_queue.put(rf.to_ndarray().tobytes())
                     fc += 1
                     if fc % 500 == 0:
-                        print(f"  [STREAM] {int(fc * 1024 / 16000)}s | queue={self.chunk_queue.qsize()}")
+                        print(
+                            f"  [STREAM] {int(fc * 1024 / 16000)}s | queue={self.chunk_queue.qsize()}"
+                        )
         except Exception as e:
             print(f"Streaming error: {e}")
         finally:
@@ -140,9 +182,9 @@ If empty or noise only, return one result with is_error=true, speaker=null, capt
         result_queue: asyncio.Queue = asyncio.Queue()
 
         sample_rate = 16000
-        frame_bytes = int(sample_rate * 0.03 * 2)   # 30ms frames
-        min_silence = 12                              # ~360ms
-        max_speech = sample_rate * 2 * 15            # 15s cap
+        frame_bytes = int(sample_rate * 0.03 * 2)  # 30ms frames
+        min_silence = 12  # ~360ms
+        max_speech = sample_rate * 2 * 15  # 15s cap
 
         thread = threading.Thread(target=self.stream_audio, args=(url,), daemon=True)
         thread.start()
@@ -163,6 +205,7 @@ If empty or noise only, return one result with is_error=true, speaker=null, capt
 
         async def _audio_loop():
             import webrtcvad
+
             vad = webrtcvad.Vad(2)
             buf = b""
             speech_buf = b""
@@ -172,7 +215,9 @@ If empty or noise only, return one result with is_error=true, speaker=null, capt
             try:
                 while self.is_running:
                     try:
-                        chunk = await asyncio.to_thread(self.chunk_queue.get, timeout=0.05)
+                        chunk = await asyncio.to_thread(
+                            self.chunk_queue.get, timeout=0.05
+                        )
                         buf += chunk
                         while not self.chunk_queue.empty():
                             buf += self.chunk_queue.get_nowait()
@@ -197,7 +242,10 @@ If empty or noise only, return one result with is_error=true, speaker=null, capt
                         elif in_speech:
                             speech_buf += frame
                             silence_n += 1
-                            if silence_n >= min_silence or len(speech_buf) >= max_speech:
+                            if (
+                                silence_n >= min_silence
+                                or len(speech_buf) >= max_speech
+                            ):
                                 if len(speech_buf) > sample_rate * 2 * 0.5:
                                     print("  <<< [TRANSCRIBING]")
                                     asyncio.create_task(_process(speech_buf))
@@ -230,17 +278,31 @@ If empty or noise only, return one result with is_error=true, speaker=null, capt
         try:
             raw = self._stt(audio_data)
             if not raw:
-                return {"results": [{
-                    "is_error": True, "speaker": None, "caption": None,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "error_type": "NO_SPEECH", "details": "No speech detected",
-                }]}
+                return {
+                    "results": [
+                        {
+                            "is_error": True,
+                            "speaker": None,
+                            "caption": None,
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "error_type": "NO_SPEECH",
+                            "details": "No speech detected",
+                        }
+                    ]
+                }
             rag = self.rag_service.get_context()
             return self._parse_with_claude(raw, rag)
         except Exception as e:
             print(f"Segment error: {e}")
-            return {"results": [{
-                "is_error": True, "speaker": None, "caption": None,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "error_type": "API_ERROR", "details": str(e),
-            }]}
+            return {
+                "results": [
+                    {
+                        "is_error": True,
+                        "speaker": None,
+                        "caption": None,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "error_type": "API_ERROR",
+                        "details": str(e),
+                    }
+                ]
+            }
