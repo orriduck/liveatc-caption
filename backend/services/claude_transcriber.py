@@ -13,7 +13,21 @@ import av
 from services.rag_service import RAGService
 
 CLAUDE_MODEL = "claude-haiku-4-5-20251001"
-WHISPER_MODEL_SIZE = "base.en"
+WHISPER_MODEL_SIZE = "small.en"
+
+# Vocabulary hint given to Whisper's decoder to bias toward aviation terminology.
+# This dramatically improves recognition of callsigns, phonetic alphabet, and ATC
+# phraseology without changing the model weights.
+_ATC_INITIAL_PROMPT = (
+    "Aviation radio communication. Aircraft callsigns, N-numbers, and phonetic "
+    "alphabet are common: Alpha Bravo Charlie Delta Echo Foxtrot Golf Hotel India "
+    "Juliet Kilo Lima Mike November Oscar Papa Quebec Romeo Sierra Tango Uniform "
+    "Victor Whiskey X-ray Yankee Zulu. "
+    "ATC phraseology: runway, heading, altitude, knots, squawk, cleared, contact, "
+    "frequency, wilco, roger, affirmative, negative, ident, traffic, radar contact, "
+    "hold short, line up and wait, cleared for takeoff, cleared to land, go around, "
+    "approach, departure, tower, center, ground, ATIS, QNH, ILS, visual approach."
+)
 
 _ERR = lambda msg: {
     "results": [{
@@ -64,7 +78,14 @@ class ClaudeTranscriber:
     def _stt(self, audio_bytes: bytes) -> str:
         """Speech-to-text via faster-whisper. Accepts WAV or webm bytes."""
         whisper = self._get_whisper()
-        segments, _ = whisper.transcribe(io.BytesIO(audio_bytes), beam_size=5, language="en")
+        segments, _ = whisper.transcribe(
+            io.BytesIO(audio_bytes),
+            beam_size=5,
+            language="en",
+            initial_prompt=_ATC_INITIAL_PROMPT,
+            vad_filter=True,          # silero-VAD skips silence, reducing hallucinations
+            condition_on_previous_text=False,  # each segment is independent
+        )
         return " ".join(s.text.strip() for s in segments).strip()
 
     def _parse_with_claude(self, raw_text: str, rag_context: str = "") -> dict:

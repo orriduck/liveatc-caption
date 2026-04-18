@@ -4,10 +4,10 @@ const API_BASE = "/api"
 const WS_BASE = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
 
 // VAD Configuration
-const VAD_THRESHOLD = 0.02 // Volume threshold (0.0 to 1.0)
-const SILENCE_DURATION_MS = 800 // Time to wait before cutting off
-const MIN_SPEECH_DURATION_MS = 500 // Minimum speech triggering duration
-const PREROLL_BUFFER_MS = 1000 // Keep 1s of audio before speech
+const VAD_THRESHOLD = 0.03       // raised from 0.02 — avoids triggering on squelch noise
+const SILENCE_DURATION_MS = 600  // lowered from 800ms — faster cutoff on short ATC transmissions
+const MIN_SPEECH_DURATION_MS = 500
+const PREROLL_BUFFER_MS = 1000
 
 export function useLiveATC() {
     const data = ref(null)
