@@ -1,7 +1,7 @@
 import { ref, shallowRef, onUnmounted, watch } from 'vue'
 
-const API_BASE = "http://localhost:8000/api"
-const WS_BASE = "ws://localhost:8000/ws"
+const API_BASE = "/api"
+const WS_BASE = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
 
 // VAD Configuration
 const VAD_THRESHOLD = 0.02 // Volume threshold (0.0 to 1.0)
@@ -16,7 +16,7 @@ export function useLiveATC() {
     const activeChannel = ref(null)
     const isConnected = ref(false)
     const captions = ref([])
-    const geminiApiKey = ref(localStorage.getItem('gemini_api_key') || '')
+    const geminiApiKey = ref(localStorage.getItem('anthropic_api_key') || '')
 
     // States: IDLE, LISTENING, SPEAKING, TRANSCRIBING
     const connectionState = ref('IDLE')
@@ -337,7 +337,7 @@ export function useLiveATC() {
 
     const setGeminiApiKey = (key) => {
         geminiApiKey.value = key
-        localStorage.setItem('gemini_api_key', key)
+        localStorage.setItem('anthropic_api_key', key)
     }
 
     onUnmounted(() => {

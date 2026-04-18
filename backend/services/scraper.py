@@ -16,7 +16,14 @@ def search_channels(icao_code: str, html_content: Optional[str] = None) -> List[
         try:
             # Note: verify=False is used to avoid periodic macOS SSL certificate issues
             response = requests.get(
-                url, headers={"User-Agent": "Mozilla/5.0"}, verify=False
+                url,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Referer": "https://www.liveatc.net/",
+                },
+                verify=False,
             )
             response.raise_for_status()
             html_content = response.text
@@ -62,9 +69,11 @@ def search_channels(icao_code: str, html_content: Optional[str] = None) -> List[
 
         airport_info = {
             "icao": extracted.get("icao"),
+            "iata": extracted.get("iata") or None,
             "name": extracted.get("airport"),
             "city": extracted.get("city"),
             "region": extracted.get("state/province"),
+            "country": extracted.get("country") or None,
             "metar": re.sub(r"\s+", " ", extracted.get("metar weather", "")).strip(),
         }
 

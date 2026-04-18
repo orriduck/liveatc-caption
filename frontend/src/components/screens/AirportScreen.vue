@@ -24,7 +24,7 @@
           </span>
         </h1>
         <div class="mt-4 font-mono text-[14px] text-atc-dim tracking-[0.3px]">
-          {{ airport?.city }} · {{ airport?.country }}
+          {{ airport?.city }}<span v-if="airport?.country"> · {{ airport.country }}</span>
           <span v-if="airport?.lat"> · {{ airport.lat }}</span>
           <span v-if="airport?.lon"> / {{ airport.lon }}</span>
         </div>
@@ -168,7 +168,7 @@
 
           <!-- Transport -->
           <div class="flex items-center gap-3.5 pb-4 border-b border-white/20 mb-4">
-            <button @click="$emit('toggle-play')"
+            <button @click="$emit('toggle-play', selectedChannel)"
               class="w-12 h-12 rounded-full bg-atc-bg text-white border-none grid place-items-center cursor-pointer">
               <svg v-if="isPlaying" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16"/><rect x="14" y="4" width="5" height="16"/></svg>
               <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>

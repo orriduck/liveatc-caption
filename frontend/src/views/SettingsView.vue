@@ -11,14 +11,14 @@
       </div>
 
       <div class="space-y-12">
-        <!-- Gemini API Key Section -->
+        <!-- Anthropic API Key Section -->
         <div class="space-y-4">
           <div class="flex items-center gap-2 mb-2 opacity-50 uppercase">
             <Key class="w-4 h-4" />
-            <h2 class="text-sm">Gemini API Key</h2>
+            <h2 class="text-sm">Anthropic API Key</h2>
           </div>
           <p class="text-xs opacity-50 leading-relaxed max-w-sm mb-4">
-            Enter your Google Gemini API key to enable high-quality transcriptions.
+            Enter your Anthropic API key to enable AI-powered ATC transcriptions.
             Your key is stored locally on this device.
           </p>
           <div class="relative group">
@@ -55,8 +55,16 @@
               <div class="w-1.5 h-1.5 border rounded-full"></div>
               <span class="text-[10px] uppercase">Local Key Active</span>
             </div>
-            <div 
-              v-if="!hasEnvKey && !apiKey" 
+            <div
+              v-if="hasSavedKey && !apiKey"
+              class="flex items-center gap-2 border px-3 py-1.5 rounded-full"
+              title="Key is saved on the backend server"
+            >
+              <div class="w-1.5 h-1.5 border rounded-full animate-pulse"></div>
+              <span class="text-[10px] uppercase">Saved on Server</span>
+            </div>
+            <div
+              v-if="!hasEnvKey && !hasSavedKey && !apiKey"
               class="flex items-center gap-2 border px-3 py-1.5 rounded-full opacity-50"
             >
               <div class="w-1.5 h-1.5 border rounded-full"></div>
@@ -100,7 +108,7 @@
           @click="handleSave"
           class="btn btn-outline btn-block h-14 rounded-2xl uppercase shadow-xl border-opacity-20"
         >
-          Save Configuration
+          {{ saving ? 'Saving…' : 'Save Configuration' }}
         </button>
       </div>
     </div>
@@ -113,24 +121,43 @@ import { Settings as SettingsIcon, X, Key, Info, Github, Eye, EyeOff } from 'luc
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const { geminiApiKey, setGeminiApiKey } = inject('liveATC')
+const { geminiApiKey: anthropicApiKey, setGeminiApiKey: setAnthropicApiKey } = inject('liveATC')
 
-const apiKey = ref(geminiApiKey.value)
+const apiKey = ref(anthropicApiKey.value)
 const showApiKey = ref(false)
 const hasEnvKey = ref(false)
+const hasSavedKey = ref(false)
+const saving = ref(false)
 
 onMounted(async () => {
   try {
-    const resp = await fetch('http://localhost:8000/api/config')
+    const resp = await fetch('/api/config')
     const data = await resp.json()
-    if (data.has_env_key) hasEnvKey.value = true
+    hasEnvKey.value = !!data.has_env_key
+    hasSavedKey.value = !!data.has_saved_key
   } catch (err) {
     console.error("Failed to fetch backend config", err)
   }
 })
 
-const handleSave = () => {
-  setGeminiApiKey(apiKey.value?.trim() || "")
+const handleSave = async () => {
+  const key = apiKey.value?.trim() || ""
+  setAnthropicApiKey(key)
+  if (key) {
+    saving.value = true
+    try {
+      await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ anthropic_api_key: key }),
+      })
+      hasSavedKey.value = true
+    } catch (err) {
+      console.error("Failed to save config to backend", err)
+    } finally {
+      saving.value = false
+    }
+  }
   router.back()
 }
 </script>
