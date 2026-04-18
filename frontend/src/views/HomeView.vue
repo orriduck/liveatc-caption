@@ -1,44 +1,126 @@
 <template>
-  <div class="flex-1 flex flex-col h-full overflow-hidden relative">
-    <div v-if="!activeChannel" class="hero min-h-screen">
-      <div class="hero-content text-center">
-        <div class="w-full opacity-20">
-          <Radio class="w-24 h-24 mx-auto mb-6" />
-          <h1 class="text-2xl font-bold uppercase tracking-tight">Select Frequency</h1>
-          <p class="py-2 text-sm opacity-50 uppercase tracking-widest text-[10px]">Transmission captions appear here in real-time</p>
-        </div>
-      </div>
-    </div>
-    
-    <div v-else class="flex-1 flex flex-col min-h-0">
-      <LiveCaptionScreen
-        v-if="isConnected"
-        :channel="activeChannel"
-        :captions="captions"
-        :connectionState="connectionState"
-      />
-      <ChannelInfoScreen
-        v-else
-        :channel="activeChannel"
-        :airport="data?.airport"
-        @connect="connect"
-      />
-    </div>
-  </div>
+  <transition name="screen" mode="out-in">
+    <!-- SEARCH screen -->
+    <SearchScreen
+      v-if="screen === 'search'"
+      key="search"
+      :loading="loading"
+      :error="error"
+      @open-airport="handleOpenAirport"
+    />
+
+    <!-- AIRPORT DETAIL screen -->
+    <AirportScreen
+      v-else-if="screen === 'airport'"
+      key="airport"
+      :icao="currentIcao"
+      :airport="data?.airport"
+      :channels="data?.channels"
+      :active-channel-id="activeChannel?.id"
+      :is-playing="isPlaying"
+      @back="screen = 'search'"
+      @open-transcript="handleOpenTranscript"
+      @toggle-play="togglePlay"
+    />
+
+    <!-- TRANSCRIPT screen -->
+    <TranscriptScreen
+      v-else-if="screen === 'transcript'"
+      key="transcript"
+      :icao="currentIcao"
+      :channels="data?.channels"
+      :active-feed-id="activeChannel?.id"
+      :captions="captions"
+      :connection-state="connectionState"
+      :is-playing="isPlaying"
+      @back="handleTranscriptBack"
+      @switch-feed="handleSwitchFeed"
+      @toggle-play="togglePlay"
+      @stop="handleStop"
+      @download="handleDownload"
+    />
+  </transition>
 </template>
 
 <script setup>
-import { inject } from 'vue'
-import { Radio } from 'lucide-vue-next'
-import ChannelInfoScreen from '../components/screens/ChannelInfoScreen.vue'
-import LiveCaptionScreen from '../components/screens/LiveCaptionScreen.vue'
+import { ref, inject, computed } from 'vue'
+import SearchScreen    from '../components/screens/SearchScreen.vue'
+import AirportScreen   from '../components/screens/AirportScreen.vue'
+import TranscriptScreen from '../components/screens/TranscriptScreen.vue'
 
 const {
   data,
+  loading,
+  error,
   activeChannel,
   isConnected,
+  connectionState,
+  isPlaying,
   captions,
+  handleSearch,
   connect,
-  connectionState
+  disconnect,
+  togglePlay,
 } = inject('liveATC')
+
+const screen     = ref('search')
+const currentIcao = ref('')
+
+// Open airport: fetch data, switch screen
+const handleOpenAirport = async (airport) => {
+  currentIcao.value = airport.code
+  screen.value = 'airport'
+  await handleSearch(airport.code)
+}
+
+// Open transcript: select channel, connect, switch screen
+const handleOpenTranscript = async (channel) => {
+  if (activeChannel.value?.id !== channel.id) {
+    disconnect()
+    activeChannel.value = channel
+    isConnected.value = false
+  }
+  screen.value = 'transcript'
+  if (!isConnected.value) {
+    await connect()
+  }
+}
+
+// Switch feed from transcript sidebar
+const handleSwitchFeed = async (channel) => {
+  disconnect()
+  activeChannel.value = channel
+  isConnected.value = false
+  await connect()
+}
+
+const handleTranscriptBack = () => {
+  screen.value = 'airport'
+}
+
+const handleStop = () => {
+  disconnect()
+  screen.value = 'airport'
+}
+
+const handleDownload = () => {
+  if (!captions.value?.length) return
+  const lines = captions.value
+    .filter(c => !c.isTemp && (c.caption || c.details))
+    .map(c => {
+      const ts = new Date(c.timestamp).toISOString()
+      const speaker = c.speaker || 'UNK'
+      const text = c.caption || c.details || ''
+      return `[${ts}] ${speaker}: ${text}`
+    })
+    .join('\n')
+
+  const blob = new Blob([lines], { type: 'text/plain' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = `${currentIcao.value}_captions_${Date.now()}.txt`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 </script>
