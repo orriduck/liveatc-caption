@@ -283,25 +283,31 @@ export function useLiveATC() {
         const proxyUrl = `${API_BASE}/proxy/${activeChannel.value.id}`
         const audio = audioRef.value
 
+        // Resume AudioContext first — browsers suspend it on pause; resuming before
+        // play() avoids "AudioContext was not allowed to start" on stream switches.
+        const ctx = initAudioContext()
+        if (ctx.state === 'suspended') {
+            await ctx.resume().catch(() => { })
+        }
+
         audio.crossOrigin = "anonymous"
         audio.src = proxyUrl
+        audio.load()  // explicit reset so the element is clean after src change
 
         try {
             await audio.play()
             error.value = null
         } catch (e) {
-            console.error("Auto-play failed", e)
-            if (e.name === "NotAllowedError") {
+            if (e.name === "AbortError") {
+                // AbortError is expected when src changes mid-load (e.g., rapid
+                // stream switches). The audio element will recover on its own.
+                console.warn("Audio load aborted (stream switching), ignoring")
+            } else if (e.name === "NotAllowedError") {
                 error.value = "Click Play to enable audio."
             } else {
-                error.value = "Audio stream failed. Check connection."
+                console.error("Auto-play failed", e)
+                error.value = "Click Play to start stream."
             }
-            // We stay isConnected=true so UI shows Player, allowing user to retry
-        }
-
-        const ctx = initAudioContext()
-        if (ctx.state === 'suspended') {
-            await ctx.resume().catch(() => { })
         }
 
         if (!mediaSourceRef.value) {
