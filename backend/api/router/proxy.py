@@ -22,7 +22,8 @@ async def proxy_stream(mount: str):
             timeout = httpx.Timeout(connect=10.0, read=None, write=None, pool=10.0)
             async with httpx.AsyncClient(timeout=timeout) as client:
                 async with client.stream(
-                    "GET", stream_url,
+                    "GET",
+                    stream_url,
                     headers=_BROWSER_HEADERS,
                     follow_redirects=True,
                 ) as response:
@@ -58,7 +59,9 @@ async def proxy_metar(icao: str):
     url = f"https://aviationweather.gov/api/data/metar?ids={icao.upper()}&format=json"
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(url, headers=_BROWSER_HEADERS, follow_redirects=True)
+            resp = await client.get(
+                url, headers=_BROWSER_HEADERS, follow_redirects=True
+            )
             resp.raise_for_status()
             return resp.json()
     except Exception as e:
@@ -80,7 +83,9 @@ async def proxy_aircraft(
     )
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.get(url, headers=_BROWSER_HEADERS, follow_redirects=True)
+            resp = await client.get(
+                url, headers=_BROWSER_HEADERS, follow_redirects=True
+            )
             if resp.status_code == 429:
                 return {"states": [], "error": "rate_limited"}
             resp.raise_for_status()
