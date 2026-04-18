@@ -1,7 +1,7 @@
 <template>
-  <div class="px-4 py-4 bg-atc-card">
-    <div class="font-mono text-[10px] text-atc-faint tracking-[1.5px] uppercase mb-2">{{ label }}</div>
-    <div class="font-mono text-[18px] font-semibold" :class="accent ? 'text-atc-orange' : 'text-atc-text'" style="letter-spacing:-0.2px">{{ value }}</div>
+  <div class="px-3 py-3 bg-atc-card">
+    <div class="font-mono text-[9px] text-atc-faint tracking-[1.5px] uppercase mb-1.5">{{ label }}</div>
+    <div class="font-mono text-[13px] font-semibold" :class="accent ? 'text-atc-orange' : 'text-atc-text'" style="letter-spacing:-0.1px">{{ value }}</div>
   </div>
 </template>
 

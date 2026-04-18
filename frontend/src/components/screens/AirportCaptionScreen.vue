@@ -64,15 +64,15 @@
       <!-- LEFT: Feed list ─────────────────────────────────────────────── -->
       <aside class="flex flex-col border-r border-atc-line overflow-hidden">
         <!-- Feed header + filter -->
-        <div class="flex-shrink-0 px-4 py-4 border-b border-atc-line">
-          <div class="font-mono text-[10px] text-atc-faint tracking-[1.5px] uppercase mb-3">
+        <div class="flex-shrink-0 px-3 py-3 border-b border-atc-line">
+          <div class="font-mono text-[9px] text-atc-faint tracking-[1.5px] uppercase mb-2">
             ATC FEEDS · {{ channels?.length || 0 }}
           </div>
-          <div class="flex gap-1 flex-wrap">
+          <div class="flex gap-0.5 flex-wrap">
             <button
               v-for="t in feedTabs" :key="t"
               @click="feedFilter = t"
-              class="px-2.5 py-1 rounded-lg text-[11px] font-medium cursor-pointer transition-colors border-none"
+              class="px-2 py-0.5 rounded text-[10px] font-medium cursor-pointer transition-colors border-none"
               :class="feedFilter === t
                 ? 'bg-atc-high text-atc-text'
                 : 'bg-transparent text-atc-dim hover:text-atc-text'"
@@ -81,35 +81,35 @@
         </div>
 
         <!-- Feed list -->
-        <div class="flex-1 overflow-y-auto flex flex-col gap-0.5 p-3">
+        <div class="flex-1 overflow-y-auto flex flex-col gap-px p-2">
           <div v-if="!channels?.length" class="flex items-center justify-center py-8">
-            <div class="font-mono text-[11px] text-atc-faint text-center animate-pulse">LOADING FEEDS…</div>
+            <div class="font-mono text-[10px] text-atc-faint text-center animate-pulse">LOADING FEEDS…</div>
           </div>
 
           <button
             v-for="ch in filteredChannels"
             :key="ch.id"
             @click="selectFeed(ch)"
-            class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left cursor-pointer transition-colors font-sans w-full"
+            class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-left cursor-pointer transition-colors font-sans w-full"
             :class="ch.id === activeFeedId
               ? 'bg-atc-card border-atc-line'
               : 'bg-transparent border-transparent hover:bg-atc-card'"
           >
             <div class="flex-1 min-w-0">
-              <div class="text-[13px] font-semibold truncate" style="letter-spacing:-0.1px">{{ ch.name }}</div>
-              <div class="font-mono text-[11px] text-atc-dim tracking-[0.3px] mt-0.5">
+              <div class="text-[12px] font-semibold truncate" style="letter-spacing:-0.1px">{{ ch.name }}</div>
+              <div class="font-mono text-[10px] text-atc-dim tracking-[0.3px]">
                 {{ ch.freq || '' }}{{ ch.freq ? ' · ' : '' }}{{ ch.listeners }}L
               </div>
             </div>
             <!-- EQ bars when active -->
-            <div v-if="ch.id === activeFeedId" class="flex gap-0.5 items-end h-3.5 flex-shrink-0">
+            <div v-if="ch.id === activeFeedId" class="flex gap-0.5 items-end h-3 flex-shrink-0">
               <span
                 v-for="(h, i) in [0.5, 0.9, 0.7]" :key="i"
                 class="w-[2px] rounded-sm bg-atc-orange"
-                :style="{ height:`${h*14}px`, animation:`eqBar ${0.6+i*0.15}s ease-in-out ${i*0.1}s infinite alternate` }"
+                :style="{ height:`${h*12}px`, animation:`eqBar ${0.6+i*0.15}s ease-in-out ${i*0.1}s infinite alternate` }"
               />
             </div>
-            <span v-else class="w-1.5 h-1.5 rounded-full bg-atc-mint flex-shrink-0" style="box-shadow:0 0 6px #34d399" />
+            <span v-else class="w-1.5 h-1.5 rounded-full bg-atc-mint flex-shrink-0" style="box-shadow:0 0 5px #34d399" />
           </button>
         </div>
       </aside>
