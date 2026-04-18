@@ -1,93 +1,52 @@
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@100..900&family=Google+Sans+Code:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: "Google Sans Flex", sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   line-height: 1.5;
-  font-weight: 500;
-
-  color-scheme: light dark;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
+  text-rendering: optimizeLegibility;
 
-/* Google Sans Flex - Default UI Font */
-.font-google-sans-flex {
-  font-family: "Google Sans Flex", sans-serif;
-  font-optical-sizing: auto;
-  font-style: normal;
-  font-variation-settings:
-    "slnt" 0,
-    "wdth" 100,
-    "GRAD" 0,
-    "ROND" 0;
-}
-
-/* Google Sans Code - For METAR, time, and code-based content */
-.font-google-sans-code {
-  font-family: "Google Sans Code", monospace;
-  font-optical-sizing: auto;
-  font-style: normal;
-  font-variation-settings:
-    "slnt" 0,
-    "wdth" 100,
-    "GRAD" 0,
-    "ROND" 0;
+  --atc-bg:          #0a0a0b;
+  --atc-card:        #151518;
+  --atc-elev:        #1d1d22;
+  --atc-high:        #27272e;
+  --atc-orange:      #FF5A1F;
+  --atc-orange-soft: rgba(255,90,31,0.12);
+  --atc-mint:        #34d399;
+  --atc-red:         #ff3b30;
+  --atc-text:        #f5f5f7;
+  --atc-dim:         rgba(245,245,247,0.62);
+  --atc-faint:       rgba(245,245,247,0.38);
+  --atc-line:        rgba(255,255,255,0.08);
+  --atc-line-strong: rgba(255,255,255,0.16);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--atc-bg);
+  color: var(--atc-text);
 }
 
-/* Global Scrollbar Refinement */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent; }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* Leaflet dark override */
+.leaflet-container { background: #0e0e12 !important; }
+.leaflet-tile { filter: brightness(0.95); }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(128, 128, 128, 0.2);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(128, 128, 128, 0.4);
-}
-
-/* Global Theme Overrides */
-[data-theme='light'] {
-  --gemini-base: #f0f4f8;
-  --gemini-sidebar: #E9EEF6;
-}
-
-[data-theme='dark'] {
-  --gemini-base: #000;
-  --gemini-sidebar: #1e1f20;
-}
-
-[data-theme='dark'] .border,
-[data-theme='dark'] .border,
-[data-theme='dark'] .border-t,
-[data-theme='dark'] .border-b,
-[data-theme='dark'] .border-l,
-[data-theme='dark'] .border-r {
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-/* Firefox Support */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(128, 128, 128, 0.2) transparent;
-}
+/* Transitions */
+.screen-enter-active, .screen-leave-active { transition: opacity 0.25s ease, transform 0.25s ease; }
+.screen-enter-from { opacity: 0; transform: translateY(10px); }
+.screen-leave-to   { opacity: 0; transform: translateY(-6px); }
