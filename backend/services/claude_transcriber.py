@@ -29,13 +29,14 @@ _ATC_INITIAL_PROMPT = (
     "approach, departure, tower, center, ground, ATIS, QNH, ILS, visual approach."
 )
 
-_ERR = lambda msg: {
-    "results": [{
-        "is_error": True, "speaker": None, "caption": None,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "error_type": "CONFIG_ERROR", "details": msg,
-    }]
-}
+def _ERR(msg):
+    return {
+        "results": [{
+            "is_error": True, "speaker": None, "caption": None,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "error_type": "CONFIG_ERROR", "details": msg,
+        }]
+    }
 
 
 class ClaudeTranscriber:
