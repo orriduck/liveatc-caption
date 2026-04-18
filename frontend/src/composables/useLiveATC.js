@@ -36,6 +36,8 @@ export function useLiveATC() {
     let silenceStart = null
     let speechStart = null
     let rafId = null
+    let transcribeAbort = null  // AbortController for in-flight transcription requests
+    let connectionId = 0        // increments on every connect(); guards stale finalize() calls
 
     // Monitor Audio State
     watch(audioRef, (audio) => {
@@ -158,12 +160,18 @@ export function useLiveATC() {
 
         recorderRef.value.stop()
 
+        const capturedId = connectionId  // snapshot epoch at call time
+
         const finalize = async () => {
+            if (connectionId !== capturedId) return  // stale — new connection started
+
             const blob = new Blob(audioChunks, { type: 'audio/webm' })
 
             if (blob.size > 5000) {
                 await sendToTranscribe(blob, startTime)
             }
+
+            if (connectionId !== capturedId) return  // disconnected during transcription
 
             audioChunks = []
             connectionState.value = 'LISTENING'
@@ -177,6 +185,9 @@ export function useLiveATC() {
     }
 
     const sendToTranscribe = async (audioBlob, startTime) => {
+        const abort = new AbortController()
+        transcribeAbort = abort
+
         try {
             const formData = new FormData()
             formData.append("file", audioBlob)
@@ -203,7 +214,8 @@ export function useLiveATC() {
             const resp = await fetch(url, {
                 method: 'POST',
                 headers,
-                body: formData
+                body: formData,
+                signal: abort.signal
             })
 
             if (!resp.ok) throw new Error("Transcription failed")
@@ -230,8 +242,11 @@ export function useLiveATC() {
             }
 
         } catch (e) {
+            if (e.name === 'AbortError') return  // intentional cancel on stream switch
             console.error("Transcription send error", e)
             captions.value = captions.value.filter(c => !c.isTemp)
+        } finally {
+            if (transcribeAbort === abort) transcribeAbort = null
         }
     }
 
@@ -318,6 +333,12 @@ export function useLiveATC() {
     }
 
     const disconnect = () => {
+        connectionId++                          // invalidate any pending finalize() calls
+        if (transcribeAbort) {
+            transcribeAbort.abort()
+            transcribeAbort = null
+        }
+
         isConnected.value = false
         connectionState.value = 'IDLE'
         if (audioRef.value) {

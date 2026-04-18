@@ -102,7 +102,8 @@ class ClaudeTranscriber:
             beam_size=5,
             language="en",
             initial_prompt=_ATC_INITIAL_PROMPT,
-            vad_filter=True,  # silero-VAD skips silence, reducing hallucinations
+            # vad_filter omitted: audio is pre-segmented by frontend VAD; Silero
+            # rejects short clips with no leading silence → NO_SPEECH every time.
             condition_on_previous_text=False,  # each segment is independent
         )
         return " ".join(s.text.strip() for s in segments).strip()
