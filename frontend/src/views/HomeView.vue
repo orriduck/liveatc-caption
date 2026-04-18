@@ -9,30 +9,19 @@
       @open-airport="handleOpenAirport"
     />
 
-    <!-- AIRPORT DETAIL screen -->
-    <AirportScreen
-      v-else-if="screen === 'airport'"
-      key="airport"
+    <!-- UNIFIED airport + caption screen -->
+    <AirportCaptionScreen
+      v-else-if="screen === 'station'"
+      key="station"
       :icao="currentIcao"
       :airport="data?.airport"
-      :channels="data?.channels"
-      :active-channel-id="activeChannel?.id"
-      @back="screen = 'search'"
-      @open-transcript="handleOpenTranscript"
-    />
-
-    <!-- TRANSCRIPT screen -->
-    <TranscriptScreen
-      v-else-if="screen === 'transcript'"
-      key="transcript"
-      :icao="currentIcao"
       :channels="data?.channels"
       :active-feed-id="activeChannel?.id"
       :captions="captions"
       :connection-state="connectionState"
       :is-playing="isPlaying"
-      @back="handleTranscriptBack"
-      @switch-feed="handleSwitchFeed"
+      @back="handleBack"
+      @select-feed="handleSelectFeed"
       @toggle-play="togglePlay"
       @stop="handleStop"
       @download="handleDownload"
@@ -41,10 +30,9 @@
 </template>
 
 <script setup>
-import { ref, inject, computed } from 'vue'
-import SearchScreen    from '../components/screens/SearchScreen.vue'
-import AirportScreen   from '../components/screens/AirportScreen.vue'
-import TranscriptScreen from '../components/screens/TranscriptScreen.vue'
+import { ref, inject } from 'vue'
+import SearchScreen         from '../components/screens/SearchScreen.vue'
+import AirportCaptionScreen from '../components/screens/AirportCaptionScreen.vue'
 
 const {
   data,
@@ -61,45 +49,34 @@ const {
   togglePlay,
 } = inject('liveATC')
 
-
-const screen     = ref('search')
+const screen      = ref('search')
 const currentIcao = ref('')
 
-// Open airport: fetch data, switch screen
+// Open airport: fetch data, go to unified station screen
 const handleOpenAirport = async (airport) => {
   currentIcao.value = airport.code
-  screen.value = 'airport'
+  screen.value = 'station'
   await handleSearch(airport.code)
 }
 
-// Open transcript: select channel, connect, switch screen
-const handleOpenTranscript = async (channel) => {
-  if (activeChannel.value?.id !== channel.id) {
-    disconnect()
-    activeChannel.value = channel
-    isConnected.value = false
-  }
-  screen.value = 'transcript'
-  if (!isConnected.value) {
-    await connect()
-  }
-}
-
-// Switch feed from transcript sidebar
-const handleSwitchFeed = async (channel) => {
+// Select (or switch) a feed from the station screen
+const handleSelectFeed = async (channel) => {
+  if (activeChannel.value?.id === channel.id) return
   disconnect()
   activeChannel.value = channel
-  isConnected.value = false
+  isConnected.value   = false
   await connect()
 }
 
-const handleTranscriptBack = () => {
-  screen.value = 'airport'
-}
-
+// Stop audio but stay on the station screen
 const handleStop = () => {
   disconnect()
-  screen.value = 'airport'
+}
+
+// Back: disconnect and return to search
+const handleBack = () => {
+  disconnect()
+  screen.value = 'search'
 }
 
 const handleDownload = () => {
@@ -107,9 +84,9 @@ const handleDownload = () => {
   const lines = captions.value
     .filter(c => !c.isTemp && (c.caption || c.details))
     .map(c => {
-      const ts = new Date(c.timestamp).toISOString()
+      const ts     = new Date(c.timestamp).toISOString()
       const speaker = c.speaker || 'UNK'
-      const text = c.caption || c.details || ''
+      const text   = c.caption || c.details || ''
       return `[${ts}] ${speaker}: ${text}`
     })
     .join('\n')
