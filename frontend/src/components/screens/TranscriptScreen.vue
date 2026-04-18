@@ -203,8 +203,8 @@
               </svg>
             </div>
             <div>
-              <div class="text-[15px] font-semibold" style="letter-spacing:-0.2px">Gemini 3.0 Flash</div>
-              <div class="text-[11px] text-atc-dim mt-0.5">Aviation-tuned · preview</div>
+              <div class="text-[15px] font-semibold" style="letter-spacing:-0.2px">Claude Haiku 4.5</div>
+              <div class="text-[11px] text-atc-dim mt-0.5">Aviation-tuned · whisper small.en</div>
             </div>
           </div>
           <p class="text-[12.5px] text-atc-dim leading-relaxed m-0">
@@ -373,7 +373,7 @@ watch(visible, async (newCaps) => {
 
 // Session elapsed
 const sessionElapsed = ref('00:00')
-const sessionStart = ref(Date.now() - 73000)
+const sessionStart = ref(Date.now())
 let sessionTimer = null
 const tickSession = () => {
   const s = Math.floor((Date.now() - sessionStart.value) / 1000)
