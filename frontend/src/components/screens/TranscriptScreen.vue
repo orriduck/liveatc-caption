@@ -9,11 +9,10 @@
         <div>
           <div class="flex justify-between items-center mb-3">
             <div class="font-mono text-[10px] text-atc-faint tracking-[1.5px] uppercase">FEEDS · {{ channels?.length || 0 }}</div>
-            <button class="bg-transparent border border-atc-line rounded-full px-2.5 py-1 text-atc-text text-[11px] cursor-pointer font-sans">+ Add</button>
           </div>
           <div class="flex flex-col gap-0.5">
             <button
-              v-for="ch in (channels || []).slice(0, 7)"
+              v-for="ch in (channels || [])"
               :key="ch.id"
               @click="$emit('switch-feed', ch)"
               class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left cursor-pointer transition-colors font-sans"
@@ -182,16 +181,6 @@
           </div>
         </div>
 
-        <!-- Runway diagram -->
-        <div class="p-4 rounded-2xl bg-atc-card border border-atc-line">
-          <div class="font-mono text-[10px] text-atc-faint tracking-[1.5px] uppercase mb-3.5">RUNWAY · {{ icao }}</div>
-          <RunwayDiagram :size="260" accent="#FF5A1F" />
-          <div class="grid grid-cols-2 gap-1.5 mt-2.5 font-mono text-[12px] tracking-[0.3px]">
-            <div><span class="text-atc-faint text-[10px] block uppercase tracking-[1px] mb-0.5">ACTIVE</span><b class="text-atc-orange">25L · 25R</b></div>
-            <div><span class="text-atc-faint text-[10px] block uppercase tracking-[1px] mb-0.5">WIND</span><b>{{ metar?.wind || '—' }}</b></div>
-          </div>
-        </div>
-
         <!-- Model info -->
         <div class="p-4 rounded-2xl bg-atc-card border border-atc-line">
           <div class="font-mono text-[10px] text-atc-faint tracking-[1.5px] uppercase mb-3.5">TRANSCRIPTION MODEL</div>
@@ -263,8 +252,6 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import TopBar from '../ui/TopBar.vue'
 import Waveform from '../ui/Waveform.vue'
-import RunwayDiagram from '../ui/RunwayDiagram.vue'
-import { useMetar } from '../../composables/useMetar.js'
 
 const props = defineProps({
   icao:            { type: String,  default: '' },
@@ -282,10 +269,6 @@ const streamEl  = ref(null)
 const streamEnd = ref(null)
 
 const activeFeed = computed(() => props.channels?.find(c => c.id === props.activeFeedId) || props.channels?.[0] || null)
-
-// METAR for right rail wind
-const icaoRef = computed(() => props.icao)
-const { parsed: metar } = useMetar(icaoRef)
 
 // Speaker metadata
 const SPEAKERS = {
@@ -386,8 +369,8 @@ onUnmounted(() => { clearInterval(sessionTimer); clearInterval(typeTimer) })
 const sessionStats = computed(() => [
   { label: 'UPTIME',   value: sessionElapsed.value },
   { label: 'SEGMENTS', value: counts.value.all },
-  { label: 'LATENCY',  value: '184ms' },
-  { label: 'VAD',      value: '82%', accent: true },
+  { label: 'TOWER',    value: counts.value.atc },
+  { label: 'AIRCRAFT', value: counts.value.plane, accent: true },
 ])
 
 // Zulu time formatter
