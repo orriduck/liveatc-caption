@@ -1,7 +1,7 @@
 import { ref, watch } from 'vue'
 
-// aviationweather.gov — US government, no auth required
-const BASE = 'https://aviationweather.gov/api/data/metar'
+// Proxied through backend — aviationweather.gov blocks browser User-Agent/CORS
+const BASE = '/api/proxy/metar'
 
 export function useMetar(icaoRef) {
   const raw    = ref('')
@@ -14,9 +14,7 @@ export function useMetar(icaoRef) {
     loading.value = true
     error.value = null
     try {
-      const res = await fetch(`${BASE}?ids=${icao.toUpperCase()}&format=json`, {
-        headers: { 'User-Agent': 'LiveATC-Caption/2.0' }
-      })
+      const res = await fetch(`${BASE}/${icao.toUpperCase()}`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
 

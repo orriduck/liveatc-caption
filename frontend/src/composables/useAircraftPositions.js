@@ -1,8 +1,7 @@
 import { ref, watch, onUnmounted } from 'vue'
 
-// OpenSky Network — no auth for anonymous tier (limited rate)
-// Returns aircraft in a lat/lon bounding box
-const OPENSKY = 'https://opensky-network.org/api/states/all'
+// Proxied through backend — OpenSky has no CORS headers for browser requests
+const OPENSKY = '/api/proxy/aircraft/positions'
 const POLL_MS = 15_000
 
 // Known airport bounding boxes: [lamin, lamax, lomin, lomax]
@@ -45,7 +44,7 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
     try {
       const [lamin, lamax, lomin, lomax] = bounds
       const url = `${OPENSKY}?lamin=${lamin}&lamax=${lamax}&lomin=${lomin}&lomax=${lomax}`
-      const res = await fetch(url)
+      const res = await fetch(url, { signal: AbortSignal.timeout(14_000) })
       if (!res.ok) throw new Error(`OpenSky HTTP ${res.status}`)
       const json = await res.json()
 

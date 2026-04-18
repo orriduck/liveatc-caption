@@ -1,6 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Header
 from fastapi import UploadFile, File
-from services.gemini_transcriber import GeminiTranscriber
+from services.claude_transcriber import ClaudeTranscriber as GeminiTranscriber
 import asyncio
 from datetime import datetime, timezone
 

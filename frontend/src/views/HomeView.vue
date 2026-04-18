@@ -20,7 +20,7 @@
       :is-playing="isPlaying"
       @back="screen = 'search'"
       @open-transcript="handleOpenTranscript"
-      @toggle-play="togglePlay"
+      @toggle-play="handleAirportTogglePlay"
     />
 
     <!-- TRANSCRIPT screen -->
@@ -71,6 +71,17 @@ const handleOpenAirport = async (airport) => {
   currentIcao.value = airport.code
   screen.value = 'airport'
   await handleSearch(airport.code)
+}
+
+// Airport play button: connect the selected channel inline (no screen change)
+const handleAirportTogglePlay = async (channel) => {
+  if (!channel) return
+  if (!isConnected.value || activeChannel.value?.id !== channel.id) {
+    activeChannel.value = channel
+    await connect()
+  } else {
+    togglePlay()
+  }
 }
 
 // Open transcript: select channel, connect, switch screen
