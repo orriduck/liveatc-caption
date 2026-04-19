@@ -25,6 +25,7 @@ export function useLiveATC() {
     const wsRef = shallowRef(null)
     const audioRef = shallowRef(new Audio())
     const audioCtxRef = shallowRef(null)
+    const analyserRef = shallowRef(null)
     const processorRef = shallowRef(null)
     const mediaStreamDestRef = shallowRef(null)
     const recorderRef = shallowRef(null)
@@ -322,6 +323,7 @@ export function useLiveATC() {
 
         const analyser = ctx.createAnalyser()
         analyser.fftSize = 256
+        analyserRef.value = analyser
 
         try { mediaSourceRef.value.disconnect() } catch (e) { }
 
@@ -347,6 +349,7 @@ export function useLiveATC() {
 
         isConnected.value = false
         connectionState.value = 'IDLE'
+        analyserRef.value = null
         if (audioRef.value) {
             audioRef.value.pause()
             audioRef.value.src = ""
@@ -377,6 +380,7 @@ export function useLiveATC() {
         error,
         activeChannel,
         isConnected,
+        analyserRef,
         connectionState,
         isPlaying,
         captions,

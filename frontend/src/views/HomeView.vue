@@ -20,6 +20,7 @@
       :captions="captions"
       :connection-state="connectionState"
       :is-playing="isPlaying"
+      :analyser="analyserRef"
       @back="handleBack"
       @select-feed="handleSelectFeed"
       @toggle-play="togglePlay"
@@ -40,6 +41,7 @@ const {
   error,
   activeChannel,
   isConnected,
+  analyserRef,
   connectionState,
   isPlaying,
   captions,

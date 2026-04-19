@@ -210,8 +210,8 @@
               </div>
             </div>
 
-            <!-- Waveform -->
-            <Waveform :playing="isPlaying" :bars="55" :height="26" />
+            <!-- Waveform (real FFT data when connected) -->
+            <Waveform :playing="isPlaying" :bars="55" :height="26" :analyser="analyser" />
 
             <!-- Connection state -->
             <div class="flex items-center justify-between mt-2.5">
@@ -330,6 +330,7 @@ const props = defineProps({
   captions:        { type: Array,   default: () => [] },
   connectionState: { type: String,  default: 'IDLE' },
   isPlaying:       { type: Boolean, default: false },
+  analyser:        { type: Object,  default: null },
 })
 
 const emit = defineEmits(['back', 'select-feed', 'toggle-play', 'stop', 'download'])

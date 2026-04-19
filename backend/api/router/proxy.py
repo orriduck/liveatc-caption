@@ -71,25 +71,17 @@ async def proxy_metar(icao: str):
 
 @router.get("/aircraft/positions")
 async def proxy_aircraft(
-    lamin: float = Query(...),
-    lamax: float = Query(...),
-    lomin: float = Query(...),
-    lomax: float = Query(...),
+    lat: float = Query(...),
+    lon: float = Query(...),
+    dist: float = Query(default=20),  # nautical miles
 ):
-    """Proxy OpenSky Network ADS-B positions (CORS-blocked from browsers)."""
-    url = (
-        f"https://opensky-network.org/api/states/all"
-        f"?lamin={lamin}&lamax={lamax}&lomin={lomin}&lomax={lomax}"
-    )
+    """Proxy ADS-B Exchange (adsb.lol) positions — no auth, no rate-limit."""
+    url = f"https://api.adsb.lol/v2/lat/{lat}/lon/{lon}/dist/{int(dist)}"
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.get(
-                url, headers=_BROWSER_HEADERS, follow_redirects=True
-            )
-            if resp.status_code == 429:
-                return {"states": [], "error": "rate_limited"}
+            resp = await client.get(url, headers=_BROWSER_HEADERS, follow_redirects=True)
             resp.raise_for_status()
             return resp.json()
     except Exception as e:
-        print(f"OpenSky fetch error: {e}")
-        return {"states": []}
+        print(f"ADS-B fetch error: {e}")
+        return {"ac": []}
