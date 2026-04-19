@@ -9,11 +9,8 @@
         background: i > displayBars.length - 18
           ? 'var(--atc-orange)'
           : 'rgba(255,255,255,0.28)',
-        animation: !hasLiveData && playing
-          ? `wv ${0.5 + (i % 7) * 0.08}s ease-in-out ${i * 0.015}s infinite alternate`
-          : 'none',
         transformOrigin: 'bottom',
-        transition: hasLiveData ? 'height 0.05s linear' : 'none',
+        transition: 'height 0.05s linear',
       }"
     />
   </div>
@@ -23,7 +20,6 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 
 const props = defineProps({
-  playing:  { type: Boolean, default: false },
   bars:     { type: Number,  default: 80 },
   height:   { type: Number,  default: 36 },
   analyser: { type: Object,  default: null },  // Web Audio AnalyserNode
@@ -60,13 +56,6 @@ watch(() => props.analyser, (node) => {
 
 onUnmounted(stopLoop)
 
-// ── Fallback: static sine-wave shape ─────────────────────────────────────
-const fakeBars = computed(() =>
-  Array.from({ length: props.bars }, (_, i) =>
-    0.15 + Math.abs(Math.sin(i * 0.22) + Math.sin(i * 0.41) * 0.5) * 0.85
-  )
-)
-
 // ── Downsample FFT bins → N bars ─────────────────────────────────────────
 const displayBars = computed(() => {
   if (hasLiveData.value) {
@@ -80,6 +69,7 @@ const displayBars = computed(() => {
       return (sum / (end - start)) / 255
     })
   }
-  return fakeBars.value
+  // No live data yet — flat bars
+  return Array.from({ length: props.bars }, () => 0)
 })
 </script>

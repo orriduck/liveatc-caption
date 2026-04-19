@@ -47,8 +47,9 @@ _ATC_INITIAL_PROMPT = (
 
 class ClaudeTranscriber(BaseTranscriber):
     def __init__(self, api_key: str | None = None):
-        # Resolve key: explicit arg → env var
-        resolved = (api_key or os.environ.get("ANTHROPIC_API_KEY", "")).strip()
+        # Env var always wins; frontend-passed key is only a fallback for
+        # cases where no server-side key is configured (e.g. personal dev setup).
+        resolved = (os.environ.get("ANTHROPIC_API_KEY", "") or api_key or "").strip()
         super().__init__(api_key=resolved)
         self.client = anthropic.Anthropic(api_key=self.api_key) if self.api_key else None
         self._whisper = None

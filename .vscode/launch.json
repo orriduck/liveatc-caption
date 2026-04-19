@@ -8,12 +8,16 @@
             "module": "uvicorn",
             "args": [
                 "main:app",
-                "--reload",
+                "--host",
+                "0.0.0.0",
                 "--port",
-                "8000"
+                "8000",
+                "--reload"
             ],
             "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
             "jinja": true,
+            "envFile": "${workspaceFolder}/backend/.env",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/backend"
             }
@@ -28,7 +32,10 @@
                 "dev"
             ],
             "cwd": "${workspaceFolder}/frontend",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "env": {
+                "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:${env:PATH}"
+            }
         }
     ],
     "compounds": [
