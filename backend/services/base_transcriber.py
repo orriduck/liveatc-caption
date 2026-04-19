@@ -41,6 +41,8 @@ class BaseTranscriber(ABC):
 
         self.api_key = (api_key or "").strip()
         self.chunk_queue: queue.Queue = queue.Queue()
+        self.audio_queue: queue.Queue = queue.Queue()
+        self.bytes_queued: int = 0
         self.is_running = False
         self.rag_service = RAGService()
         self.system_prompt = self._load_prompt()
@@ -86,7 +88,10 @@ class BaseTranscriber(ABC):
                 if not self.is_running:
                     break
                 for rf in resampler.resample(frame):
-                    self.chunk_queue.put(rf.to_ndarray().tobytes())
+                    pcm_bytes = rf.to_ndarray().tobytes()
+                    self.chunk_queue.put(pcm_bytes)
+                    self.audio_queue.put(pcm_bytes)
+                    self.bytes_queued += len(pcm_bytes)
                     fc += 1
                     if fc % 500 == 0:
                         print(
