@@ -3,35 +3,35 @@
 
     <!-- ─── MASTHEAD ─────────────────────────────────────────────────────── -->
     <section
-      class="flex-shrink-0 px-10 pt-7 pb-5 border-b border-atc-line"
+      class="flex-shrink-0 px-10 py-4 border-b border-atc-line"
       style="background:radial-gradient(ellipse at 90% 0%, rgba(255,90,31,0.07), transparent 45%), #0a0a0b"
     >
-      <!-- Breadcrumb / back -->
-      <div class="flex gap-2.5 items-center font-mono text-[12px] text-atc-dim tracking-[0.5px] uppercase mb-4">
+      <!-- Breadcrumb / back + title on one line -->
+      <div class="flex items-center gap-4 mb-3">
         <button
-          class="flex items-center gap-1.5 hover:text-atc-text transition-colors cursor-pointer bg-transparent border-none p-0 font-mono text-[12px] tracking-[0.5px] uppercase text-atc-dim"
+          class="flex items-center gap-1.5 hover:text-atc-text transition-colors cursor-pointer bg-transparent border-none p-0 font-mono text-[11px] tracking-[0.5px] uppercase text-atc-dim flex-shrink-0"
           @click="$emit('back')"
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           Airports
         </button>
-        <span class="text-atc-faint">/</span>
-        <span>{{ airport?.country || '—' }}</span>
-        <span class="text-atc-faint">/</span>
-        <span class="text-atc-orange">{{ airport?.icao || icao }}</span>
-      </div>
+        <span class="text-atc-faint font-mono text-[11px]">/</span>
+        <span class="font-mono text-[11px] text-atc-dim tracking-[0.5px] uppercase">{{ airport?.country || '—' }}</span>
+        <span class="text-atc-faint font-mono text-[11px]">/</span>
+        <span class="font-mono text-[11px] text-atc-orange tracking-[0.5px] uppercase">{{ airport?.icao || icao }}</span>
 
-      <!-- Airport title row -->
-      <div class="flex items-baseline gap-4 leading-none mb-1.5">
-        <span class="font-display italic text-atc-orange flex-shrink-0" style="font-size:76px;letter-spacing:-2px;line-height:1">
-          {{ airport?.iata || icao }}
-        </span>
-        <span class="font-sans font-bold text-atc-text" style="font-size:34px;letter-spacing:-1px">
-          {{ airport?.name || 'Loading…' }}
-        </span>
-      </div>
-      <div class="font-mono text-[13px] text-atc-dim tracking-[0.3px] mb-5">
-        {{ airport?.city }}<span v-if="airport?.country"> · {{ airport.country }}</span>
+        <!-- Airport title inline -->
+        <div class="flex items-baseline gap-3 ml-2 min-w-0 flex-1">
+          <span class="font-display italic text-atc-orange flex-shrink-0" style="font-size:44px;letter-spacing:-1.5px;line-height:1">
+            {{ airport?.iata || icao }}
+          </span>
+          <span class="font-sans font-bold text-atc-text truncate" style="font-size:22px;letter-spacing:-0.5px">
+            {{ airport?.name || 'Loading…' }}
+          </span>
+          <span class="font-mono text-[12px] text-atc-dim tracking-[0.3px] flex-shrink-0">
+            {{ airport?.city }}<span v-if="airport?.country"> · {{ airport.country }}</span>
+          </span>
+        </div>
       </div>
 
       <!-- KPI strip -->
