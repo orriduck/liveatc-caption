@@ -24,20 +24,31 @@ def test_bytes_queued_starts_at_zero():
     assert t.bytes_queued == 0
 
 
-def test_stream_audio_pushes_to_both_queues(tmp_path):
-    """Simulate one PCM push and verify both queues receive it."""
+def test_stream_audio_pushes_to_both_queues():
+    """stream_audio() must push identical PCM bytes to both chunk_queue and audio_queue."""
+    from unittest.mock import patch, MagicMock
+
+    fake_pcm = b"\x00\x01" * 480
+
+    # Mock frame returned by resampler.resample()
+    mock_resampled_frame = MagicMock()
+    mock_resampled_frame.to_ndarray.return_value.tobytes.return_value = fake_pcm
+
+    # Mock resampler
+    mock_resampler = MagicMock()
+    mock_resampler.resample.return_value = [mock_resampled_frame]
+
+    # Mock container with one decoded frame
+    mock_container = MagicMock()
+    mock_container.decode.return_value = [MagicMock()]
+
     t = _make_transcriber()
-    t.is_running = True
+    t.is_running = True  # stream_audio() sets this False on completion
 
-    fake_pcm = b"\x00\x01" * 480  # 480 samples of silence
+    with patch("av.open", return_value=mock_container), \
+         patch("av.AudioResampler", return_value=mock_resampler):
+        t.stream_audio("fake_url")
 
-    # Directly populate both queues as stream_audio would
-    t.chunk_queue.put(fake_pcm)
-    t.audio_queue.put(fake_pcm)
-    t.bytes_queued += len(fake_pcm)
-
-    assert not t.chunk_queue.empty()
-    assert not t.audio_queue.empty()
-    assert t.bytes_queued == len(fake_pcm)
     assert t.chunk_queue.get() == fake_pcm
     assert t.audio_queue.get() == fake_pcm
+    assert t.bytes_queued == len(fake_pcm)

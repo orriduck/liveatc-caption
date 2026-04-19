@@ -77,7 +77,7 @@ class BaseTranscriber(ABC):
         return h + pcm_data
 
     def stream_audio(self, url: str) -> None:
-        """Fetch live stream in a thread and push PCM frames to chunk_queue."""
+        """Fetch live stream in a thread and push PCM frames to chunk_queue and audio_queue."""
         try:
             container = av.open(url, mode="r", options={"timeout": "10000000"})
             resampler = av.AudioResampler(
