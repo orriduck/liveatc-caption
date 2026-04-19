@@ -1,88 +1,177 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Header
-from fastapi import UploadFile, File
-from services.claude_transcriber import ClaudeTranscriber as GeminiTranscriber
 import asyncio
-from datetime import datetime, timezone
+import queue
+import threading
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+
+from services.claude_transcriber import ClaudeTranscriber
 
 router = APIRouter(prefix="/caption", tags=["caption"])
-
-# We'll share a transcriber or create one per connection?
-# For now, one per connection is safer but heavy.
-# Better to have a pool if many users, but for a standalone app, one is fine.
 
 
 @router.websocket("/{mount}")
 async def websocket_caption(
-    websocket: WebSocket, mount: str, api_key: str = Query(None)
+    websocket: WebSocket,
+    mount: str,
+    api_key: str = Query(None),
+    model: str = Query("tiny.en"),
+    vad: int = Query(2),
+    silence: int = Query(600),
+    buffer: int = Query(512),
+    sync_offset: float = Query(0.0),
 ):
-    print(
-        f"DEBUG: WS Request for {mount} | Key: ...{api_key[-4:] if api_key and len(api_key) > 4 else 'NONE'}"
-    )
     await websocket.accept()
 
-    # Construct stream URL
+    transcriber = ClaudeTranscriber(api_key=api_key, model_size=model)
+    transcriber.is_running = True
+    transcriber.MIN_SILENCE_FRAMES = max(1, silence // transcriber.FRAME_MS)
+    vad_aggressiveness = max(0, min(3, vad))
+
+    # Pre-fetch airport context
+    icao = mount.split("_")[0].upper()
+    transcriber._current_icao = icao
+    await asyncio.to_thread(transcriber.rag_service.prefetch_airport, icao)
+    rag = transcriber.rag_service.get_context(mount=mount)
+
+    # Start background audio fetch thread
     stream_url = f"https://d.liveatc.net/{mount}"
+    thread = threading.Thread(
+        target=transcriber.stream_audio, args=(stream_url,), daemon=True
+    )
+    thread.start()
 
-    transcriber = GeminiTranscriber(api_key=api_key)
+    result_queue: asyncio.Queue = asyncio.Queue()
+    frame_bytes = int(transcriber.SAMPLE_RATE * transcriber.FRAME_MS / 1000 * 2)
+    startup_bytes = int(transcriber.SAMPLE_RATE * 2 * buffer / 1000)
 
-    try:
-        print(f"WS Started for {mount}")
+    await websocket.send_json({"type": "stream_start", "buffer_ms": buffer})
 
-        # Generator loop
-        async for result_data in transcriber.transcribe_gen(stream_url):
+    async def send_audio() -> None:
+        """Drain audio_queue; hold first `startup_bytes` bytes before sending."""
+        held: list[bytes] = []
+        held_size = 0
+        flushed = False
+
+        while transcriber.is_running:
             try:
-                # result_data is now a dict: {"results": [...]}
-                results = result_data.get("results", [])
-                for res in results:
+                chunk = await asyncio.to_thread(
+                    transcriber.audio_queue.get, True, 0.05
+                )
+            except queue.Empty:
+                continue
+
+            if not flushed:
+                held.append(chunk)
+                held_size += len(chunk)
+                if held_size >= startup_bytes:
+                    for c in held:
+                        await websocket.send_bytes(c)
+                    held = []
+                    flushed = True
+            else:
+                await websocket.send_bytes(chunk)
+
+    async def _process(pcm: bytes, end_offset: float) -> None:
+        try:
+            result = await transcriber._transcribe_chunk(pcm, rag)
+            await result_queue.put((result, end_offset))
+        except Exception as e:
+            print(f"[WS] process error: {e}")
+
+    async def audio_loop() -> None:
+        """VAD: read chunk_queue → detect utterances → fire transcription tasks."""
+        import webrtcvad
+
+        vad_instance = webrtcvad.Vad(vad_aggressiveness)
+        buf = b""
+        speech_buf = b""
+        in_speech = False
+        silence_n = 0
+
+        try:
+            while transcriber.is_running:
+                try:
+                    chunk = await asyncio.to_thread(
+                        transcriber.chunk_queue.get, True, 0.05
+                    )
+                    buf += chunk
+                    while not transcriber.chunk_queue.empty():
+                        buf += transcriber.chunk_queue.get_nowait()
+                except queue.Empty:
+                    continue
+
+                while len(buf) >= frame_bytes:
+                    frame, buf = buf[:frame_bytes], buf[frame_bytes:]
+                    try:
+                        is_speech = vad_instance.is_speech(frame, transcriber.SAMPLE_RATE)
+                    except Exception:
+                        is_speech = False
+
+                    if is_speech:
+                        if not in_speech:
+                            in_speech = True
+                            print("  >>> [SPEECH]")
+                        silence_n = 0
+                        speech_buf += frame
+                    elif in_speech:
+                        speech_buf += frame
+                        silence_n += 1
+                        if (
+                            silence_n >= transcriber.MIN_SILENCE_FRAMES
+                            or len(speech_buf) >= transcriber.MAX_SPEECH_BYTES
+                        ):
+                            if len(speech_buf) > transcriber.MIN_SPEECH_BYTES:
+                                print("  <<< [TRANSCRIBING]")
+                                end_offset = transcriber.bytes_queued / 32000 + sync_offset
+                                asyncio.create_task(_process(bytes(speech_buf), end_offset))
+                            speech_buf = b""
+                            in_speech = False
+                            silence_n = 0
+        finally:
+            transcriber.is_running = False
+
+    async def send_captions() -> None:
+        """Drain result_queue and send JSON caption frames with stream_offset."""
+        while transcriber.is_running or not result_queue.empty():
+            try:
+                result, offset = await asyncio.wait_for(result_queue.get(), timeout=1.0)
+                for res in result.get("results", []):
                     await websocket.send_json(
                         {
-                            **res,
                             "type": "caption",
-                            "timestamp": res.get("timestamp")
-                            or asyncio.get_event_loop().time(),
+                            "stream_offset": round(offset, 3),
+                            **res,
                         }
                     )
+            except asyncio.TimeoutError:
+                continue
             except Exception as e:
-                print(f"Error forwarding caption: {e}")
+                print(f"[WS] send_captions error: {e}")
                 break
 
+    tasks = [
+        asyncio.create_task(send_audio()),
+        asyncio.create_task(audio_loop()),
+        asyncio.create_task(send_captions()),
+    ]
+
+    try:
+        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
+        for t in pending:
+            t.cancel()
+        for t in done:
+            exc = t.exception()
+            if exc and not isinstance(exc, (WebSocketDisconnect, asyncio.CancelledError)):
+                print(f"[WS] task error: {exc}")
     except WebSocketDisconnect:
-        print(f"WS Disconnected for {mount}")
+        print(f"[WS] client disconnected: {mount}")
     except Exception as e:
-        print(f"WS Error for {mount}: {e}")
+        print(f"[WS] fatal error: {e}")
         try:
-            await websocket.send_json({"error": str(e), "type": "error"})
+            await websocket.send_json({"type": "error", "message": str(e)})
         except Exception:
             pass
     finally:
         transcriber.is_running = False
-
-
-@router.post("/transcribe")
-async def transcribe_audio(
-    file: UploadFile = File(...),
-    x_api_key: str = Header(None, alias="X-API-Key"),
-    start_time: str = Query(None),
-):
-    try:
-        audio_bytes = await file.read()
-        transcriber = GeminiTranscriber(api_key=x_api_key)
-
-        # Run this in a thread because it calls the blocking API
-        result = await asyncio.to_thread(transcriber.transcribe_segment, audio_bytes)
-
-        # If start_time is provided, use it for the results
-        results = result.get("results", [])
-        if start_time:
-            for res in results:
-                res["timestamp"] = start_time
-
-        # result is {"results": [...]}
-        return {
-            "results": results,
-            "type": "caption_list",
-            "timestamp": start_time or datetime.now(timezone.utc).isoformat(),
-        }
-    except Exception as e:
-        print(f"Transcription error: {e}")
-        return {"error": str(e), "type": "error"}
+        for t in tasks:
+            t.cancel()
