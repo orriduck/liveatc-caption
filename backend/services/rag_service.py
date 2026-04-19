@@ -14,7 +14,6 @@ Hotwords fed to Whisper's decoder:
 
 import json
 import os
-import re
 import threading
 
 import httpx
