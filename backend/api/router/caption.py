@@ -41,6 +41,7 @@ async def websocket_caption(
     thread.start()
 
     result_queue: asyncio.Queue = asyncio.Queue()
+    pending_tasks: set[asyncio.Task] = set()
     frame_bytes = int(transcriber.SAMPLE_RATE * transcriber.FRAME_MS / 1000 * 2)
     startup_bytes = int(transcriber.SAMPLE_RATE * 2 * buffer / 1000)
 
@@ -72,11 +73,15 @@ async def websocket_caption(
                 await websocket.send_bytes(chunk)
 
     async def _process(pcm: bytes, end_offset: float) -> None:
+        task = asyncio.current_task()
+        pending_tasks.add(task)
         try:
             result = await transcriber._transcribe_chunk(pcm, rag)
             await result_queue.put((result, end_offset))
         except Exception as e:
             print(f"[WS] process error: {e}")
+        finally:
+            pending_tasks.discard(task)
 
     async def audio_loop() -> None:
         """VAD: read chunk_queue → detect utterances → fire transcription tasks."""
@@ -132,7 +137,7 @@ async def websocket_caption(
 
     async def send_captions() -> None:
         """Drain result_queue and send JSON caption frames with stream_offset."""
-        while transcriber.is_running or not result_queue.empty():
+        while transcriber.is_running or pending_tasks or not result_queue.empty():
             try:
                 result, offset = await asyncio.wait_for(result_queue.get(), timeout=1.0)
                 for res in result.get("results", []):
@@ -163,14 +168,12 @@ async def websocket_caption(
             exc = t.exception()
             if exc and not isinstance(exc, (WebSocketDisconnect, asyncio.CancelledError)):
                 print(f"[WS] task error: {exc}")
-    except WebSocketDisconnect:
-        print(f"[WS] client disconnected: {mount}")
+                try:
+                    await websocket.send_json({"type": "error", "message": str(exc)})
+                except Exception:
+                    pass
     except Exception as e:
         print(f"[WS] fatal error: {e}")
-        try:
-            await websocket.send_json({"type": "error", "message": str(e)})
-        except Exception:
-            pass
     finally:
         transcriber.is_running = False
         for t in tasks:
