@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full" :style="`height:${height}px`">
+  <div class="relative w-full h-full">
     <div ref="mapEl" class="w-full h-full rounded-lg" style="background:#0e0e12" />
 
     <!-- Overlay chrome -->
@@ -28,8 +28,7 @@ const props = defineProps({
   icao:     { type: String,  default: '' },
   lat:      { type: Number,  default: 0 },
   lon:      { type: Number,  default: 0 },
-  zoom:     { type: Number,  default: 11 },
-  height:   { type: Number,  default: 340 },
+  zoom:     { type: Number,  default: 13 },
   accent:   { type: String,  default: '#FF5A1F' },
   aircraft: { type: Array,   default: () => [] },
 })
@@ -37,6 +36,7 @@ const props = defineProps({
 const mapEl   = ref(null)
 const mapReady = ref(false)
 let map = null
+let sizeObs = null
 const acMarkers = []
 
 const latStr = ref('')
@@ -81,6 +81,15 @@ const initMap = () => {
 
   mapReady.value = true
   updateAircraft()
+
+  // Observe the container for size changes (flex layout settles asynchronously).
+  // Every time the container grows/shrinks, tell Leaflet to recalculate so it
+  // requests any tiles that became visible — this eliminates the blank corner
+  // that appears when Leaflet initialises before the container has its final size.
+  sizeObs = new ResizeObserver(() => {
+    requestAnimationFrame(() => map?.invalidateSize())
+  })
+  sizeObs.observe(mapEl.value)
 }
 
 const makeAcIcon = (color, label, rot = 0) => L.divIcon({
@@ -120,5 +129,8 @@ watch(() => [props.lat, props.lon], ([lat, lon]) => {
 })
 
 onMounted(initMap)
-onUnmounted(() => { if (map) { map.remove(); map = null } })
+onUnmounted(() => {
+  sizeObs?.disconnect()
+  if (map) { map.remove(); map = null }
+})
 </script>

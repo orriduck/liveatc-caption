@@ -62,7 +62,6 @@
           :icao="airport?.icao || icao"
           :lat="airportLat"
           :lon="airportLon"
-          :height="mapHeight"
           accent="#FF5A1F"
           :aircraft="aircraft"
         />
@@ -323,18 +322,7 @@ const latRef = computed(() => airportLat.value)
 const lonRef = computed(() => airportLon.value)
 const { aircraft } = useAircraftPositions(icaoRef, latRef, lonRef)
 
-// ── Map height via ResizeObserver ──────────────────────────────────────────
 const mapContainerEl = ref(null)
-const mapHeight      = ref(400)
-let resizeObs = null
-
-onMounted(() => {
-  if (!mapContainerEl.value) return
-  resizeObs = new ResizeObserver(([e]) => {
-    mapHeight.value = Math.round(e.contentRect.height) || 400
-  })
-  resizeObs.observe(mapContainerEl.value)
-})
 
 // ── Speaker metadata ───────────────────────────────────────────────────────
 const SPEAKERS = {
@@ -413,7 +401,6 @@ onMounted(() => { tickSession(); sessionTimer = setInterval(tickSession, 1000) }
 onUnmounted(() => {
   clearInterval(sessionTimer)
   clearInterval(typeTimer)
-  resizeObs?.disconnect()
 })
 
 // ── Zulu time formatter ────────────────────────────────────────────────────
