@@ -1,18 +1,60 @@
 name: Release
 
+# Fires on every push to main — which happens whenever a PR is merged.
+# A loop-guard skips the job when the commit was made by CI itself
+# (e.g., the version-bump commit that this workflow creates).
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: false
+        default: 'patch'
+        type: choice
+        options: [patch, minor, major]
 
 jobs:
   release:
+    # Skip the CI bot's own version-bump commit to avoid an infinite loop.
+    if: "!startsWith(github.event.head_commit.message, 'chore: release v')"
     runs-on: macos-latest
     permissions:
       contents: write
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Use a PAT so the version-bump push can trigger downstream workflows.
+          # Falls back to GITHUB_TOKEN (push won't re-trigger workflows).
+          token: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
 
+      # ── Version ─────────────────────────────────────────────────────────────
+      - name: Compute next version
+        id: ver
+        run: |
+          # Read current version from the Homebrew Cask (single source of truth)
+          CURRENT=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' Casks/liveatc-caption.rb | head -1)
+          echo "Current version: $CURRENT"
+
+          IFS='.' read -r MAJ MIN PAT <<< "$CURRENT"
+          BUMP="${{ inputs.bump || 'patch' }}"
+
+          case "$BUMP" in
+            major) MAJ=$((MAJ+1)); MIN=0; PAT=0 ;;
+            minor) MIN=$((MIN+1)); PAT=0 ;;
+            *)     PAT=$((PAT+1)) ;;
+          esac
+
+          VER="${MAJ}.${MIN}.${PAT}"
+          TAG="v${VER}"
+          echo "ver=$VER"  >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG"  >> "$GITHUB_OUTPUT"
+          echo "Next version: $VER"
+
+      # ── Frontend ─────────────────────────────────────────────────────────────
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -27,76 +69,101 @@ jobs:
             frontend/pnpm-lock.yaml
             packaging/electron/pnpm-lock.yaml
 
-      - name: Install Frontend Dependencies
+      - name: Build frontend
         run: |
           cd frontend
           pnpm install --frozen-lockfile
-
-      - name: Build Frontend
-        run: |
-          cd frontend
           pnpm run build
 
+      # ── Backend ──────────────────────────────────────────────────────────────
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
 
-      - name: Build Backend
-        run: |
-          ./packaging/scripts/build_backend.sh
+      - name: Build backend (PyInstaller)
+        run: ./packaging/scripts/build_backend.sh
 
-      - name: Install Electron Packaging Dependencies
+      # ── Electron ─────────────────────────────────────────────────────────────
+      - name: Pin electron package version
+        run: |
+          VER="${{ steps.ver.outputs.ver }}"
+          cd packaging/electron
+          # Stamp version into package.json so electron-builder names the DMG
+          # with the correct version string (e.g. LiveATC Caption-0.4.0-arm64.dmg)
+          node -e "
+            const fs = require('fs');
+            const p = JSON.parse(fs.readFileSync('package.json','utf8'));
+            p.version = '${VER}';
+            fs.writeFileSync('package.json', JSON.stringify(p, null, 4) + '\n');
+          "
+
+      - name: Install electron packaging dependencies
         run: |
           cd packaging/electron
-          pnpm install --frozen-lockfile
+          pnpm install --no-frozen-lockfile
 
-      - name: Build and Package Electron App
+      - name: Build & package Electron app
         run: |
           cd packaging/electron
-          export CSC_IDENTITY_AUTO_DISCOVERY=false
-          npm run dist -- --publish never
+          CSC_IDENTITY_AUTO_DISCOVERY=false npm run dist -- --publish never
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update Homebrew Cask
+      # ── Artifacts ────────────────────────────────────────────────────────────
+      - name: Locate & canonicalise DMG
+        id: dmg
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          # Find the DMG file regardless of exact name/spaces
-          DMG_PATH=$(find packaging/electron/dist -maxdepth 1 -name "*.dmg" | head -n 1)
-          if [ -z "$DMG_PATH" ]; then
-            echo "Error: No DMG file found in packaging/electron/dist"
+          VER="${{ steps.ver.outputs.ver }}"
+          # electron-builder produces "LiveATC Caption-{ver}-arm64.dmg" (space)
+          SRC=$(find packaging/electron/dist -maxdepth 1 -name "*.dmg" | head -1)
+          if [ -z "$SRC" ]; then
+            echo "Error: no DMG found in packaging/electron/dist" >&2
             exit 1
           fi
-          echo "Found DMG at $DMG_PATH"
-          SHA256=$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')
-          
-          # Update version and sha256 in the cask file
-          sed -i '' "s/version \".*\"/version \"$VERSION\"/" Casks/liveatc-caption.rb
-          sed -i '' "s/sha256 \".*\"/sha256 \"$SHA256\"/" Casks/liveatc-caption.rb
-          # also handle :no_check placeholder if it exists
-          sed -i '' "s/sha256 :no_check/sha256 \"$SHA256\"/" Casks/liveatc-caption.rb
-          
-          echo "Updated Cask with version $VERSION and SHA256 $SHA256"
+          # Rename to dot-separated canonical name expected by the Homebrew Cask URL
+          DEST="packaging/electron/dist/LiveATC.Caption-${VER}-arm64.dmg"
+          [ "$SRC" != "$DEST" ] && mv "$SRC" "$DEST"
+          SHA=$(shasum -a 256 "$DEST" | awk '{print $1}')
+          echo "path=$DEST" >> "$GITHUB_OUTPUT"
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "DMG: $DEST  SHA256: $SHA"
 
-      - name: Commit Cask Update
+      # ── Homebrew Cask ────────────────────────────────────────────────────────
+      - name: Update Homebrew Cask
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add Casks/liveatc-caption.rb
-          git commit -m "chore: update homebrew cask to ${GITHUB_REF#refs/tags/}"
-          git push origin HEAD:main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VER="${{ steps.ver.outputs.ver }}"
+          SHA="${{ steps.dmg.outputs.sha256 }}"
+          sed -i '' "s/version \"[^\"]*\"/version \"${VER}\"/" Casks/liveatc-caption.rb
+          sed -i '' "s/sha256 \"[^\"]*\"/sha256 \"${SHA}\"/" Casks/liveatc-caption.rb
+          # Handle :no_check placeholder if present
+          sed -i '' "s/sha256 :no_check/sha256 \"${SHA}\"/" Casks/liveatc-caption.rb
+          echo "--- Updated cask ---"
+          cat Casks/liveatc-caption.rb
 
-      - name: Create Release
+      # ── Tag & push ───────────────────────────────────────────────────────────
+      - name: Commit version bump, tag, and push
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          VER="${{ steps.ver.outputs.ver }}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/liveatc-caption.rb
+          git commit -m "chore: release v${VER}"
+          git tag "$TAG"
+          git push origin HEAD:main
+          git push origin "$TAG"
+
+      # ── GitHub Release ───────────────────────────────────────────────────────
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: "v${{ steps.ver.outputs.ver }}"
           files: |
-            packaging/electron/dist/*.dmg
+            ${{ steps.dmg.outputs.path }}
             packaging/electron/dist/*.zip
-          draft: true
+          draft: false
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
