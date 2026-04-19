@@ -79,7 +79,9 @@ async def proxy_aircraft(
     url = f"https://api.adsb.lol/v2/lat/{lat}/lon/{lon}/dist/{int(dist)}"
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.get(url, headers=_BROWSER_HEADERS, follow_redirects=True)
+            resp = await client.get(
+                url, headers=_BROWSER_HEADERS, follow_redirects=True
+            )
             resp.raise_for_status()
             return resp.json()
     except Exception as e:
