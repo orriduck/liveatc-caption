@@ -7,8 +7,8 @@
          :style="`color:${accent};text-shadow:0 0 6px #0a0a0b`">
       ● {{ icao }} · {{ latStr }} {{ lonStr }}
     </div>
-    <div class="absolute bottom-3 left-3.5 pointer-events-none font-sans text-[10px]"
-         style="color:rgba(245,245,247,0.45);text-shadow:0 0 6px #0a0a0b">
+    <div class="absolute bottom-3 right-3 pointer-events-none font-sans text-[9px] whitespace-nowrap"
+         style="color:rgba(245,245,247,0.28);text-shadow:0 0 6px #0a0a0b">
       © OpenStreetMap · CartoDB
     </div>
 
@@ -28,7 +28,7 @@ const props = defineProps({
   icao:     { type: String,  default: '' },
   lat:      { type: Number,  default: 0 },
   lon:      { type: Number,  default: 0 },
-  zoom:     { type: Number,  default: 13 },
+  zoom:     { type: Number,  default: 11 },
   height:   { type: Number,  default: 340 },
   accent:   { type: String,  default: '#FF5A1F' },
   aircraft: { type: Array,   default: () => [] },

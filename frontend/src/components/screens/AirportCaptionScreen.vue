@@ -78,16 +78,15 @@
         >{{ tab }}</button>
       </div>
 
-      <!-- Aircraft count (bottom-left) -->
-      <div class="absolute bottom-3 left-3 z-10 flex items-center gap-2 font-mono text-[11px] text-atc-dim pointer-events-none" style="text-shadow:0 0 8px #0a0a0b">
+      <!-- Aircraft count (bottom-center) -->
+      <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 font-mono text-[11px] text-atc-dim pointer-events-none whitespace-nowrap" style="text-shadow:0 0 8px #0a0a0b">
         <span class="w-1.5 h-1.5 rounded-full bg-atc-orange flex-shrink-0" style="box-shadow:0 0 6px #FF5A1F" />
         {{ aircraft.length }} aircraft in range
-        <span v-if="airportLat" class="text-atc-faint">· {{ airportLat.toFixed(2) }}°N {{ Math.abs(airportLon).toFixed(2) }}°W</span>
       </div>
 
       <!-- ── LEFT FLOAT: Feed selector ──────────────────────────────────── -->
       <div
-        class="absolute top-3 left-3 z-10 flex flex-col rounded-2xl border border-white/10 overflow-hidden"
+        class="absolute top-3 left-10 z-10 flex flex-col rounded-2xl border border-white/10 overflow-hidden"
         style="width:236px;height:calc(100% - 24px);background:rgba(10,10,11,0.82);backdrop-filter:blur(16px)"
       >
         <!-- Header -->
@@ -141,7 +140,7 @@
 
       <!-- ── RIGHT FLOAT: Player + Captions ─────────────────────────────── -->
       <div
-        class="absolute top-3 right-3 z-10 flex flex-col rounded-2xl border border-white/10 overflow-hidden"
+        class="absolute top-3 right-10 z-10 flex flex-col rounded-2xl border border-white/10 overflow-hidden"
         style="width:320px;height:calc(100% - 24px);background:rgba(10,10,11,0.82);backdrop-filter:blur(16px)"
       >
         <!-- Player card -->
