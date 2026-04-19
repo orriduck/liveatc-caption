@@ -67,16 +67,6 @@
         />
       </div>
 
-      <!-- Map view tabs (top-center) -->
-      <div class="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex gap-0.5 p-0.5 rounded-lg border border-white/10" style="background:rgba(10,10,11,0.75);backdrop-filter:blur(12px)">
-        <button
-          v-for="tab in ['Airport','Approach','Region']" :key="tab"
-          @click="mapTab = tab"
-          class="px-3 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer border-none"
-          :class="mapTab === tab ? 'bg-white/10 text-atc-text' : 'bg-transparent text-atc-dim hover:text-atc-text'"
-        >{{ tab }}</button>
-      </div>
-
       <!-- Aircraft count (bottom-center) -->
       <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 font-mono text-[11px] text-atc-dim pointer-events-none whitespace-nowrap" style="text-shadow:0 0 8px #0a0a0b">
         <span class="w-1.5 h-1.5 rounded-full bg-atc-orange flex-shrink-0" style="box-shadow:0 0 6px #FF5A1F" />
@@ -88,20 +78,24 @@
         class="absolute top-3 left-10 z-10 flex flex-col rounded-2xl border border-white/10 overflow-hidden"
         style="width:236px;height:calc(100% - 24px);background:rgba(10,10,11,0.82);backdrop-filter:blur(16px)"
       >
-        <!-- Header -->
-        <div class="flex-shrink-0 flex items-center justify-between px-3 pt-3 pb-2 border-b border-white/8">
-          <span class="font-mono text-[9px] text-atc-faint tracking-[1.5px] uppercase">
-            ATC FEEDS · {{ channels?.length || 0 }}
-          </span>
-          <!-- Filter tabs -->
-          <div class="flex gap-0.5">
-            <button
-              v-for="t in feedTabs" :key="t"
-              @click="feedFilter = t"
-              class="px-1.5 py-0.5 rounded text-[9px] font-medium cursor-pointer transition-colors border-none"
-              :class="feedFilter === t ? 'bg-white/10 text-atc-text' : 'bg-transparent text-atc-dim hover:text-atc-text'"
-            >{{ t }}</button>
+        <!-- Header: stats + filter dropdown -->
+        <div class="flex-shrink-0 px-3 pt-3 pb-2 border-b border-white/8 flex flex-col gap-1.5">
+          <!-- Stats row -->
+          <div class="flex items-center justify-between font-mono text-[9px]">
+            <span class="text-atc-faint tracking-[1.5px] uppercase">ATC FEEDS</span>
+            <div class="flex gap-2 text-atc-dim">
+              <span><b class="text-atc-text">{{ channels?.filter(c => c.is_up !== false).length || 0 }}</b> live</span>
+              <span><b class="text-atc-text">{{ totalListeners }}</b> listeners</span>
+            </div>
           </div>
+          <!-- Filter dropdown -->
+          <select
+            v-model="feedFilter"
+            class="w-full rounded px-2 py-1 font-mono text-[10px] text-atc-text border border-white/10 cursor-pointer appearance-none"
+            style="background:rgba(255,255,255,0.05);outline:none"
+          >
+            <option v-for="t in feedTabs" :key="t" :value="t">{{ t === 'All' ? 'All feeds' : feedTabLabels[t] }}</option>
+          </select>
         </div>
 
         <!-- Feed list -->
@@ -114,25 +108,25 @@
             v-for="ch in filteredChannels"
             :key="ch.id"
             @click="selectFeed(ch)"
-            class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-left cursor-pointer transition-all font-sans w-full"
+            class="flex items-center gap-2 px-2.5 py-1 rounded-lg border text-left cursor-pointer transition-all font-sans w-full"
             :class="ch.id === activeFeedId
               ? 'border-atc-orange/30 bg-atc-orange/8'
               : 'border-transparent bg-transparent hover:bg-white/5'"
           >
+            <!-- Flashing green dot: active=green pulse, others=dim -->
+            <span
+              class="w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors"
+              :class="ch.id === activeFeedId
+                ? 'bg-atc-mint animate-flash-dot'
+                : 'bg-white/20'"
+            />
             <div class="flex-1 min-w-0">
-              <div class="text-[12px] font-semibold truncate" style="letter-spacing:-0.1px">{{ ch.name }}</div>
-              <div class="font-mono text-[10px] text-atc-dim tracking-[0.3px]">
-                {{ ch.freq || '' }}{{ ch.freq ? ' · ' : '' }}{{ ch.listeners }}L
-              </div>
+              <div
+                class="text-[11px] truncate"
+                :class="isHighTraffic(ch) ? 'font-bold text-atc-text' : 'font-medium text-atc-dim'"
+                style="letter-spacing:-0.1px"
+              >{{ ch.name }}</div>
             </div>
-            <div v-if="ch.id === activeFeedId" class="flex gap-0.5 items-end h-3 flex-shrink-0">
-              <span
-                v-for="(h, i) in [0.5, 0.9, 0.7]" :key="i"
-                class="w-[2px] rounded-sm bg-atc-orange"
-                :style="{ height:`${h*12}px`, animation:`eqBar ${0.6+i*0.15}s ease-in-out ${i*0.1}s infinite alternate` }"
-              />
-            </div>
-            <span v-else class="w-1.5 h-1.5 rounded-full bg-atc-mint flex-shrink-0" style="box-shadow:0 0 5px #34d399;opacity:0.7" />
           </button>
         </div>
       </div>
@@ -289,9 +283,9 @@ const props = defineProps({
 const emit = defineEmits(['back', 'select-feed', 'toggle-play', 'stop', 'download'])
 
 // ── Feed filter ────────────────────────────────────────────────────────────
-const feedTabs   = ['All', 'Twr', 'Gnd', 'App', 'Ctr']
-const feedFilter = ref('All')
-const mapTab     = ref('Airport')
+const feedTabs      = ['All', 'Twr', 'Gnd', 'App', 'Ctr']
+const feedTabLabels = { Twr: 'Tower', Gnd: 'Ground', App: 'Approach', Ctr: 'Center' }
+const feedFilter    = ref('All')
 
 const filteredChannels = computed(() => {
   if (feedFilter.value === 'All') return props.channels
@@ -299,6 +293,15 @@ const filteredChannels = computed(() => {
   const kw = map[feedFilter.value] || feedFilter.value.toLowerCase()
   return props.channels.filter(c => c.name?.toLowerCase().includes(kw))
 })
+
+const totalListeners = computed(() =>
+  (props.channels || []).reduce((s, c) => s + (c.listeners || 0), 0)
+)
+
+const isHighTraffic = (ch) => {
+  const total = totalListeners.value
+  return total > 0 && (ch.listeners || 0) / total > 0.2
+}
 
 const activeFeed = computed(() => props.channels?.find(c => c.id === props.activeFeedId) || null)
 const selectFeed = (ch) => emit('select-feed', ch)
