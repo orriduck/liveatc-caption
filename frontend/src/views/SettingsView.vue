@@ -73,6 +73,98 @@
           </div>
         </div>
 
+        <!-- Transcription Settings -->
+        <div class="space-y-6 pt-12 border-t">
+          <div class="flex items-center gap-2 opacity-50 uppercase">
+            <Mic class="w-4 h-4" />
+            <h2 class="text-sm">Transcription</h2>
+          </div>
+
+          <!-- Whisper Model -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="text-xs uppercase opacity-70">Whisper Model</label>
+              <span class="text-xs font-mono opacity-50">{{ wsModel }}</span>
+            </div>
+            <select
+              v-model="wsModel"
+              class="select select-bordered w-full rounded-xl text-sm"
+            >
+              <option value="tiny.en">tiny.en — fastest, lower accuracy</option>
+              <option value="base.en">base.en — balanced</option>
+              <option value="small.en">small.en — slowest, highest accuracy</option>
+            </select>
+          </div>
+
+          <!-- VAD Aggressiveness -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="text-xs uppercase opacity-70">VAD Aggressiveness</label>
+              <span class="text-xs font-mono opacity-50">{{ wsVad }}</span>
+            </div>
+            <input
+              v-model.number="wsVad"
+              type="range" min="1" max="3" step="1"
+              class="range range-sm w-full"
+            />
+            <div class="flex justify-between text-[10px] opacity-40">
+              <span>1 — permissive</span>
+              <span>3 — strict</span>
+            </div>
+          </div>
+
+          <!-- Silence Cutoff -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="text-xs uppercase opacity-70">Silence Cutoff</label>
+              <span class="text-xs font-mono opacity-50">{{ wsSilence }} ms</span>
+            </div>
+            <input
+              v-model.number="wsSilence"
+              type="range" min="300" max="1200" step="100"
+              class="range range-sm w-full"
+            />
+            <div class="flex justify-between text-[10px] opacity-40">
+              <span>300 ms — fast cut</span>
+              <span>1200 ms — slow cut</span>
+            </div>
+          </div>
+
+          <!-- Startup Buffer -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="text-xs uppercase opacity-70">Startup Buffer</label>
+              <span class="text-xs font-mono opacity-50">{{ wsBuffer }} ms</span>
+            </div>
+            <input
+              v-model.number="wsBuffer"
+              type="range" min="256" max="2048" step="128"
+              class="range range-sm w-full"
+            />
+            <div class="flex justify-between text-[10px] opacity-40">
+              <span>256 ms — low latency</span>
+              <span>2048 ms — stable</span>
+            </div>
+          </div>
+
+          <!-- Caption Sync Offset -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="text-xs uppercase opacity-70">Caption Sync Offset</label>
+              <span class="text-xs font-mono opacity-50">{{ wsSyncOffset > 0 ? '+' : '' }}{{ wsSyncOffset }} ms</span>
+            </div>
+            <input
+              v-model.number="wsSyncOffset"
+              type="range" min="-500" max="500" step="50"
+              class="range range-sm w-full"
+            />
+            <div class="flex justify-between text-[10px] opacity-40">
+              <span>−500 ms — show earlier</span>
+              <span>+500 ms — show later</span>
+            </div>
+          </div>
+        </div>
+
         <!-- About Section -->
         <div class="pt-12 border-t space-y-6">
           <div class="flex items-center gap-2 opacity-50">
@@ -117,7 +209,7 @@
 
 <script setup>
 import { ref, onMounted, inject } from 'vue'
-import { Settings as SettingsIcon, X, Key, Info, Github, Eye, EyeOff } from 'lucide-vue-next'
+import { Settings as SettingsIcon, X, Key, Info, Github, Eye, EyeOff, Mic } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -128,6 +220,13 @@ const showApiKey = ref(false)
 const hasEnvKey = ref(false)
 const hasSavedKey = ref(false)
 const saving = ref(false)
+
+// Transcription settings — read from localStorage
+const wsModel = ref(localStorage.getItem('ws_model') || 'tiny.en')
+const wsVad = ref(parseInt(localStorage.getItem('ws_vad') || '2'))
+const wsSilence = ref(parseInt(localStorage.getItem('ws_silence') || '600'))
+const wsBuffer = ref(parseInt(localStorage.getItem('ws_buffer') || '512'))
+const wsSyncOffset = ref(parseInt(localStorage.getItem('ws_sync_offset') || '0'))
 
 onMounted(async () => {
   try {
@@ -158,6 +257,11 @@ const handleSave = async () => {
       saving.value = false
     }
   }
+  localStorage.setItem('ws_model', wsModel.value)
+  localStorage.setItem('ws_vad', String(wsVad.value))
+  localStorage.setItem('ws_silence', String(wsSilence.value))
+  localStorage.setItem('ws_buffer', String(wsBuffer.value))
+  localStorage.setItem('ws_sync_offset', String(wsSyncOffset.value))
   router.back()
 }
 </script>
