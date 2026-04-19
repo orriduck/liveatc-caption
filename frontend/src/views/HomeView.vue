@@ -31,9 +31,13 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref, inject, computed, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import SearchScreen         from '../components/screens/SearchScreen.vue'
 import AirportCaptionScreen from '../components/screens/AirportCaptionScreen.vue'
+
+const router = useRouter()
+const route  = useRoute()
 
 const {
   data,
@@ -51,44 +55,79 @@ const {
   togglePlay,
 } = inject('liveATC')
 
-const screen      = ref('search')
 const currentIcao = ref('')
 
-// Open airport: fetch data, go to unified station screen
+// Derive screen from route — no extra state needed
+const screen = computed(() => route.params.icao ? 'station' : 'search')
+
+// ── Navigation helpers ────────────────────────────────────────────────────
+
 const handleOpenAirport = async (airport) => {
   currentIcao.value = airport.code
-  screen.value = 'station'
+  router.push({ name: 'airport', params: { icao: airport.code } })
   await handleSearch(airport.code)
 }
 
-// Select (or switch) a feed from the station screen
 const handleSelectFeed = async (channel) => {
   if (activeChannel.value?.id === channel.id) return
   disconnect()
   activeChannel.value = channel
   isConnected.value   = false
+  router.push({ name: 'channel', params: { icao: currentIcao.value, channel: channel.id } })
   await connect()
 }
 
-// Stop audio but stay on the station screen
 const handleStop = () => {
   disconnect()
 }
 
-// Back: disconnect and return to search
 const handleBack = () => {
   disconnect()
-  screen.value = 'search'
+  router.push({ name: 'home' })
 }
+
+// ── Restore state from URL on load / navigation ───────────────────────────
+
+const restoreFromRoute = async (icao, channelId) => {
+  if (!icao) return
+  currentIcao.value = icao.toUpperCase()
+  await handleSearch(icao)
+  if (channelId && data.value?.channels) {
+    const ch = data.value.channels.find(c => c.id === channelId)
+    if (ch) {
+      activeChannel.value = ch
+      await connect()
+    }
+  }
+}
+
+// On first load, restore from URL params
+onMounted(() => {
+  const { icao, channel } = route.params
+  if (icao) restoreFromRoute(icao, channel)
+})
+
+// If the user navigates back/forward with browser buttons, re-sync
+watch(() => route.params, ({ icao, channel }) => {
+  if (icao && icao !== currentIcao.value) {
+    restoreFromRoute(icao, channel)
+  } else if (!icao && currentIcao.value) {
+    // Navigated back to home via browser button
+    disconnect()
+    currentIcao.value = ''
+  }
+})
+
+// ── Download ──────────────────────────────────────────────────────────────
 
 const handleDownload = () => {
   if (!captions.value?.length) return
   const lines = captions.value
     .filter(c => !c.isTemp && (c.caption || c.details))
     .map(c => {
-      const ts     = new Date(c.timestamp).toISOString()
+      const ts      = new Date(c.timestamp).toISOString()
       const speaker = c.speaker || 'UNK'
-      const text   = c.caption || c.details || ''
+      const text    = c.caption || c.details || ''
       return `[${ts}] ${speaker}: ${text}`
     })
     .join('\n')
