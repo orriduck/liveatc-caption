@@ -123,6 +123,14 @@ export function useLiveATC() {
         const msg = JSON.parse(event.data)
 
         if (msg.type === 'stream_start') {
+          // Tear down any previous worklet to avoid leaking audio nodes on reconnect
+          if (workletNodeRef.value) {
+            workletNodeRef.value.disconnect()
+            workletNodeRef.value = null
+          }
+          analyserRef.value = null
+          workletReady = false
+
           const ctx = initAudioContext()
           if (ctx.state === 'suspended') await ctx.resume().catch(() => {})
 
@@ -165,6 +173,7 @@ export function useLiveATC() {
     }
 
     ws.onclose = () => {
+      wsRef.value = null
       isConnected.value = false
       connectionState.value = 'IDLE'
       isPlaying.value = false
