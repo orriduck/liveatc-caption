@@ -34,11 +34,16 @@ export default {
         'caret':     'caretBlink 0.9s steps(1) infinite',
         'eq-bar':    'eqBar 0.6s ease-in-out infinite alternate',
         'wv':        'wv 0.5s ease-in-out infinite alternate',
+        'flash-dot': 'flashDot 1.2s ease-in-out infinite',
       },
       keyframes: {
         pulseDot: {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
           '50%':      { opacity: '0.55', transform: 'scale(0.85)' },
+        },
+        flashDot: {
+          '0%, 100%': { opacity: '1',   boxShadow: '0 0 6px #34d399' },
+          '50%':      { opacity: '0.2', boxShadow: '0 0 2px #34d399' },
         },
         capIn: {
           from: { opacity: '0', transform: 'translateY(8px)' },
