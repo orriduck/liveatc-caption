@@ -53,21 +53,23 @@
     </section>
 
     <!-- ─── BODY: full-canvas map + floating panels ───────────────────────── -->
-    <div ref="mapContainerEl" class="flex-1 min-h-0 relative overflow-hidden">
+    <div ref="mapContainerEl" class="flex-1 min-h-0 relative">
 
-      <!-- Map fills entire area -->
-      <AirportMap
-        :icao="airport?.icao || icao"
-        :lat="airportLat"
-        :lon="airportLon"
-        :height="mapHeight"
-        accent="#FF5A1F"
-        :aircraft="aircraft"
-        class="absolute inset-0 w-full"
-      />
+      <!-- Map wrapper: z-0 creates a stacking context that contains Leaflet's
+           internal z-indices (200–700), so our floating panels can sit above -->
+      <div class="absolute inset-0" style="z-index:0">
+        <AirportMap
+          :icao="airport?.icao || icao"
+          :lat="airportLat"
+          :lon="airportLon"
+          :height="mapHeight"
+          accent="#FF5A1F"
+          :aircraft="aircraft"
+        />
+      </div>
 
       <!-- Map view tabs (top-center) -->
-      <div class="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex gap-0.5 p-0.5 rounded-lg border border-white/10" style="background:rgba(10,10,11,0.75);backdrop-filter:blur(12px)">
+      <div class="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex gap-0.5 p-0.5 rounded-lg border border-white/10" style="background:rgba(10,10,11,0.75);backdrop-filter:blur(12px)">
         <button
           v-for="tab in ['Airport','Approach','Region']" :key="tab"
           @click="mapTab = tab"
@@ -77,7 +79,7 @@
       </div>
 
       <!-- Aircraft count (bottom-left) -->
-      <div class="absolute bottom-3 left-3 z-20 flex items-center gap-2 font-mono text-[11px] text-atc-dim pointer-events-none" style="text-shadow:0 0 8px #0a0a0b">
+      <div class="absolute bottom-3 left-3 z-10 flex items-center gap-2 font-mono text-[11px] text-atc-dim pointer-events-none" style="text-shadow:0 0 8px #0a0a0b">
         <span class="w-1.5 h-1.5 rounded-full bg-atc-orange flex-shrink-0" style="box-shadow:0 0 6px #FF5A1F" />
         {{ aircraft.length }} aircraft in range
         <span v-if="airportLat" class="text-atc-faint">· {{ airportLat.toFixed(2) }}°N {{ Math.abs(airportLon).toFixed(2) }}°W</span>
@@ -85,8 +87,8 @@
 
       <!-- ── LEFT FLOAT: Feed selector ──────────────────────────────────── -->
       <div
-        class="absolute top-3 left-3 z-30 flex flex-col rounded-2xl border border-white/10 overflow-hidden"
-        style="width:236px;max-height:calc(100% - 24px);background:rgba(10,10,11,0.82);backdrop-filter:blur(16px)"
+        class="absolute top-3 left-3 z-10 flex flex-col rounded-2xl border border-white/10 overflow-hidden"
+        style="width:236px;height:calc(100% - 24px);background:rgba(10,10,11,0.82);backdrop-filter:blur(16px)"
       >
         <!-- Header -->
         <div class="flex-shrink-0 flex items-center justify-between px-3 pt-3 pb-2 border-b border-white/8">
@@ -139,8 +141,8 @@
 
       <!-- ── RIGHT FLOAT: Player + Captions ─────────────────────────────── -->
       <div
-        class="absolute top-3 right-3 z-30 flex flex-col rounded-2xl border border-white/10 overflow-hidden"
-        style="width:320px;max-height:calc(100% - 24px);background:rgba(10,10,11,0.82);backdrop-filter:blur(16px)"
+        class="absolute top-3 right-3 z-10 flex flex-col rounded-2xl border border-white/10 overflow-hidden"
+        style="width:320px;height:calc(100% - 24px);background:rgba(10,10,11,0.82);backdrop-filter:blur(16px)"
       >
         <!-- Player card -->
         <div class="flex-shrink-0 p-4 border-b border-white/8">
