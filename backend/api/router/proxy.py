@@ -1,7 +1,6 @@
 import httpx
 
 from fastapi import APIRouter, Query
-from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/proxy", tags=["proxy"])
 
@@ -9,48 +8,6 @@ _BROWSER_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "*/*",
 }
-
-
-@router.get("/stream/{mount}")
-async def proxy_stream(mount: str):
-    """Proxy a live Icecast/MP3 audio stream from LiveATC."""
-    stream_url = f"https://d.liveatc.net/{mount}"
-
-    async def stream_generator():
-        try:
-            # No read timeout — live streams can have gaps between chunks
-            timeout = httpx.Timeout(connect=10.0, read=None, write=None, pool=10.0)
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                async with client.stream(
-                    "GET",
-                    stream_url,
-                    headers=_BROWSER_HEADERS,
-                    follow_redirects=True,
-                ) as response:
-                    if response.status_code != 200:
-                        print(f"Proxy stream failed: {response.status_code}")
-                        yield b""
-                        return
-                    async for chunk in response.aiter_bytes():
-                        yield chunk
-        except Exception as e:
-            print(f"Proxy stream error for {mount}: {e}")
-
-    return StreamingResponse(
-        stream_generator(),
-        media_type="audio/mpeg",
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-        },
-    )
-
-
-# Keep old path working for backwards compat
-@router.get("/{mount}")
-async def proxy_stream_legacy(mount: str):
-    return await proxy_stream(mount)
 
 
 @router.get("/metar/{icao}")
