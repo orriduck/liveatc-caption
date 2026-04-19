@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full" :style="`height:${height}px`">
+  <div class="relative w-full h-full">
     <div ref="mapEl" class="w-full h-full rounded-lg" style="background:#0e0e12" />
 
     <!-- Overlay chrome -->
@@ -7,8 +7,8 @@
          :style="`color:${accent};text-shadow:0 0 6px #0a0a0b`">
       ● {{ icao }} · {{ latStr }} {{ lonStr }}
     </div>
-    <div class="absolute bottom-3 left-3.5 pointer-events-none font-sans text-[10px]"
-         style="color:rgba(245,245,247,0.45);text-shadow:0 0 6px #0a0a0b">
+    <div class="absolute bottom-3 right-3 pointer-events-none font-sans text-[9px] whitespace-nowrap"
+         style="color:rgba(245,245,247,0.28);text-shadow:0 0 6px #0a0a0b">
       © OpenStreetMap · CartoDB
     </div>
 
@@ -29,7 +29,6 @@ const props = defineProps({
   lat:      { type: Number,  default: 0 },
   lon:      { type: Number,  default: 0 },
   zoom:     { type: Number,  default: 13 },
-  height:   { type: Number,  default: 340 },
   accent:   { type: String,  default: '#FF5A1F' },
   aircraft: { type: Array,   default: () => [] },
 })
@@ -37,6 +36,7 @@ const props = defineProps({
 const mapEl   = ref(null)
 const mapReady = ref(false)
 let map = null
+let sizeObs = null
 const acMarkers = []
 
 const latStr = ref('')
@@ -81,6 +81,15 @@ const initMap = () => {
 
   mapReady.value = true
   updateAircraft()
+
+  // Observe the container for size changes (flex layout settles asynchronously).
+  // Every time the container grows/shrinks, tell Leaflet to recalculate so it
+  // requests any tiles that became visible — this eliminates the blank corner
+  // that appears when Leaflet initialises before the container has its final size.
+  sizeObs = new ResizeObserver(() => {
+    requestAnimationFrame(() => map?.invalidateSize())
+  })
+  sizeObs.observe(mapEl.value)
 }
 
 const makeAcIcon = (color, label, rot = 0) => L.divIcon({
@@ -120,5 +129,8 @@ watch(() => [props.lat, props.lon], ([lat, lon]) => {
 })
 
 onMounted(initMap)
-onUnmounted(() => { if (map) { map.remove(); map = null } })
+onUnmounted(() => {
+  sizeObs?.disconnect()
+  if (map) { map.remove(); map = null }
+})
 </script>
