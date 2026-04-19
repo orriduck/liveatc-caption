@@ -10,7 +10,7 @@ import anthropic
 from services.base_transcriber import BaseTranscriber, make_error_result
 
 CLAUDE_MODEL = "claude-haiku-4-5-20251001"
-WHISPER_MODEL_SIZE = "small.en"
+WHISPER_MODEL_SIZE = "tiny.en"
 
 # Expanded ICAO phraseology prompt fed to Whisper's decoder.
 # Covers number pronunciation, callsign patterns, standard phrases, and
@@ -46,13 +46,14 @@ _ATC_INITIAL_PROMPT = (
 
 
 class ClaudeTranscriber(BaseTranscriber):
-    def __init__(self, api_key: str | None = None):
+    def __init__(self, api_key: str | None = None, model_size: str | None = None):
         # Env var always wins; frontend-passed key is only a fallback for
         # cases where no server-side key is configured (e.g. personal dev setup).
         resolved = (os.environ.get("ANTHROPIC_API_KEY", "") or api_key or "").strip()
         super().__init__(api_key=resolved)
         self.client = anthropic.Anthropic(api_key=self.api_key) if self.api_key else None
         self._whisper = None
+        self._model_size = model_size or WHISPER_MODEL_SIZE
 
     # ── Whisper ───────────────────────────────────────────────────────────────
 
@@ -60,9 +61,9 @@ class ClaudeTranscriber(BaseTranscriber):
         if self._whisper is None:
             from faster_whisper import WhisperModel
 
-            print(f"[Whisper] Loading {WHISPER_MODEL_SIZE} (first run may download)…")
+            print(f"[Whisper] Loading {self._model_size} (first run may download)…")
             self._whisper = WhisperModel(
-                WHISPER_MODEL_SIZE, device="cpu", compute_type="int8"
+                self._model_size, device="cpu", compute_type="int8"
             )
             print("[Whisper] Model ready.")
         return self._whisper

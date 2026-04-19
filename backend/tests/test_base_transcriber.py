@@ -52,3 +52,15 @@ def test_stream_audio_pushes_to_both_queues():
     assert t.chunk_queue.get() == fake_pcm
     assert t.audio_queue.get() == fake_pcm
     assert t.bytes_queued == len(fake_pcm)
+
+
+def test_model_size_default():
+    t = _make_transcriber()
+    assert t._model_size == "tiny.en"
+
+
+def test_model_size_override():
+    with patch("faster_whisper.WhisperModel", MagicMock()):
+        from services.claude_transcriber import ClaudeTranscriber
+        t = ClaudeTranscriber(api_key="dummy", model_size="small.en")
+        assert t._model_size == "small.en"
