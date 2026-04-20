@@ -6,8 +6,9 @@ const POLL_MS = 15_000
 const DIST_NM = 20  // nautical miles radius (~37 km) — catches approach traffic too
 
 export function useAircraftPositions(icaoRef, latRef, lonRef) {
-  const aircraft = ref([])
-  const loading  = ref(false)
+  const aircraft    = ref([])
+  const loading     = ref(false)
+  const lastUpdated = ref(null)
   let timer = null
 
   const poll = async () => {
@@ -35,6 +36,7 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
           velocity: a.gs ?? null,
           track:    a.track ?? 0,
         }))
+      lastUpdated.value = new Date()
     } catch (e) {
       console.warn('ADS-B fetch failed:', e.message)
     } finally {
@@ -56,5 +58,5 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
   watch(icaoRef, (v) => { if (v) start(); else stop() }, { immediate: true })
   onUnmounted(stop)
 
-  return { aircraft, loading }
+  return { aircraft, loading, lastUpdated }
 }
