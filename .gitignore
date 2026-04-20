@@ -5,3 +5,5 @@
 **/__pycache__
 *_backup
 **/.ruff_cache
+
+docs/superpowers
