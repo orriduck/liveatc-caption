@@ -134,8 +134,8 @@ const makeAcIcon = (color, label, rot = 0, showArrow = true) => {
     ? `<svg width="18" height="18" viewBox="0 0 24 24" style="transform:rotate(${rot}deg);filter:drop-shadow(0 0 4px ${color})">
         <path d="M12 2L16 20L12 17L8 20Z" fill="${color}"/>
        </svg>`
-    : `<svg width="10" height="10" viewBox="0 0 10 10" style="filter:drop-shadow(0 0 4px ${color});margin:4px">
-        <circle cx="5" cy="5" r="5" fill="${color}"/>
+    : `<svg width="7" height="7" viewBox="0 0 7 7" style="filter:drop-shadow(0 0 3px ${color});margin:5.5px">
+        <circle cx="3.5" cy="3.5" r="3.5" fill="${color}"/>
        </svg>`
   return L.divIcon({
     className: '',
@@ -156,12 +156,12 @@ const updateAircraft = () => {
   props.aircraft.forEach(ac => {
     if (!ac.lat || !ac.lon) return
     seen.add(ac.icao24)
-    const color = ac.onGround ? '#34d399' : props.accent
+    const vel        = ac.velocity ?? 0
+    const showArrow  = vel >= ANIMATE_THRESHOLD_KT
+    const isAnimated = !ac.onGround && showArrow
+    const color = ac.onGround ? '#34d399' : showArrow ? props.accent : '#ffb347'
     const label = (ac.callsign || ac.icao24 || '').trim()
     const rot   = Math.round(ac.track || 0)
-    const vel   = ac.velocity ?? 0
-    const isAnimated = !ac.onGround && vel >= ANIMATE_THRESHOLD_KT
-    const showArrow  = vel >= ANIMATE_THRESHOLD_KT
 
     if (acMarkersMap.has(ac.icao24)) {
       const entry = acMarkersMap.get(ac.icao24)
