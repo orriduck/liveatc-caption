@@ -129,17 +129,24 @@ const initMap = () => {
   sizeObs.observe(mapEl.value)
 }
 
-const makeAcIcon = (color, label, rot = 0) => L.divIcon({
-  className: '',
-  html: `<div style="position:relative">
-    <svg width="18" height="18" viewBox="0 0 24 24" style="transform:rotate(${rot}deg);filter:drop-shadow(0 0 4px ${color})">
-      <path d="M12 2L16 20L12 17L8 20Z" fill="${color}"/>
-    </svg>
-    <div style="position:absolute;left:22px;top:2px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:${color};white-space:nowrap;text-shadow:0 0 4px #0a0a0b,0 0 6px #0a0a0b;letter-spacing:0.3px">${label}</div>
-  </div>`,
-  iconSize: [18, 18],
-  iconAnchor: [9, 9],
-})
+const makeAcIcon = (color, label, rot = 0, showArrow = true) => {
+  const symbol = showArrow
+    ? `<svg width="18" height="18" viewBox="0 0 24 24" style="transform:rotate(${rot}deg);filter:drop-shadow(0 0 4px ${color})">
+        <path d="M12 2L16 20L12 17L8 20Z" fill="${color}"/>
+       </svg>`
+    : `<svg width="10" height="10" viewBox="0 0 10 10" style="filter:drop-shadow(0 0 4px ${color});margin:4px">
+        <circle cx="5" cy="5" r="5" fill="${color}"/>
+       </svg>`
+  return L.divIcon({
+    className: '',
+    html: `<div style="position:relative;display:flex;align-items:center">
+      ${symbol}
+      <div style="position:absolute;left:${showArrow ? 22 : 18}px;top:2px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:${color};white-space:nowrap;text-shadow:0 0 4px #0a0a0b,0 0 6px #0a0a0b;letter-spacing:0.3px">${label}</div>
+    </div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  })
+}
 
 const updateAircraft = () => {
   if (!map) return
@@ -152,7 +159,9 @@ const updateAircraft = () => {
     const color = ac.onGround ? '#34d399' : props.accent
     const label = (ac.callsign || ac.icao24 || '').trim()
     const rot   = Math.round(ac.track || 0)
-    const isAnimated = !ac.onGround && (ac.velocity ?? 0) >= ANIMATE_THRESHOLD_KT
+    const vel   = ac.velocity ?? 0
+    const isAnimated = !ac.onGround && vel >= ANIMATE_THRESHOLD_KT
+    const showArrow  = vel >= ANIMATE_THRESHOLD_KT
 
     if (acMarkersMap.has(ac.icao24)) {
       const entry = acMarkersMap.get(ac.icao24)
@@ -161,20 +170,20 @@ const updateAircraft = () => {
       entry.baseLat   = ac.lat
       entry.baseLon   = ac.lon
       entry.baseTime  = now
-      entry.velocity  = ac.velocity ?? 0
+      entry.velocity  = vel
       entry.track     = ac.track ?? 0
       entry.isAnimated = isAnimated
       // Refresh icon only when appearance changes
-      if (color !== entry.color || label !== entry.label || rot !== entry.rot) {
-        entry.marker.setIcon(makeAcIcon(color, label, rot))
-        entry.color = color; entry.label = label; entry.rot = rot
+      if (color !== entry.color || label !== entry.label || rot !== entry.rot || showArrow !== entry.showArrow) {
+        entry.marker.setIcon(makeAcIcon(color, label, rot, showArrow))
+        entry.color = color; entry.label = label; entry.rot = rot; entry.showArrow = showArrow
       }
     } else {
-      const m = L.marker([ac.lat, ac.lon], { icon: makeAcIcon(color, label, rot) }).addTo(map)
+      const m = L.marker([ac.lat, ac.lon], { icon: makeAcIcon(color, label, rot, showArrow) }).addTo(map)
       acMarkersMap.set(ac.icao24, {
-        marker: m, color, label, rot,
+        marker: m, color, label, rot, showArrow,
         baseLat: ac.lat, baseLon: ac.lon, baseTime: now,
-        velocity: ac.velocity ?? 0, track: ac.track ?? 0,
+        velocity: vel, track: ac.track ?? 0,
         isAnimated,
       })
     }
