@@ -219,11 +219,24 @@
         <div ref="streamEl" class="flex-1 min-h-0 overflow-y-auto px-4 py-3 flex flex-col gap-4">
 
           <!-- Captions disabled state -->
-          <div v-if="!captionEnabled" class="flex flex-col items-center justify-center h-full gap-2 opacity-25 pointer-events-none select-none">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <div v-if="!captionEnabled" class="flex flex-col items-center justify-center h-full gap-3 pointer-events-none select-none">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="opacity-20">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="4" y1="4" x2="20" y2="20"/>
             </svg>
-            <span class="font-mono text-[9px] tracking-widest uppercase">Captions off</span>
+            <span class="font-mono text-[9px] tracking-widest uppercase opacity-20">Captions off</span>
+            <!-- Still show live speaking state so user knows audio is active -->
+            <div v-if="connectionState === 'SPEAKING'" class="flex items-center gap-1.5 px-2 py-1 rounded bg-red-500/10 text-red-500 font-mono text-[9px] font-bold uppercase tracking-wider">
+              <div class="flex gap-0.5 items-end h-2">
+                <div v-for="j in 3" :key="j" class="w-0.5 bg-current rounded-full" :style="`height:${[8,5,7][j-1]}px;animation:eqBar ${[1,1.2,0.8][j-1]}s infinite alternate`" />
+              </div>
+              Speaking
+            </div>
+            <div v-else-if="connectionState === 'TRANSCRIBING'" class="flex items-center gap-1.5 px-2 py-1 rounded bg-amber-500/10 text-amber-500 font-mono text-[9px] font-bold uppercase tracking-wider">
+              <div class="flex gap-0.5 items-end h-2">
+                <div v-for="j in 3" :key="j" class="w-0.5 bg-current rounded-full opacity-60" :style="`height:${[8,5,7][j-1]}px;animation:eqBar ${[1,1.2,0.8][j-1]}s infinite alternate`" />
+              </div>
+              Transcribing
+            </div>
           </div>
 
           <div
