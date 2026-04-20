@@ -71,6 +71,8 @@
       <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 font-mono text-[11px] text-atc-dim pointer-events-none whitespace-nowrap" style="text-shadow:0 0 8px #0a0a0b">
         <span class="w-1.5 h-1.5 rounded-full bg-atc-orange flex-shrink-0" style="box-shadow:0 0 6px #FF5A1F" />
         {{ aircraft.length }} aircraft in range
+        <span class="text-atc-faint">·</span>
+        <span class="text-atc-faint">Updated {{ fmtUpdated(lastUpdated) }}</span>
       </div>
 
       <!-- ── LEFT FLOAT: Feed selector ──────────────────────────────────── -->
@@ -193,7 +195,20 @@
 
         <!-- Captions header -->
         <div class="flex-shrink-0 flex items-center justify-between px-4 py-2 border-b border-white/8">
-          <span class="font-mono text-[9px] text-atc-faint tracking-[1.5px] uppercase">TRANSCRIPT</span>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-[9px] text-atc-faint tracking-[1.5px] uppercase">TRANSCRIPT</span>
+            <button
+              @click="toggleCaption"
+              class="flex items-center gap-1 px-1.5 py-0.5 rounded-full border font-mono text-[8px] font-bold tracking-[1px] uppercase transition-all cursor-pointer"
+              :class="captionEnabled
+                ? 'border-atc-mint/40 text-atc-mint bg-atc-mint/10'
+                : 'border-white/15 text-atc-dim bg-transparent'"
+              :title="captionEnabled ? 'Disable captions' : 'Enable captions'"
+            >
+              <span class="w-1 h-1 rounded-full transition-colors" :class="captionEnabled ? 'bg-atc-mint' : 'bg-white/30'" />
+              {{ captionEnabled ? 'ON' : 'OFF' }}
+            </button>
+          </div>
           <div class="flex gap-2.5 font-mono text-[10px] text-atc-dim">
             <span><b class="text-atc-text">{{ counts.atc }}</b> twr</span>
             <span><b class="text-atc-text">{{ counts.plane }}</b> acft</span>
@@ -202,6 +217,15 @@
 
         <!-- Caption stream -->
         <div ref="streamEl" class="flex-1 min-h-0 overflow-y-auto px-4 py-3 flex flex-col gap-4">
+
+          <!-- Captions disabled state -->
+          <div v-if="!captionEnabled" class="flex flex-col items-center justify-center h-full gap-2 opacity-25 pointer-events-none select-none">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="4" y1="4" x2="20" y2="20"/>
+            </svg>
+            <span class="font-mono text-[9px] tracking-widest uppercase">Captions off</span>
+          </div>
+
           <div
             v-for="(cap, i) in visible"
             :key="cap.id"
@@ -323,7 +347,12 @@ const airportLon = computed(() => COORDS[props.icao]?.[1] || props.airport?.lon 
 // ── Aircraft positions ─────────────────────────────────────────────────────
 const latRef = computed(() => airportLat.value)
 const lonRef = computed(() => airportLon.value)
-const { aircraft } = useAircraftPositions(icaoRef, latRef, lonRef)
+const { aircraft, lastUpdated } = useAircraftPositions(icaoRef, latRef, lonRef)
+
+const fmtUpdated = (d) => {
+  if (!d) return '—'
+  return d.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
 
 const mapContainerEl = ref(null)
 
@@ -345,9 +374,16 @@ const connectionStateLabel = computed(() => ({
   IDLE: 'Idle', LISTENING: 'Streaming', SPEAKING: 'Speaking', TRANSCRIBING: 'Transcribing…',
 }[props.connectionState] || 'Connecting…'))
 
+// ── Caption toggle ──────────────────────────────────────────────────────────
+const captionEnabled = ref(localStorage.getItem('caption_enabled') !== 'false')
+const toggleCaption = () => {
+  captionEnabled.value = !captionEnabled.value
+  localStorage.setItem('caption_enabled', captionEnabled.value)
+}
+
 // ── Captions ───────────────────────────────────────────────────────────────
 const realCaptions = computed(() => props.captions || [])
-const visible      = computed(() => realCaptions.value)
+const visible      = computed(() => captionEnabled.value ? realCaptions.value : [])
 
 const counts = computed(() => ({
   all:   realCaptions.value.length,
