@@ -38,10 +38,45 @@ const mapReady = ref(false)
 let map = null
 let sizeObs = null
 // Track markers by icao24 for smooth position updates
-const acMarkersMap = new Map() // icao24 -> { marker, color, label, rot }
+// Entry shape: { marker, color, label, rot, baseLat, baseLon, baseTime, velocity, track, isAnimated }
+const acMarkersMap = new Map()
 
 const latStr = ref('')
 const lonStr = ref('')
+
+// Dead-reckoning: animate aircraft that exceed this speed (knots)
+const ANIMATE_THRESHOLD_KT = 30
+
+// RAF loop — updates predicted positions at ~60 fps for fast aircraft
+let rafId = null
+
+const animateLoop = () => {
+  if (!map) return
+  const now = Date.now()
+  for (const [, entry] of acMarkersMap) {
+    if (!entry.isAnimated) continue
+    const dt = (now - entry.baseTime) / 1000  // seconds since last poll
+    if (dt <= 0) continue
+
+    // 匀速运动: uniform linear motion in the direction of `track`
+    // 1 knot = 0.514444 m/s; track is degrees clockwise from north
+    const mps = entry.velocity * 0.514444
+    const trackRad = (entry.track * Math.PI) / 180
+    const latRad   = (entry.baseLat * Math.PI) / 180
+    const dLat = (mps * Math.cos(trackRad) * dt) / 111_320
+    const dLon = (mps * Math.sin(trackRad) * dt) / (111_320 * Math.cos(latRad))
+    entry.marker.setLatLng([entry.baseLat + dLat, entry.baseLon + dLon])
+  }
+  rafId = requestAnimationFrame(animateLoop)
+}
+
+const startRaf = () => {
+  if (rafId == null) rafId = requestAnimationFrame(animateLoop)
+}
+
+const stopRaf = () => {
+  if (rafId != null) { cancelAnimationFrame(rafId); rafId = null }
+}
 
 const initMap = () => {
   if (!mapEl.value || map) return
@@ -82,6 +117,7 @@ const initMap = () => {
 
   mapReady.value = true
   updateAircraft()
+  startRaf()
 
   // Observe the container for size changes (flex layout settles asynchronously).
   // Every time the container grows/shrinks, tell Leaflet to recalculate so it
@@ -108,6 +144,7 @@ const makeAcIcon = (color, label, rot = 0) => L.divIcon({
 const updateAircraft = () => {
   if (!map) return
 
+  const now = Date.now()
   const seen = new Set()
   props.aircraft.forEach(ac => {
     if (!ac.lat || !ac.lon) return
@@ -115,11 +152,18 @@ const updateAircraft = () => {
     const color = ac.onGround ? '#34d399' : props.accent
     const label = (ac.callsign || ac.icao24 || '').trim()
     const rot   = Math.round(ac.track || 0)
+    const isAnimated = !ac.onGround && (ac.velocity ?? 0) >= ANIMATE_THRESHOLD_KT
 
     if (acMarkersMap.has(ac.icao24)) {
       const entry = acMarkersMap.get(ac.icao24)
-      // Smooth position update — CSS transition handles the animation
+      // Anchor dead-reckoning to the fresh authoritative position
       entry.marker.setLatLng([ac.lat, ac.lon])
+      entry.baseLat   = ac.lat
+      entry.baseLon   = ac.lon
+      entry.baseTime  = now
+      entry.velocity  = ac.velocity ?? 0
+      entry.track     = ac.track ?? 0
+      entry.isAnimated = isAnimated
       // Refresh icon only when appearance changes
       if (color !== entry.color || label !== entry.label || rot !== entry.rot) {
         entry.marker.setIcon(makeAcIcon(color, label, rot))
@@ -127,7 +171,12 @@ const updateAircraft = () => {
       }
     } else {
       const m = L.marker([ac.lat, ac.lon], { icon: makeAcIcon(color, label, rot) }).addTo(map)
-      acMarkersMap.set(ac.icao24, { marker: m, color, label, rot })
+      acMarkersMap.set(ac.icao24, {
+        marker: m, color, label, rot,
+        baseLat: ac.lat, baseLon: ac.lon, baseTime: now,
+        velocity: ac.velocity ?? 0, track: ac.track ?? 0,
+        isAnimated,
+      })
     }
   })
 
@@ -148,6 +197,7 @@ watch(() => [props.lat, props.lon], ([lat, lon]) => {
 
 onMounted(initMap)
 onUnmounted(() => {
+  stopRaf()
   sizeObs?.disconnect()
   acMarkersMap.clear()
   if (map) { map.remove(); map = null }
@@ -155,8 +205,9 @@ onUnmounted(() => {
 </script>
 
 <style>
-/* Smooth aircraft position updates — Leaflet repositions markers via transform */
+/* No CSS transition — fast aircraft use RAF dead-reckoning; slow/ground aircraft
+   snap on poll which is imperceptible at low speeds. */
 .leaflet-marker-icon {
-  transition: transform 1s ease-out;
+  transition: none;
 }
 </style>
