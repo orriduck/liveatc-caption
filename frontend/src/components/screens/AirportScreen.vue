@@ -32,11 +32,43 @@
         <!-- KPI strip -->
         <div class="mt-8 grid border border-atc-line rounded-xl overflow-hidden"
              style="grid-template-columns:repeat(6,1fr);gap:1px;background:rgba(255,255,255,0.08)">
-          <KPICell label="WIND"      :value="metar?.wind    || '—'" />
-          <KPICell label="VIS"       :value="metar?.vis     || '—'" />
+          <!-- WIND: animate speed number -->
+          <KPICell label="WIND">
+            <div class="font-mono text-[13px] font-semibold text-atc-text" style="letter-spacing:-0.1px">
+              <template v-if="metar?.rawWspd != null">
+                {{ metar.rawWvrb ? 'VRB' : String(metar.rawWdir ?? 0).padStart(3,'0') + '°' }} /
+                <NumberFlow :value="metar.rawWspd" suffix=" kt" />
+                <template v-if="metar.rawWgst"> G<NumberFlow :value="metar.rawWgst" suffix="kt" /></template>
+              </template>
+              <template v-else>{{ metar?.wind || '—' }}</template>
+            </div>
+          </KPICell>
+          <!-- VIS: animate number -->
+          <KPICell label="VIS">
+            <div class="font-mono text-[13px] font-semibold text-atc-text" style="letter-spacing:-0.1px">
+              <NumberFlow v-if="metar?.rawVisib != null" :value="metar.rawVisib" suffix=" SM" />
+              <span v-else>{{ metar?.vis || '—' }}</span>
+            </div>
+          </KPICell>
           <KPICell label="CEILING"   :value="metar?.ceiling || '—'" />
-          <KPICell label="TEMP · DEW" :value="metar ? `${metar.temp} / ${metar.dew}` : '—'" />
-          <KPICell label="ALTIM"     :value="metar?.altim   || '—'" />
+          <!-- TEMP · DEW: animate both numbers -->
+          <KPICell label="TEMP · DEW">
+            <div class="font-mono text-[13px] font-semibold text-atc-text" style="letter-spacing:-0.1px">
+              <template v-if="metar?.rawTemp != null">
+                <NumberFlow :value="metar.rawTemp" suffix="°C" />
+                <span class="text-atc-faint"> / </span>
+                <NumberFlow :value="metar.rawDewp ?? 0" suffix="°C" />
+              </template>
+              <span v-else>{{ metar ? `${metar.temp} / ${metar.dew}` : '—' }}</span>
+            </div>
+          </KPICell>
+          <!-- ALTIM: animate decimal number -->
+          <KPICell label="ALTIM">
+            <div class="font-mono text-[13px] font-semibold text-atc-text" style="letter-spacing:-0.1px">
+              <NumberFlow v-if="metar?.rawAltim != null" :value="metar.rawAltim" :format="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }" suffix=" inHg" />
+              <span v-else>{{ metar?.altim || '—' }}</span>
+            </div>
+          </KPICell>
           <KPICell label="STATUS"    :value="channels?.length ? `${channels.length} feeds` : '—'" accent />
         </div>
       </div>
@@ -138,6 +170,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import NumberFlow from '@number-flow/vue'
 import TopBar from '../ui/TopBar.vue'
 import AirportMap from '../map/AirportMap.vue'
 import FeedRow from '../ui/FeedRow.vue'

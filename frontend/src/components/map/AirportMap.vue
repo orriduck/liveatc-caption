@@ -37,7 +37,8 @@ const mapEl   = ref(null)
 const mapReady = ref(false)
 let map = null
 let sizeObs = null
-const acMarkers = []
+// Track markers by icao24 for smooth position updates
+const acMarkersMap = new Map() // icao24 -> { marker, color, label, rot }
 
 const latStr = ref('')
 const lonStr = ref('')
@@ -106,17 +107,34 @@ const makeAcIcon = (color, label, rot = 0) => L.divIcon({
 
 const updateAircraft = () => {
   if (!map) return
-  acMarkers.forEach(m => m.remove())
-  acMarkers.length = 0
 
+  const seen = new Set()
   props.aircraft.forEach(ac => {
     if (!ac.lat || !ac.lon) return
+    seen.add(ac.icao24)
     const color = ac.onGround ? '#34d399' : props.accent
     const label = (ac.callsign || ac.icao24 || '').trim()
-    const rot   = ac.track || 0
-    const m = L.marker([ac.lat, ac.lon], { icon: makeAcIcon(color, label, rot) }).addTo(map)
-    acMarkers.push(m)
+    const rot   = Math.round(ac.track || 0)
+
+    if (acMarkersMap.has(ac.icao24)) {
+      const entry = acMarkersMap.get(ac.icao24)
+      // Smooth position update — CSS transition handles the animation
+      entry.marker.setLatLng([ac.lat, ac.lon])
+      // Refresh icon only when appearance changes
+      if (color !== entry.color || label !== entry.label || rot !== entry.rot) {
+        entry.marker.setIcon(makeAcIcon(color, label, rot))
+        entry.color = color; entry.label = label; entry.rot = rot
+      }
+    } else {
+      const m = L.marker([ac.lat, ac.lon], { icon: makeAcIcon(color, label, rot) }).addTo(map)
+      acMarkersMap.set(ac.icao24, { marker: m, color, label, rot })
+    }
   })
+
+  // Remove stale markers
+  for (const [id, entry] of acMarkersMap) {
+    if (!seen.has(id)) { entry.marker.remove(); acMarkersMap.delete(id) }
+  }
 }
 
 watch(() => props.aircraft, updateAircraft, { deep: true })
@@ -131,6 +149,14 @@ watch(() => [props.lat, props.lon], ([lat, lon]) => {
 onMounted(initMap)
 onUnmounted(() => {
   sizeObs?.disconnect()
+  acMarkersMap.clear()
   if (map) { map.remove(); map = null }
 })
 </script>
+
+<style>
+/* Smooth aircraft position updates — Leaflet repositions markers via transform */
+.leaflet-marker-icon {
+  transition: transform 1s ease-out;
+}
+</style>
