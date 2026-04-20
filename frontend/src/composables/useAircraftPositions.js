@@ -2,7 +2,7 @@ import { ref, watch, onUnmounted } from 'vue'
 
 // Proxied through backend — adsb.lol has no CORS headers for browser requests
 const API = '/api/proxy/aircraft/positions'
-const POLL_MS = 15_000
+const POLL_MS = 5_000
 const DIST_NM = 20  // nautical miles radius (~37 km) — catches approach traffic too
 
 export function useAircraftPositions(icaoRef, latRef, lonRef) {
