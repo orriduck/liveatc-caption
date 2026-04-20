@@ -133,9 +133,14 @@
                   <span class="animate-pulse text-atc-faint text-[22px]">Transcribing…</span>
                 </template>
                 <template v-else>
-                  {{ i === visible.length - 1 ? displayedText : (cap.caption || cap.details || 'UNINTELLIGIBLE') }}
-                  <span v-if="i === visible.length - 1 && typing"
-                    class="inline-block ml-0.5 text-atc-orange animate-caret">▍</span>
+                  <DecryptedText
+                    :text="cap.caption || cap.details || 'UNINTELLIGIBLE'"
+                    animate-on="view"
+                    reveal-direction="start"
+                    :sequential="true"
+                    :speed="18"
+                    encrypted-class-name="opacity-30"
+                  />
                 </template>
               </div>
             </div>
@@ -252,6 +257,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import TopBar from '../ui/TopBar.vue'
 import Waveform from '../ui/Waveform.vue'
+import DecryptedText from '../ui/DecryptedText.vue'
 
 const props = defineProps({
   icao:            { type: String,  default: '' },
@@ -330,26 +336,8 @@ const callsigns = computed(() => {
   return out
 })
 
-// Typewriter effect on newest caption
-const displayedText = ref('')
-const typing = ref(false)
-let typeTimer = null
-
-watch(visible, async (newCaps) => {
-  const last = newCaps[newCaps.length - 1]
-  if (!last || last.isTemp) return
-  const text = last.caption || last.details || ''
-  if (!text) return
-
-  clearInterval(typeTimer)
-  displayedText.value = ''
-  typing.value = true
-  let i = 0
-  typeTimer = setInterval(() => {
-    i++; displayedText.value = text.slice(0, i)
-    if (i >= text.length) { clearInterval(typeTimer); typing.value = false }
-  }, 18)
-
+// Auto-scroll on new caption
+watch(visible, async () => {
   await nextTick()
   streamEnd.value?.scrollIntoView({ behavior: 'smooth' })
 }, { deep: true })
@@ -364,7 +352,7 @@ const tickSession = () => {
   sessionElapsed.value = `${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
 }
 onMounted(() => { tickSession(); sessionTimer = setInterval(tickSession, 1000) })
-onUnmounted(() => { clearInterval(sessionTimer); clearInterval(typeTimer) })
+onUnmounted(() => { clearInterval(sessionTimer) })
 
 const sessionStats = computed(() => [
   { label: 'UPTIME',   value: sessionElapsed.value },

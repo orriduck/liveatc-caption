@@ -34,6 +34,15 @@ export function useMetar(icaoRef) {
         wxString: m.wxString || '',
         flightCategory: m.flightCategory || '',
         obsTime: m.obsTime || '',
+        // Raw numbers for animated display
+        rawTemp:  m.temp  ?? null,
+        rawDewp:  m.dewp  ?? null,
+        rawVisib: m.visib != null ? Number(m.visib) : null,
+        rawAltim: m.altim != null ? Number(m.altim) : null,
+        rawWspd:  m.wspd  ?? null,
+        rawWgst:  m.wgst  ?? null,
+        rawWdir:  m.wdir === 'VRB' ? null : (m.wdir != null ? Number(m.wdir) : null),
+        rawWvrb:  m.wdir === 'VRB',
       }
     } catch (e) {
       console.warn('METAR fetch failed:', e.message)
