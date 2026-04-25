@@ -20,9 +20,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { createApp, h, ref, shallowRef, onMounted, onUnmounted, watch } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import NumberFlow from '@number-flow/vue'
 
 const props = defineProps({
   icao:     { type: String,  default: '' },
@@ -129,7 +130,63 @@ const initMap = () => {
   sizeObs.observe(mapEl.value)
 }
 
-const makeAcIcon = (color, label, rot = 0, showArrow = true) => {
+const wholeNumberFormat = { maximumFractionDigits: 0 }
+
+const escapeHtml = (value) => String(value)
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&#39;')
+
+const formatTelemetryValue = (value) => {
+  if (value == null || value === '' || value === 'ground') return null
+  const number = Number(value)
+  return Number.isFinite(number) ? Math.round(number) : null
+}
+
+const syncNumberFlow = (root, selector, value, suffix) => {
+  const host = root?.querySelector(selector)
+  if (!host || value == null) return
+
+  if (!host.__numberFlowApp) {
+    const currentValue = shallowRef(value)
+    const app = createApp({
+      render: () => h(NumberFlow, {
+        class: 'aircraft-number-flow',
+        value: currentValue.value,
+        suffix,
+        format: wholeNumberFormat,
+      }),
+    })
+    app.mount(host)
+    host.__numberFlowApp = app
+    host.__numberFlowValue = currentValue
+  } else {
+    host.__numberFlowValue.value = value
+  }
+}
+
+const unmountAircraftTelemetry = (marker) => {
+  marker?.getElement()?.querySelectorAll('[data-aircraft-flow]').forEach((host) => {
+    host.__numberFlowApp?.unmount()
+    delete host.__numberFlowApp
+    delete host.__numberFlowValue
+  })
+}
+
+const syncAircraftTelemetry = (marker, ac) => {
+  const root = marker?.getElement()
+  if (!root) return
+  syncNumberFlow(root, '[data-aircraft-flow="speed"]', formatTelemetryValue(ac.velocity), 'kt')
+  syncNumberFlow(root, '[data-aircraft-flow="altitude"]', formatTelemetryValue(ac.altitude), 'ft')
+}
+
+const queueAircraftTelemetrySync = (marker, ac) => {
+  requestAnimationFrame(() => syncAircraftTelemetry(marker, ac))
+}
+
+const makeAcIcon = (color, label, rot = 0, showArrow = true, hasTelemetry = false) => {
   const symbol = showArrow
     ? `<svg width="18" height="18" viewBox="0 0 24 24" style="transform:rotate(${rot}deg);filter:drop-shadow(0 0 4px ${color})">
         <path d="M12 2L16 20L12 17L8 20Z" fill="${color}"/>
@@ -137,11 +194,24 @@ const makeAcIcon = (color, label, rot = 0, showArrow = true) => {
     : `<svg width="7" height="7" viewBox="0 0 7 7" style="filter:drop-shadow(0 0 3px ${color});margin:5.5px">
         <circle cx="3.5" cy="3.5" r="3.5" fill="${color}"/>
        </svg>`
+  const safeLabel = escapeHtml(label)
+  const labelTop = showArrow && hasTelemetry ? '-4px' : '2px'
+  const telemetryLine = showArrow && hasTelemetry
+    ? `<div class="aircraft-telemetry">
+        <span data-aircraft-flow="speed"></span>
+        <span class="aircraft-telemetry-separator">|</span>
+        <span data-aircraft-flow="altitude"></span>
+      </div>`
+    : ''
+
   return L.divIcon({
     className: '',
     html: `<div style="position:relative;display:flex;align-items:center">
       ${symbol}
-      <div style="position:absolute;left:${showArrow ? 22 : 18}px;top:2px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:${color};white-space:nowrap;text-shadow:0 0 4px #0a0a0b,0 0 6px #0a0a0b;letter-spacing:0.3px">${label}</div>
+      <div class="aircraft-label" style="left:${showArrow ? 22 : 18}px;top:${labelTop};color:${color}">
+        <div class="aircraft-label-title">${safeLabel}</div>
+        ${telemetryLine}
+      </div>
     </div>`,
     iconSize: [18, 18],
     iconAnchor: [9, 9],
@@ -162,6 +232,7 @@ const updateAircraft = () => {
     const color = ac.onGround ? '#34d399' : showArrow ? props.accent : '#ffb347'
     const label = (ac.callsign || ac.icao24 || '').trim()
     const rot   = Math.round(ac.track || 0)
+    const hasTelemetry = !ac.onGround && showArrow && formatTelemetryValue(ac.velocity) != null && formatTelemetryValue(ac.altitude) != null
 
     if (acMarkersMap.has(ac.icao24)) {
       const entry = acMarkersMap.get(ac.icao24)
@@ -174,24 +245,32 @@ const updateAircraft = () => {
       entry.track     = ac.track ?? 0
       entry.isAnimated = isAnimated
       // Refresh icon only when appearance changes
-      if (color !== entry.color || label !== entry.label || rot !== entry.rot || showArrow !== entry.showArrow) {
-        entry.marker.setIcon(makeAcIcon(color, label, rot, showArrow))
+      if (color !== entry.color || label !== entry.label || rot !== entry.rot || showArrow !== entry.showArrow || hasTelemetry !== entry.hasTelemetry) {
+        unmountAircraftTelemetry(entry.marker)
+        entry.marker.setIcon(makeAcIcon(color, label, rot, showArrow, hasTelemetry))
         entry.color = color; entry.label = label; entry.rot = rot; entry.showArrow = showArrow
+        entry.hasTelemetry = hasTelemetry
       }
+      if (hasTelemetry) queueAircraftTelemetrySync(entry.marker, ac)
     } else {
-      const m = L.marker([ac.lat, ac.lon], { icon: makeAcIcon(color, label, rot, showArrow) }).addTo(map)
+      const m = L.marker([ac.lat, ac.lon], { icon: makeAcIcon(color, label, rot, showArrow, hasTelemetry) }).addTo(map)
       acMarkersMap.set(ac.icao24, {
-        marker: m, color, label, rot, showArrow,
+        marker: m, color, label, rot, showArrow, hasTelemetry,
         baseLat: ac.lat, baseLon: ac.lon, baseTime: now,
         velocity: vel, track: ac.track ?? 0,
         isAnimated,
       })
+      if (hasTelemetry) queueAircraftTelemetrySync(m, ac)
     }
   })
 
   // Remove stale markers
   for (const [id, entry] of acMarkersMap) {
-    if (!seen.has(id)) { entry.marker.remove(); acMarkersMap.delete(id) }
+    if (!seen.has(id)) {
+      unmountAircraftTelemetry(entry.marker)
+      entry.marker.remove()
+      acMarkersMap.delete(id)
+    }
   }
 }
 
@@ -208,6 +287,7 @@ onMounted(initMap)
 onUnmounted(() => {
   stopRaf()
   sizeObs?.disconnect()
+  for (const [, entry] of acMarkersMap) unmountAircraftTelemetry(entry.marker)
   acMarkersMap.clear()
   if (map) { map.remove(); map = null }
 })
@@ -218,5 +298,48 @@ onUnmounted(() => {
    snap on poll which is imperceptible at low speeds. */
 .leaflet-marker-icon {
   transition: none;
+}
+
+.aircraft-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1.05;
+  position: absolute;
+  text-shadow: 0 0 4px #0a0a0b, 0 0 7px #0a0a0b;
+  white-space: nowrap;
+}
+
+.aircraft-label-title {
+  font-size: 10px;
+}
+
+.aircraft-telemetry {
+  align-items: baseline;
+  color: rgba(245, 245, 247, 0.86);
+  display: flex;
+  font-size: 8.5px;
+  font-weight: 700;
+  gap: 3px;
+  letter-spacing: 0;
+  margin-top: 1px;
+  text-shadow: 0 0 4px #0a0a0b, 0 0 8px #0a0a0b;
+}
+
+.aircraft-number-flow {
+  font-variant-numeric: tabular-nums;
+}
+
+.aircraft-number-flow::part(suffix) {
+  color: rgba(245, 245, 247, 0.54);
+  font-size: 0.86em;
+  font-weight: 700;
+  margin-left: 1px;
+}
+
+.aircraft-telemetry-separator {
+  color: rgba(255, 90, 31, 0.72);
+  font-size: 0.9em;
 }
 </style>
