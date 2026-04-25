@@ -105,7 +105,7 @@
     <footer class="flex justify-between items-center px-14 py-5 border-t border-atc-line">
       <div class="flex items-center gap-3.5">
         <Wordmark />
-        <span class="text-[12px] text-atc-faint">v0.4.0 · Airport explorer preview</span>
+        <span class="text-[12px] text-atc-faint">v0.4.0 · ADSBao preview</span>
       </div>
       <div class="flex gap-6 text-[13px] text-atc-dim">
         <span class="cursor-pointer hover:text-atc-text transition-colors">About</span>

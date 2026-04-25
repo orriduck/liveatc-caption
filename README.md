@@ -1,11 +1,11 @@
-# LiveATC Caption
+# ADSBao
 
-A modern, real-time transcription HUD for LiveATC audio feeds, powered by Google's Gemini AI.
+A modern airport-monitoring HUD with dynamic airport search, METAR context, and preview caption workflows.
 
 ![Live App Screenshot](screenshot.png)
 
 ## Overview
-LiveATC Caption captures live air traffic control audio streams and provides real-time, HUD-style transcriptions. It uses Voice Activity Detection (VAD) to identify speech and sends filtered audio segments to Gemini for high-accuracy aviation transcription.
+ADSBao provides a search-first airport operations view with weather context, aircraft position overlays, and preview caption workflows. Airport search results are fetched dynamically from a public airport-data service.
 
 ## Tech Stack
 - **AI**: Google Gemini (3.0 Flash Preview) and Anthropic Claude
@@ -20,24 +20,24 @@ LiveATC Caption captures live air traffic control audio streams and provides rea
 
 ```bash
 # Add the tap once
-brew tap orriduck/liveatc-caption https://github.com/orriduck/liveatc-caption
+brew tap orriduck/adsbao https://github.com/orriduck/ADSBao
 
 # Install
-brew install --cask liveatc-caption
+brew install --cask adsbao
 
 # Stay up to date — run after any new release
-brew upgrade --cask liveatc-caption
+brew upgrade --cask adsbao
 ```
 
 ### Direct download
 
-Download the latest `.dmg` or `.app.zip` from the [Releases](https://github.com/orriduck/liveatc-caption/releases) page.
+Download the latest `.dmg` or `.app.zip` from the [Releases](https://github.com/orriduck/ADSBao/releases) page.
 
-> **Note** — LiveATC Caption is not code-signed with an Apple Developer certificate.
+> **Note** — ADSBao is not code-signed with an Apple Developer certificate.
 > On first launch macOS will show a Gatekeeper warning.
 > Open **System Settings → Privacy & Security** and click **Open Anyway**, or run:
 > ```bash
-> xattr -dr com.apple.quarantine "/Applications/LiveATC Caption.app"
+> xattr -dr com.apple.quarantine "/Applications/ADSBao.app"
 > ```
 
 ## Getting Started
@@ -74,7 +74,7 @@ pnpm run dev
 
 The dev server starts on `http://localhost:5173`.
 
-Open [http://localhost:5173](http://localhost:5173) to start listening.
+Open [http://localhost:5173](http://localhost:5173) to start exploring.
 
 ---
 
@@ -91,8 +91,8 @@ We welcome contributions! Here's how to set up the full development environment:
 
 **1. Clone the repo**
 ```bash
-git clone https://github.com/orriduck/liveatc-caption.git
-cd liveatc-caption
+git clone https://github.com/orriduck/ADSBao.git
+cd ADSBao
 ```
 
 **2. Start the backend** (from the repo root)
@@ -127,7 +127,7 @@ Keys can also be entered through the in-app Settings panel without restarting th
 
 ### Project structure
 ```
-liveatc-caption/
+ADSBao/
 ├── backend/          # FastAPI app (Python)
 │   ├── api/          # Route handlers
 │   ├── services/     # Transcription, audio streaming

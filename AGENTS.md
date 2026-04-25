@@ -1,4 +1,4 @@
-# LiveATC Caption — Codex Guide
+# ADSBao — Codex Guide
 
 ## Dev environment
 
@@ -14,7 +14,7 @@ Backend runs on `http://localhost:8000`, frontend on `http://localhost:5173`. Ct
 
 - **Backend**: FastAPI + uvicorn, managed by `uv`. Entry point: `backend/main.py`.
 - **Frontend**: Vue 3 + Vite + Tailwind + DaisyUI, managed by `pnpm` (installed via Homebrew).
-- **Audio pipeline**: PyAV decodes the LiveATC stream → webrtcvad VAD → faster-whisper STT → Codex Haiku parsing. All runs server-side; PCM audio and captions flow over a single WebSocket to the browser.
+- **Audio pipeline**: Web-delivered airport metadata, METAR, and ADS-B context flow through the backend; live audio streaming is currently disabled in this build.
 
 ## Key paths
 
@@ -24,9 +24,9 @@ Backend runs on `http://localhost:8000`, frontend on `http://localhost:5173`. Ct
 | `backend/services/base_transcriber.py` | Shared VAD loop, audio queues, stream_audio() |
 | `backend/services/claude_transcriber.py` | Whisper STT + Codex Haiku parsing |
 | `backend/services/rag_service.py` | Airport context: runways, callsigns, METAR |
-| `frontend/src/composables/useLiveATC.js` | All audio/WebSocket/caption state |
-| `frontend/public/playback-processor.js` | AudioWorklet ring-buffer PCM player |
-| `frontend/src/views/SettingsView.vue` | Settings: API key + transcription params |
+| `frontend/src/views/HomeView.vue` | Search-to-airport route flow |
+| `frontend/src/components/screens/AirportCaptionScreen.vue` | Airport explorer map + METAR screen |
+| `frontend/src/views/SettingsView.vue` | Lightweight frontend runtime/settings copy |
 
 ## Linting
 
