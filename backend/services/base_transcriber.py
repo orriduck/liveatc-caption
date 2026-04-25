@@ -4,6 +4,7 @@ BaseTranscriber — shared audio streaming, VAD, and prompt loading.
 Both ClaudeTranscriber and GeminiTranscriber extend this class and only need
 to implement _transcribe_chunk() and transcribe_segment().
 """
+
 import os
 import queue
 import threading

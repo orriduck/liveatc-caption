@@ -7,6 +7,7 @@ def _make_transcriber():
     # WhisperModel is imported lazily inside _get_whisper(); patch at the source module.
     with patch("faster_whisper.WhisperModel", MagicMock()):
         from services.claude_transcriber import ClaudeTranscriber
+
         t = ClaudeTranscriber(api_key="dummy")
         t.is_running = False
         return t
@@ -44,8 +45,10 @@ def test_stream_audio_pushes_to_both_queues():
     t = _make_transcriber()
     t.is_running = True  # stream_audio() sets this False on completion
 
-    with patch("av.open", return_value=mock_container), \
-         patch("av.AudioResampler", return_value=mock_resampler):
+    with (
+        patch("av.open", return_value=mock_container),
+        patch("av.AudioResampler", return_value=mock_resampler),
+    ):
         t.stream_audio("fake_url")
 
     assert t.chunk_queue.get() == fake_pcm
@@ -61,5 +64,6 @@ def test_model_size_default():
 def test_model_size_override():
     with patch("faster_whisper.WhisperModel", MagicMock()):
         from services.claude_transcriber import ClaudeTranscriber
+
         t = ClaudeTranscriber(api_key="dummy", model_size="small.en")
         assert t._model_size == "small.en"

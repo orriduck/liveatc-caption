@@ -55,9 +55,7 @@ async def websocket_caption(
 
         while transcriber.is_running:
             try:
-                chunk = await asyncio.to_thread(
-                    transcriber.audio_queue.get, True, 0.05
-                )
+                chunk = await asyncio.to_thread(transcriber.audio_queue.get, True, 0.05)
             except queue.Empty:
                 continue
 
@@ -108,7 +106,9 @@ async def websocket_caption(
                 while len(buf) >= frame_bytes:
                     frame, buf = buf[:frame_bytes], buf[frame_bytes:]
                     try:
-                        is_speech = vad_instance.is_speech(frame, transcriber.SAMPLE_RATE)
+                        is_speech = vad_instance.is_speech(
+                            frame, transcriber.SAMPLE_RATE
+                        )
                     except Exception:
                         is_speech = False
 
@@ -127,8 +127,12 @@ async def websocket_caption(
                         ):
                             if len(speech_buf) > transcriber.MIN_SPEECH_BYTES:
                                 print("  <<< [TRANSCRIBING]")
-                                end_offset = transcriber.bytes_queued / 32000 + sync_offset
-                                asyncio.create_task(_process(bytes(speech_buf), end_offset))
+                                end_offset = (
+                                    transcriber.bytes_queued / 32000 + sync_offset
+                                )
+                                asyncio.create_task(
+                                    _process(bytes(speech_buf), end_offset)
+                                )
                             speech_buf = b""
                             in_speech = False
                             silence_n = 0
@@ -166,7 +170,9 @@ async def websocket_caption(
             t.cancel()
         for t in done:
             exc = t.exception()
-            if exc and not isinstance(exc, (WebSocketDisconnect, asyncio.CancelledError)):
+            if exc and not isinstance(
+                exc, (WebSocketDisconnect, asyncio.CancelledError)
+            ):
                 print(f"[WS] task error: {exc}")
                 try:
                     await websocket.send_json({"type": "error", "message": str(exc)})

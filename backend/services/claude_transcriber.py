@@ -51,7 +51,9 @@ class ClaudeTranscriber(BaseTranscriber):
         # cases where no server-side key is configured (e.g. personal dev setup).
         resolved = (os.environ.get("ANTHROPIC_API_KEY", "") or api_key or "").strip()
         super().__init__(api_key=resolved)
-        self.client = anthropic.Anthropic(api_key=self.api_key) if self.api_key else None
+        self.client = (
+            anthropic.Anthropic(api_key=self.api_key) if self.api_key else None
+        )
         self._whisper = None
         self._model_size = model_size or WHISPER_MODEL_SIZE
 
