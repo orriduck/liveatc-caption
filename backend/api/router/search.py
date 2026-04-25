@@ -3,6 +3,8 @@ import asyncio
 import httpx
 from fastapi import APIRouter, HTTPException, Query
 
+from api.router.airport_catalog import catalog_count, search_ourairports
+
 router = APIRouter(prefix="/search", tags=["search"])
 
 _AIRPORTS_API = "https://airportsapi.com/api/airports"
@@ -188,21 +190,63 @@ async def _search_remote_airports(query: str) -> list[dict]:
 
 
 @router.get("/airports")
-async def search_airports(query: str = Query(default="", max_length=80)):
+async def search_airports(
+    query: str = Query(default="", max_length=80),
+    country: str = Query(default="", max_length=2),
+    kind: str = Query(default="all", max_length=40),
+    limit: int = Query(default=48, ge=1, le=100),
+):
     """
-    Search airports by code or name using a public airport data service.
+    Search and browse airports using OurAirports, with airportsapi.com retained
+    as a fallback for lookup gaps.
     """
     try:
         trimmed = query.strip()
-        if trimmed:
-            return {"airports": await _search_remote_airports(trimmed)}
+        airports = await search_ourairports(
+            trimmed,
+            country=country,
+            kind=kind,
+            limit=limit,
+        )
+        if airports or not trimmed:
+            return {
+                "airports": airports,
+                "source": "ourairports",
+                "catalog_count": await catalog_count(),
+            }
 
-        async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-            featured = await asyncio.gather(
-                *[_fetch_exact_airport(client, code) for code in _FEATURED_CODES]
-            )
-        return {"airports": [airport for airport in featured if airport]}
+        fallback_airports = await _search_remote_airports(trimmed)
+        return {
+            "airports": fallback_airports[:limit],
+            "source": "airportsapi.com",
+            "catalog_count": await catalog_count(),
+        }
     except httpx.HTTPError as exc:
+        if query.strip():
+            try:
+                return {
+                    "airports": (await _search_remote_airports(query.strip()))[:limit],
+                    "source": "airportsapi.com",
+                    "catalog_count": 0,
+                }
+            except httpx.HTTPError:
+                pass
+        else:
+            try:
+                async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+                    featured = await asyncio.gather(
+                        *[
+                            _fetch_exact_airport(client, code)
+                            for code in _FEATURED_CODES
+                        ]
+                    )
+                return {
+                    "airports": [airport for airport in featured if airport][:limit],
+                    "source": "airportsapi.com",
+                    "catalog_count": 0,
+                }
+            except httpx.HTTPError:
+                pass
         raise HTTPException(
             status_code=502, detail="Airport search is unavailable"
         ) from exc
@@ -214,7 +258,9 @@ async def search(icao: str = Query(..., min_length=2, max_length=10)):
     Resolve a single airport and return preview channel metadata.
     """
     try:
-        airports = await _search_remote_airports(icao)
+        airports = await search_ourairports(icao, limit=1)
+        if not airports:
+            airports = await _search_remote_airports(icao)
         if not airports:
             raise HTTPException(status_code=404, detail="Airport not found")
         airport = airports[0]
