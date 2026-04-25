@@ -39,7 +39,7 @@ class RAGService:
         self.data = self._load_kb()
 
         # Per-ICAO caches
-        self._airport_ctx: dict[str, str] = {}   # icao → context string
+        self._airport_ctx: dict[str, str] = {}  # icao → context string
         self._runways: dict[str, list[str]] = {}  # icao → ["27L", "09R", …]
         self._coords: dict[str, tuple[float, float]] = {}  # icao → (lat, lon)
         self._callsigns: dict[str, list[str]] = {}  # icao → ["UAL276", …]
@@ -251,9 +251,7 @@ class RAGService:
         if "waypoint_rules" in kb:
             synonyms = kb["waypoint_rules"].get("synonyms", [])
             if not text_hint or any(s.lower() in text_hint.lower() for s in synonyms):
-                parts.append(
-                    f"WAYPOINT RULES: {kb['waypoint_rules']['description']}"
-                )
+                parts.append(f"WAYPOINT RULES: {kb['waypoint_rules']['description']}")
                 for p in kb["waypoint_rules"]["patterns"]:
                     if "instruction" in p:
                         parts.append(f"- {p['instruction']}")
@@ -281,15 +279,23 @@ class RAGService:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _runway_spoken(rwy_id: str) -> str:
     """
     Convert a runway identifier to its spoken form.
     "27L" → "TWO SEVEN LEFT", "09" → "ZERO NINER"
     """
     _digit_map = {
-        "0": "ZERO", "1": "ONE", "2": "TWO", "3": "THREE",
-        "4": "FOUR", "5": "FIFE", "6": "SIX", "7": "SEVEN",
-        "8": "EIGHT", "9": "NINER",
+        "0": "ZERO",
+        "1": "ONE",
+        "2": "TWO",
+        "3": "THREE",
+        "4": "FOUR",
+        "5": "FIFE",
+        "6": "SIX",
+        "7": "SEVEN",
+        "8": "EIGHT",
+        "9": "NINER",
     }
     _suffix_map = {"L": "LEFT", "R": "RIGHT", "C": "CENTER"}
 

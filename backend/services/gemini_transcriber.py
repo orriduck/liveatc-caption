@@ -37,9 +37,7 @@ class GeminiTranscriber(BaseTranscriber):
                     response_schema=TranscriptionResponse,
                     temperature=0.1,
                 ),
-                contents=[
-                    types.Part.from_bytes(data=wav_data, mime_type="audio/wav")
-                ],
+                contents=[types.Part.from_bytes(data=wav_data, mime_type="audio/wav")],
             )
             if response.text:
                 data = json.loads(response.text)
