@@ -26,7 +26,6 @@ Backend runs on `http://localhost:8000`, frontend on `http://localhost:5173`. Ct
 | `backend/services/rag_service.py` | Airport context: runways, callsigns, METAR |
 | `frontend/src/views/HomeView.vue` | Search-to-airport route flow |
 | `frontend/src/components/screens/AirportCaptionScreen.vue` | Airport explorer map + METAR screen |
-| `frontend/src/views/SettingsView.vue` | Lightweight frontend runtime/settings copy |
 
 ## Linting
 
@@ -42,4 +41,4 @@ cd backend && .venv/bin/python -m pytest tests/ -v
 
 ## API key
 
-Set `ANTHROPIC_API_KEY` in `backend/.env`. The env var always wins over any frontend-passed key.
+Set `ANTHROPIC_API_KEY` in `backend/.env`. Runtime config is backend-only.

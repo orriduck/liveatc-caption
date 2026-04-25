@@ -46,7 +46,6 @@ Download the latest `.dmg` or `.app.zip` from the [Releases](https://github.com/
 - Python 3.12+
 - Node.js 18+ & [pnpm](https://pnpm.io/installation)
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (Python package manager)
-- A [Gemini API Key](https://aistudio.google.com/) and/or an [Anthropic API Key](https://console.anthropic.com/)
 
 ### 1. Backend Setup
 ```bash
@@ -57,11 +56,10 @@ uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 The backend runs on `http://localhost:8000`.
 
-API keys (`GEMINI_API_KEY` / `ANTHROPIC_API_KEY`) can be set via the in-app settings UI at runtime, or supplied upfront via a `.env` file in the `backend/` directory:
+Runtime configuration is supplied through environment variables in the `backend/` directory:
 
 ```bash
 # backend/.env
-GEMINI_API_KEY=your_gemini_key_here
 ANTHROPIC_API_KEY=your_anthropic_key_here
 ```
 
@@ -116,14 +114,11 @@ Frontend available at `http://localhost:5173`.
 
 ### Environment variables
 
-Create `backend/.env` with your API key(s) — at least one is required for transcription to work:
+Create `backend/.env` with backend-only configuration:
 
 | Variable | Description |
 |---|---|
-| `GEMINI_API_KEY` | Google Gemini API key (from [Google AI Studio](https://aistudio.google.com/)) |
 | `ANTHROPIC_API_KEY` | Anthropic API key (from [Anthropic Console](https://console.anthropic.com/)) |
-
-Keys can also be entered through the in-app Settings panel without restarting the server.
 
 ### Project structure
 ```
