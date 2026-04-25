@@ -36,7 +36,7 @@ jobs:
         id: ver
         run: |
           # Read current version from the Homebrew Cask (single source of truth)
-          CURRENT=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' Casks/liveatc-caption.rb | head -1)
+          CURRENT=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' Casks/adsbao.rb | head -1)
           echo "Current version: $CURRENT"
 
           IFS='.' read -r MAJ MIN PAT <<< "$CURRENT"
@@ -90,7 +90,7 @@ jobs:
           VER="${{ steps.ver.outputs.ver }}"
           cd packaging/electron
           # Stamp version into package.json so electron-builder names the DMG
-          # with the correct version string (e.g. LiveATC Caption-0.4.0-arm64.dmg)
+          # with the correct version string (e.g. ADSBao-0.4.0-arm64.dmg)
           node -e "
             const fs = require('fs');
             const p = JSON.parse(fs.readFileSync('package.json','utf8'));
@@ -115,14 +115,14 @@ jobs:
         id: dmg
         run: |
           VER="${{ steps.ver.outputs.ver }}"
-          # electron-builder produces "LiveATC Caption-{ver}-arm64.dmg" (space)
+          # electron-builder produces "ADSBao-{ver}-arm64.dmg"
           SRC=$(find packaging/electron/dist -maxdepth 1 -name "*.dmg" | head -1)
           if [ -z "$SRC" ]; then
             echo "Error: no DMG found in packaging/electron/dist" >&2
             exit 1
           fi
-          # Rename to dot-separated canonical name expected by the Homebrew Cask URL
-          DEST="packaging/electron/dist/LiveATC.Caption-${VER}-arm64.dmg"
+          # Rename to the canonical name expected by the Homebrew Cask URL
+          DEST="packaging/electron/dist/ADSBao-${VER}-arm64.dmg"
           [ "$SRC" != "$DEST" ] && mv "$SRC" "$DEST"
           SHA=$(shasum -a 256 "$DEST" | awk '{print $1}')
           echo "path=$DEST" >> "$GITHUB_OUTPUT"
@@ -134,12 +134,12 @@ jobs:
         run: |
           VER="${{ steps.ver.outputs.ver }}"
           SHA="${{ steps.dmg.outputs.sha256 }}"
-          sed -i '' "s/version \"[^\"]*\"/version \"${VER}\"/" Casks/liveatc-caption.rb
-          sed -i '' "s/sha256 \"[^\"]*\"/sha256 \"${SHA}\"/" Casks/liveatc-caption.rb
+          sed -i '' "s/version \"[^\"]*\"/version \"${VER}\"/" Casks/adsbao.rb
+          sed -i '' "s/sha256 \"[^\"]*\"/sha256 \"${SHA}\"/" Casks/adsbao.rb
           # Handle :no_check placeholder if present
-          sed -i '' "s/sha256 :no_check/sha256 \"${SHA}\"/" Casks/liveatc-caption.rb
+          sed -i '' "s/sha256 :no_check/sha256 \"${SHA}\"/" Casks/adsbao.rb
           echo "--- Updated cask ---"
-          cat Casks/liveatc-caption.rb
+          cat Casks/adsbao.rb
 
       # ── Tag & push ───────────────────────────────────────────────────────────
       - name: Commit version bump, tag, and push
@@ -148,7 +148,7 @@ jobs:
           VER="${{ steps.ver.outputs.ver }}"
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Casks/liveatc-caption.rb
+          git add Casks/adsbao.rb
           git commit -m "chore: release v${VER}"
           git tag "$TAG"
           git push origin HEAD:main
