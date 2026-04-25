@@ -1,4 +1,5 @@
 import { ref, watch, onUnmounted } from 'vue'
+import { parseAdsbPositionTime } from '../utils/aircraftMotion'
 
 // Proxied through backend — adsb.lol has no CORS headers for browser requests
 const API = '/api/proxy/aircraft/positions'
@@ -22,6 +23,7 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
       const res = await fetch(url, { signal: AbortSignal.timeout(14_000) })
       if (!res.ok) throw new Error(`ADS-B HTTP ${res.status}`)
       const json = await res.json()
+      const receiveTime = Date.now()
 
       // adsb.lol response: { ac: [{ hex, flight, lat, lon, alt_baro, gs, track, gnd, ... }] }
       aircraft.value = (json.ac || [])
@@ -35,6 +37,8 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
           onGround: a.gnd ?? false,
           velocity: a.gs ?? null,
           track:    a.track ?? 0,
+          positionTime: parseAdsbPositionTime(a, json.now, receiveTime),
+          receiveTime,
         }))
       lastUpdated.value = new Date()
     } catch (e) {

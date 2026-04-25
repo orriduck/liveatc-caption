@@ -24,6 +24,10 @@ import { createApp, h, ref, shallowRef, onMounted, onUnmounted, watch } from 'vu
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import NumberFlow from '@number-flow/vue'
+import {
+  beginAircraftMotionState,
+  calculateAircraftVisualPosition,
+} from '../../utils/aircraftMotion'
 
 const props = defineProps({
   icao:     { type: String,  default: '' },
@@ -39,7 +43,7 @@ const mapReady = ref(false)
 let map = null
 let sizeObs = null
 // Track markers by icao24 for smooth position updates
-// Entry shape: { marker, color, label, rot, baseLat, baseLon, baseTime, velocity, track, isAnimated }
+// Entry shape: { marker, color, label, lat, lon, positionTime, correctionLat, correctionLon, ... }
 const acMarkersMap = new Map()
 
 const latStr = ref('')
@@ -48,25 +52,15 @@ const lonStr = ref('')
 // Dead-reckoning: animate aircraft that exceed this speed (knots)
 const ANIMATE_THRESHOLD_KT = 30
 
-// RAF loop — updates predicted positions at ~60 fps for fast aircraft
+// RAF loop — updates visual aircraft positions on a delayed, latency-aware clock
 let rafId = null
 
 const animateLoop = () => {
   if (!map) return
   const now = Date.now()
   for (const [, entry] of acMarkersMap) {
-    if (!entry.isAnimated) continue
-    const dt = (now - entry.baseTime) / 1000  // seconds since last poll
-    if (dt <= 0) continue
-
-    // 匀速运动: uniform linear motion in the direction of `track`
-    // 1 knot = 0.514444 m/s; track is degrees clockwise from north
-    const mps = entry.velocity * 0.514444
-    const trackRad = (entry.track * Math.PI) / 180
-    const latRad   = (entry.baseLat * Math.PI) / 180
-    const dLat = (mps * Math.cos(trackRad) * dt) / 111_320
-    const dLon = (mps * Math.sin(trackRad) * dt) / (111_320 * Math.cos(latRad))
-    entry.marker.setLatLng([entry.baseLat + dLat, entry.baseLon + dLon])
+    const position = calculateAircraftVisualPosition(entry, now)
+    entry.marker.setLatLng([position.lat, position.lon])
   }
   rafId = requestAnimationFrame(animateLoop)
 }
@@ -236,14 +230,16 @@ const updateAircraft = () => {
 
     if (acMarkersMap.has(ac.icao24)) {
       const entry = acMarkersMap.get(ac.icao24)
-      // Anchor dead-reckoning to the fresh authoritative position
-      entry.marker.setLatLng([ac.lat, ac.lon])
-      entry.baseLat   = ac.lat
-      entry.baseLon   = ac.lon
-      entry.baseTime  = now
-      entry.velocity  = vel
-      entry.track     = ac.track ?? 0
-      entry.isAnimated = isAnimated
+      const currentLatLng = entry.marker.getLatLng()
+      const motionState = beginAircraftMotionState(ac, now, {
+        lat: currentLatLng.lat,
+        lon: currentLatLng.lng,
+      })
+      Object.assign(entry, motionState, {
+        velocity: vel,
+        track: ac.track ?? 0,
+        isAnimated,
+      })
       // Refresh icon only when appearance changes
       if (color !== entry.color || label !== entry.label || rot !== entry.rot || showArrow !== entry.showArrow || hasTelemetry !== entry.hasTelemetry) {
         unmountAircraftTelemetry(entry.marker)
@@ -253,10 +249,12 @@ const updateAircraft = () => {
       }
       if (hasTelemetry) queueAircraftTelemetrySync(entry.marker, ac)
     } else {
-      const m = L.marker([ac.lat, ac.lon], { icon: makeAcIcon(color, label, rot, showArrow, hasTelemetry) }).addTo(map)
+      const motionState = beginAircraftMotionState(ac, now)
+      const visualPosition = calculateAircraftVisualPosition(motionState, now)
+      const m = L.marker([visualPosition.lat, visualPosition.lon], { icon: makeAcIcon(color, label, rot, showArrow, hasTelemetry) }).addTo(map)
       acMarkersMap.set(ac.icao24, {
         marker: m, color, label, rot, showArrow, hasTelemetry,
-        baseLat: ac.lat, baseLon: ac.lon, baseTime: now,
+        ...motionState,
         velocity: vel, track: ac.track ?? 0,
         isAnimated,
       })
