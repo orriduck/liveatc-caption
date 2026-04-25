@@ -14,17 +14,19 @@ Backend runs on `http://localhost:8000`, frontend on `http://localhost:5173`. Ct
 
 - **Backend**: FastAPI + uvicorn, managed by `uv`. Entry point: `backend/main.py`.
 - **Frontend**: Vue 3 + Vite + Tailwind + DaisyUI, managed by `pnpm` (installed via Homebrew).
-- **Audio pipeline**: Web-delivered airport metadata, METAR, and ADS-B context flow through the backend; live audio streaming is currently disabled in this build.
+- **Airport data**: OurAirports-backed airport catalog, AviationWeather METAR proxy, and ADS-B position proxy.
+- **Live audio**: Streaming/transcription has been removed from this build; the caption WebSocket only returns a disabled-streaming error.
 
 ## Key paths
 
 | Path | What |
 |---|---|
-| `backend/api/router/caption.py` | WebSocket endpoint — multiplexes PCM audio + JSON captions |
-| `backend/services/base_transcriber.py` | Shared VAD loop, audio queues, stream_audio() |
-| `backend/services/claude_transcriber.py` | Whisper STT + Claude Haiku parsing |
-| `backend/services/rag_service.py` | Airport context: runways, callsigns, METAR |
+| `backend/api/router/airport_catalog.py` | OurAirports CSV catalog loading, TTL cache, search ranking |
+| `backend/api/router/search.py` | Airport search/lookup API and preview channel metadata |
+| `backend/api/router/proxy.py` | METAR and nearby aircraft proxy endpoints |
+| `backend/api/router/caption.py` | Disabled live-streaming WebSocket response |
 | `frontend/src/views/HomeView.vue` | Search-to-airport route flow |
+| `frontend/src/components/screens/SearchScreen.vue` | Browseable airport catalog UI |
 | `frontend/src/components/screens/AirportCaptionScreen.vue` | Airport explorer map + METAR screen |
 
 ## Linting
@@ -39,6 +41,6 @@ cd backend && uvx ruff check . && uvx ruff format --check .
 cd backend && .venv/bin/python -m pytest tests/ -v
 ```
 
-## API key
+## Runtime config
 
-Set `ANTHROPIC_API_KEY` in `backend/.env`. Runtime config is backend-only.
+Runtime config is backend-only. There is no frontend settings page or `/api/config` flow.

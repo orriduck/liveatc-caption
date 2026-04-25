@@ -1,17 +1,15 @@
 # ADSBao
 
-A modern airport-monitoring HUD with dynamic airport search, METAR context, and preview caption workflows.
+A modern airport-monitoring HUD with dynamic airport search, METAR context, and nearby aircraft overlays.
 
 ![Live App Screenshot](screenshot.png)
 
 ## Overview
-ADSBao provides a search-first airport operations view with weather context, aircraft position overlays, and preview caption workflows. Airport search results are fetched dynamically from a public airport-data service.
+ADSBao provides a search-first airport operations view with weather context and aircraft position overlays. Airport search is backed by the public OurAirports catalog.
 
 ## Tech Stack
-- **AI**: Google Gemini (3.0 Flash Preview) and Anthropic Claude
-- **Backend**: FastAPI (Python), `uv`, `PyAV` (Audio Streaming), `webrtcvad`.
+- **Backend**: FastAPI (Python), `uv`, OurAirports catalog data, AviationWeather METAR, and ADS-B position proxying.
 - **Frontend**: Vue 3 (Vite), Tailwind CSS, DaisyUI, Lucide Icons.
-- **Real-time**: WebSockets for low-latency caption delivery.
 - **Typography**: Google Sans Flex & Google Sans Code.
 
 ## Installation (macOS)
@@ -55,13 +53,6 @@ uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 The backend runs on `http://localhost:8000`.
-
-Runtime configuration is supplied through environment variables in the `backend/` directory:
-
-```bash
-# backend/.env
-ANTHROPIC_API_KEY=your_anthropic_key_here
-```
 
 ### 2. Frontend Setup
 ```bash
@@ -112,21 +103,13 @@ pnpm run dev                     # Vite dev server with HMR
 ```
 Frontend available at `http://localhost:5173`.
 
-### Environment variables
-
-Create `backend/.env` with backend-only configuration:
-
-| Variable | Description |
-|---|---|
-| `ANTHROPIC_API_KEY` | Anthropic API key (from [Anthropic Console](https://console.anthropic.com/)) |
-
 ### Project structure
 ```
 ADSBao/
 ├── backend/          # FastAPI app (Python)
 │   ├── api/          # Route handlers
-│   ├── services/     # Transcription, audio streaming
 │   ├── models/       # Pydantic models
+│   ├── tests/        # Backend tests
 │   └── main.py       # App entry point
 └── frontend/         # Vue 3 app (Vite)
     └── src/
