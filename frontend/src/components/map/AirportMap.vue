@@ -87,7 +87,7 @@ const initMap = () => {
     zoomControl:      false,
     attributionControl: false,
     scrollWheelZoom:  false,
-    dragging:         true,
+    dragging:         false,
   })
 
   // CartoDB Dark Matter — no auth needed
