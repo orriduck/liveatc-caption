@@ -1,17 +1,15 @@
 # ADSBao
 
-A modern airport-monitoring HUD with dynamic airport search, METAR context, and preview caption workflows.
+A modern airport-monitoring HUD with dynamic airport search, METAR context, and nearby aircraft overlays.
 
 ![Live App Screenshot](screenshot.png)
 
 ## Overview
-ADSBao provides a search-first airport operations view with weather context, aircraft position overlays, and preview caption workflows. Airport search results are fetched dynamically from a public airport-data service.
+ADSBao provides a search-first airport operations view with weather context and aircraft position overlays. Airport search is backed by the public OurAirports catalog.
 
 ## Tech Stack
-- **AI**: Google Gemini (3.0 Flash Preview) and Anthropic Claude
-- **Backend**: FastAPI (Python), `uv`, `PyAV` (Audio Streaming), `webrtcvad`.
+- **Backend**: FastAPI (Python), `uv`, OurAirports catalog data, AviationWeather METAR, and ADS-B position proxying.
 - **Frontend**: Vue 3 (Vite), Tailwind CSS, DaisyUI, Lucide Icons.
-- **Real-time**: WebSockets for low-latency caption delivery.
 - **Typography**: Google Sans Flex & Google Sans Code.
 
 ## Installation (macOS)
@@ -46,7 +44,6 @@ Download the latest `.dmg` or `.app.zip` from the [Releases](https://github.com/
 - Python 3.12+
 - Node.js 18+ & [pnpm](https://pnpm.io/installation)
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (Python package manager)
-- A [Gemini API Key](https://aistudio.google.com/) and/or an [Anthropic API Key](https://console.anthropic.com/)
 
 ### 1. Backend Setup
 ```bash
@@ -56,14 +53,6 @@ uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 The backend runs on `http://localhost:8000`.
-
-API keys (`GEMINI_API_KEY` / `ANTHROPIC_API_KEY`) can be set via the in-app settings UI at runtime, or supplied upfront via a `.env` file in the `backend/` directory:
-
-```bash
-# backend/.env
-GEMINI_API_KEY=your_gemini_key_here
-ANTHROPIC_API_KEY=your_anthropic_key_here
-```
 
 ### 2. Frontend Setup
 ```bash
@@ -114,24 +103,13 @@ pnpm run dev                     # Vite dev server with HMR
 ```
 Frontend available at `http://localhost:5173`.
 
-### Environment variables
-
-Create `backend/.env` with your API key(s) — at least one is required for transcription to work:
-
-| Variable | Description |
-|---|---|
-| `GEMINI_API_KEY` | Google Gemini API key (from [Google AI Studio](https://aistudio.google.com/)) |
-| `ANTHROPIC_API_KEY` | Anthropic API key (from [Anthropic Console](https://console.anthropic.com/)) |
-
-Keys can also be entered through the in-app Settings panel without restarting the server.
-
 ### Project structure
 ```
 ADSBao/
 ├── backend/          # FastAPI app (Python)
 │   ├── api/          # Route handlers
-│   ├── services/     # Transcription, audio streaming
 │   ├── models/       # Pydantic models
+│   ├── tests/        # Backend tests
 │   └── main.py       # App entry point
 └── frontend/         # Vue 3 app (Vite)
     └── src/
