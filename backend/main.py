@@ -1,16 +1,16 @@
-from fastapi import FastAPI, Body
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-from dotenv import load_dotenv
 import os
 import sys
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
-from api.router.search import router as search_router
+import uvicorn
+from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
 from api.router.caption import router as caption_router
 from api.router.proxy import router as proxy_router
-from services.config_store import load_into_env, set_api_key, get_api_key
+from api.router.search import router as search_router
 
 app = FastAPI(title="ADSBao App")
 
@@ -39,30 +39,12 @@ if os.path.exists(frontend_path):
     app.mount("/", StaticFiles(directory=frontend_path, html=True), name="static")
 
 
-load_dotenv()
-load_into_env()  # inject persisted key if env var not set
+load_dotenv()  # inject persisted key if env var not set
 
 
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
-
-
-@app.get("/api/config")
-async def config():
-    return {
-        "has_env_key": bool(os.environ.get("ANTHROPIC_API_KEY")),
-        "has_saved_key": bool(get_api_key()),
-    }
-
-
-@app.post("/api/config")
-async def save_config(body: dict = Body(...)):
-    key = (body.get("anthropic_api_key") or "").strip()
-    if key:
-        set_api_key(key)
-        os.environ["ANTHROPIC_API_KEY"] = key
-    return {"status": "saved"}
 
 
 # Catch-all route to serve index.html for SPA routing

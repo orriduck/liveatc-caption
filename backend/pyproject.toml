@@ -5,12 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "anthropic>=0.40.0",
     "beautifulsoup4>=4.14.3",
     "certifi>=2025.11.12",
     "fastapi>=0.125.0",
     "faster-whisper>=1.2.1",
-    "google-genai>=1.56.0",
     "httpx>=0.28.1",
     "numpy>=2.4.0",
     "pyinstaller>=6.17.0",
