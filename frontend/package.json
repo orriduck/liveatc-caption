@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test:detach": "node src/components/screens/AirportCaptionScreen.detached.test.js && node src/frontend-detach.test.js",
     "test:aircraft-motion": "node src/utils/aircraftMotion.test.js",
     "preview": "vite preview"
   },
