@@ -2,9 +2,8 @@
 RAGService — builds context strings and Whisper hotword lists for a given airport.
 
 Airport metadata pipeline (all fetched at runtime, cached per ICAO):
-  1. LiveATC scraper  → airport name, METAR, ATC frequencies
-  2. AviationAPI.com  → runways, lat/lon (free, no auth)
-  3. adsb.lol         → nearby aircraft callsigns (requires lat/lon from step 2)
+  1. aviationweather.gov  → airport name, runways, lat/lon
+  2. adsb.lol             → nearby aircraft callsigns (requires lat/lon from step 1)
 
 Hotwords fed to Whisper's decoder:
   • Runway identifiers (e.g. "27L", "TWO SEVEN LEFT")
@@ -17,8 +16,6 @@ import os
 import threading
 
 import httpx
-
-from services.scraper import search_channels
 
 _HEADERS = {
     "User-Agent": (
@@ -69,36 +66,8 @@ class RAGService:
             return
 
         print(f"[RAG] Fetching airport data for {icao}…")
-        self._fetch_liveatc(icao)
         self._fetch_aviationweather(icao)
         self._fetch_callsigns(icao)
-
-    def _fetch_liveatc(self, icao: str) -> None:
-        """Populate airport name, METAR, and ATC frequencies from LiveATC scraper."""
-        try:
-            data = search_channels(icao)
-            airport = data.get("airport", {})
-            channels = data.get("channels", [])
-
-            parts = []
-            if airport.get("name"):
-                parts.append(f"AIRPORT: {airport['name']} ({icao})")
-            if airport.get("metar"):
-                parts.append(f"METAR: {airport['metar']}")
-
-            freqs = set()
-            for c in channels:
-                for f in c.get("frequencies", []):
-                    freqs.add(f"{f['facility']}: {f['frequency']}")
-            if freqs:
-                parts.append(f"ATC FREQUENCIES: {', '.join(sorted(freqs))}")
-
-            with self._lock:
-                self._airport_ctx[icao] = "\n".join(parts)
-        except Exception as e:
-            print(f"[RAG] LiveATC fetch error for {icao}: {e}")
-            with self._lock:
-                self._airport_ctx.setdefault(icao, "")
 
     def _fetch_aviationweather(self, icao: str) -> None:
         """
@@ -116,6 +85,10 @@ class RAGService:
                 return
 
             item = payload[0]
+            parts = []
+
+            if item.get("name"):
+                parts.append(f"AIRPORT: {item['name']} ({icao})")
 
             lat = item.get("lat")
             lon = item.get("lon")
@@ -139,8 +112,13 @@ class RAGService:
                     self._runways[icao] = runway_ids
                 print(f"[RAG] {icao} runways: {runway_ids}")
 
+            with self._lock:
+                self._airport_ctx[icao] = "\n".join(parts)
+
         except Exception as e:
             print(f"[RAG] AviationWeather fetch error for {icao}: {e}")
+            with self._lock:
+                self._airport_ctx.setdefault(icao, "")
 
     def _fetch_callsigns(self, icao: str) -> None:
         """
