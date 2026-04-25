@@ -23,9 +23,8 @@
       :analyser="analyserRef"
       @back="handleBack"
       @select-feed="handleSelectFeed"
-      @toggle-play="togglePlay"
+      @toggle-play="handleStart"
       @stop="handleStop"
-      @download="handleDownload"
     />
   </transition>
 </template>
@@ -52,7 +51,6 @@ const {
   handleSearch,
   connect,
   disconnect,
-  togglePlay,
 } = inject('liveATC')
 
 const currentIcao = ref('')
@@ -79,6 +77,12 @@ const handleSelectFeed = async (channel) => {
 
 const handleStop = () => {
   disconnect()
+}
+
+const handleStart = async () => {
+  if (!activeChannel.value) return
+  disconnect()
+  await connect()
 }
 
 const handleBack = () => {
@@ -118,26 +122,4 @@ watch(() => route.params, ({ icao, channel }) => {
   }
 })
 
-// ── Download ──────────────────────────────────────────────────────────────
-
-const handleDownload = () => {
-  if (!captions.value?.length) return
-  const lines = captions.value
-    .filter(c => !c.isTemp && (c.caption || c.details))
-    .map(c => {
-      const ts      = new Date(c.timestamp).toISOString()
-      const speaker = c.speaker || 'UNK'
-      const text    = c.caption || c.details || ''
-      return `[${ts}] ${speaker}: ${text}`
-    })
-    .join('\n')
-
-  const blob = new Blob([lines], { type: 'text/plain' })
-  const url  = URL.createObjectURL(blob)
-  const a    = document.createElement('a')
-  a.href     = url
-  a.download = `${currentIcao.value}_captions_${Date.now()}.txt`
-  a.click()
-  URL.revokeObjectURL(url)
-}
 </script>
