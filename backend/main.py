@@ -12,7 +12,7 @@ from api.router.caption import router as caption_router
 from api.router.proxy import router as proxy_router
 from services.config_store import load_into_env, set_api_key, get_api_key
 
-app = FastAPI(title="LiveATC Caption App")
+app = FastAPI(title="ADSBao App")
 
 # Allow CORS for development
 app.add_middleware(
@@ -23,10 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(search_router, prefix="/api")
-app.include_router(
-    caption_router, prefix="/ws"
-)  # Keep old prefix for now or move transcribe to /api?
-# Ideally transcribe should be under /api/caption
+app.include_router(caption_router, prefix="/ws")
 app.include_router(proxy_router, prefix="/api")
 
 # Serve static files from the frontend build

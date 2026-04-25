@@ -21,13 +21,13 @@ npm run dist
 cd ../..
 
 echo "${GREEN}Build Complete!${NC}"
-echo "The app is located at: ${BLUE}packaging/electron/dist/mac-arm64/LiveATC Caption.app${NC}"
+echo "The app is located at: ${BLUE}packaging/electron/dist/mac-arm64/ADSBao.app${NC}"
 
 # Ask to run the app
 read -p "Would you like to run the app now? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    echo "${BLUE}Launching LiveATC Caption...${NC}"
-    open "packaging/electron/dist/mac-arm64/LiveATC Caption.app"
+    echo "${BLUE}Launching ADSBao...${NC}"
+    open "packaging/electron/dist/mac-arm64/ADSBao.app"
 fi

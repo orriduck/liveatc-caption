@@ -10,10 +10,10 @@
 
       <div class="space-y-8">
         <div class="space-y-4">
-          <h2 class="text-xl uppercase">Airport Explorer</h2>
+          <h2 class="text-xl uppercase">ADSBao</h2>
           <p class="text-sm leading-relaxed opacity-60">
-            This frontend is now an airport explorer focused on airport lookup, weather context, and nearby traffic visualization.
-            The LiveATC player, feed selector, and transcription presentation have been removed from the UI.
+            ADSBao is an airport explorer focused on airport lookup, weather context, and nearby traffic visualization.
+            The previous LiveATC player, feed selector, and transcription presentation have been removed from the UI.
           </p>
         </div>
 
@@ -30,7 +30,7 @@
 
         <div class="flex flex-col gap-4 border-t pt-8">
           <a
-            href="https://github.com/orriduck/liveatc-caption"
+            href="https://github.com/orriduck/ADSBao"
             target="_blank"
             rel="noreferrer"
             class="group flex items-center justify-between rounded-2xl border p-4 transition-all hover:bg-current/5"
