@@ -1,13 +1,13 @@
 <template>
-  <div class="flex flex-col h-screen bg-atc-bg text-atc-text font-sans overflow-hidden">
+  <div class="relative flex flex-col h-screen bg-atc-bg text-atc-text font-sans overflow-hidden">
 
     <!-- ─── MASTHEAD ─────────────────────────────────────────────────────── -->
     <section
-      class="flex-shrink-0 px-10 py-4 border-b border-atc-line"
-      style="background:radial-gradient(ellipse at 90% 0%, rgba(255,90,31,0.07), transparent 45%), #0a0a0b"
+      class="absolute inset-x-0 top-0 z-20 px-10 pt-4 pb-10 pointer-events-none"
+      style="background:linear-gradient(to bottom, rgba(10,10,11,0.98) 0%, rgba(10,10,11,0.88) 58%, rgba(10,10,11,0) 100%)"
     >
       <!-- Breadcrumb / back + title on one line -->
-      <div class="flex items-center gap-4 mb-3">
+      <div class="flex items-center gap-4 mb-3 pointer-events-auto">
         <button
           class="flex items-center gap-1.5 hover:text-atc-text transition-colors cursor-pointer bg-transparent border-none p-0 font-mono text-[11px] tracking-[0.5px] uppercase text-atc-dim flex-shrink-0"
           @click="$emit('back')"
@@ -36,7 +36,7 @@
 
       <!-- KPI strip -->
       <div
-        class="grid border border-atc-line rounded-xl overflow-hidden"
+        class="grid border border-atc-line rounded-xl overflow-hidden pointer-events-auto"
         style="grid-template-columns:repeat(5,1fr);gap:1px;background:rgba(255,255,255,0.07)"
       >
         <KPICell label="WIND">
@@ -132,7 +132,11 @@
       </div>
 
       <!-- ── BOTTOM DOCK: compact mobile-friendly controls ──────────────── -->
-      <div class="absolute inset-x-3 bottom-3 z-20 sm:inset-x-4">
+      <div
+        class="absolute inset-x-0 bottom-0 z-20 px-3 pt-14 pb-3 sm:px-4"
+        style="background:linear-gradient(to top, rgba(10,10,11,0.98) 0%, rgba(10,10,11,0.82) 48%, rgba(10,10,11,0) 100%)"
+      >
+        <div class="relative">
         <Transition name="feed-dropup">
           <div
             v-if="feedMenuOpen"
@@ -186,8 +190,7 @@
         </Transition>
 
         <div
-          class="bottom-dock flex min-h-[68px] flex-row items-center gap-2 rounded-[26px] border border-white/15 p-2 shadow-2xl"
-          style="background:rgba(10,10,11,0.91);backdrop-filter:blur(22px);box-shadow:0 18px 58px rgba(0,0,0,0.52)"
+          class="bottom-dock flex min-h-[68px] flex-row items-center gap-2"
         >
           <button
             class="bottom-dock-feed flex min-h-11 items-center gap-2.5 rounded-[20px] border border-white/10 bg-white/[0.045] px-3 text-left transition-colors hover:bg-white/8"
@@ -267,6 +270,7 @@
               </button>
             </div>
           </section>
+        </div>
         </div>
       </div>
 
@@ -622,7 +626,6 @@ onUnmounted(() => {
 @media (max-width: 940px) {
   .bottom-dock {
     gap: 6px;
-    padding: 6px;
   }
 
   .bottom-dock-feed {
