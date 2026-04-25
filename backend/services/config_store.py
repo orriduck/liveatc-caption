@@ -2,7 +2,7 @@ import json
 import os
 from pathlib import Path
 
-_CONFIG_DIR = Path.home() / ".liveatc-caption"
+_CONFIG_DIR = Path.home() / ".atc-caption"
 _CONFIG_FILE = _CONFIG_DIR / "config.json"
 
 

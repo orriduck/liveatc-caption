@@ -13,7 +13,7 @@ class Channel(BaseModel):
     status: str
     is_up: bool
     listeners: int
-    data_source: Optional[str] = None  # 'local' or 'liveatc'
+    data_source: Optional[str] = None  # 'local' or 'remote'
     stream_url: Optional[str] = None
     frequencies: List[Frequency]
 
