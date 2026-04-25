@@ -1,6 +1,6 @@
 cask "liveatc-caption" do
-  version "0.3.9"
-  sha256 "b5dccdfaf9ba624d83566ec89c4aa45564f8afc740f7a4eb5616f42293026cbe" # Updated automatically by CI
+  version "0.3.10"
+  sha256 "d9fdb82ba54ca109793b8fe774b99c943970206fbf7328e0bf4c4ace2e889933" # Updated automatically by CI
 
   url "https://github.com/orriduck/liveatc-caption/releases/download/v#{version}/LiveATC.Caption-#{version}-arm64.dmg"
   name "LiveATC Caption"
