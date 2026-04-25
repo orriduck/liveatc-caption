@@ -9,19 +9,23 @@
   >
     <div class="flex items-baseline gap-2.5 mb-2">
       <span class="font-display italic text-[42px] leading-none text-atc-text" style="letter-spacing:-1px">{{ a.iata || a.code }}</span>
-      <span class="font-mono text-[11px] text-atc-faint tracking-[1px]">{{ a.code }}</span>
+      <span class="font-mono text-[11px] text-atc-faint tracking-[1px]">{{ a.icao || a.code }}</span>
     </div>
     <div class="text-[15px] font-semibold text-atc-text" style="letter-spacing:-0.2px">{{ a.name }}</div>
     <div class="text-[13px] text-atc-dim mb-4">{{ subtitle }}</div>
 
     <div class="mt-auto flex items-center gap-4 pt-3.5 border-t border-atc-line">
       <div class="flex flex-col gap-0.5">
-        <span class="font-mono text-[16px] font-semibold">{{ a.code }}</span>
+        <span class="font-mono text-[16px] font-semibold">{{ a.icao || a.code }}</span>
         <span class="text-[10px] text-atc-faint uppercase tracking-[1px]">icao</span>
       </div>
       <div class="flex flex-col gap-0.5">
         <span class="font-mono text-[16px] font-semibold text-atc-mint">{{ a.country }}</span>
-        <span class="text-[10px] text-atc-faint uppercase tracking-[1px]">region</span>
+        <span class="text-[10px] text-atc-faint uppercase tracking-[1px]">country</span>
+      </div>
+      <div class="hidden sm:flex flex-col gap-0.5">
+        <span class="font-mono text-[16px] font-semibold text-atc-dim">{{ typeShort }}</span>
+        <span class="text-[10px] text-atc-faint uppercase tracking-[1px]">class</span>
       </div>
       <div class="ml-auto w-8 h-8 rounded-full bg-atc-high text-atc-text grid place-items-center">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -46,5 +50,13 @@ const subtitle = computed(() => {
   if (props.a.city) return props.a.city
   if (props.a.country) return props.a.country
   return props.a.type_label || props.a.type || 'Airport data'
+})
+
+const typeShort = computed(() => {
+  if (props.a.type === 'large_airport') return 'L'
+  if (props.a.type === 'medium_airport') return 'M'
+  if (props.a.type === 'small_airport') return 'S'
+  if (props.a.type === 'heliport') return 'H'
+  return '—'
 })
 </script>
