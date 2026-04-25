@@ -1,6 +1,5 @@
 <template>
   <transition name="screen" mode="out-in">
-    <!-- SEARCH screen -->
     <SearchScreen
       v-if="screen === 'search'"
       key="search"
@@ -9,117 +8,93 @@
       @open-airport="handleOpenAirport"
     />
 
-    <!-- UNIFIED airport + caption screen -->
     <AirportCaptionScreen
-      v-else-if="screen === 'station'"
-      key="station"
+      v-else
+      key="airport"
       :icao="currentIcao"
-      :airport="data?.airport"
-      :channels="data?.channels"
-      :active-feed-id="activeChannel?.id"
-      :captions="captions"
-      :connection-state="connectionState"
-      :is-playing="isPlaying"
-      :analyser="analyserRef"
+      :airport="airport"
+      :loading="loading"
+      :error="error"
       @back="handleBack"
-      @select-feed="handleSelectFeed"
-      @toggle-play="handleStart"
-      @stop="handleStop"
     />
   </transition>
 </template>
 
 <script setup>
-import { ref, inject, computed, watch, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import SearchScreen         from '../components/screens/SearchScreen.vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import AirportCaptionScreen from '../components/screens/AirportCaptionScreen.vue'
+import SearchScreen from '../components/screens/SearchScreen.vue'
 
+const route = useRoute()
 const router = useRouter()
-const route  = useRoute()
 
-const {
-  data,
-  loading,
-  error,
-  activeChannel,
-  isConnected,
-  analyserRef,
-  connectionState,
-  isPlaying,
-  captions,
-  handleSearch,
-  connect,
-  disconnect,
-} = inject('liveATC')
-
+const airport = ref(null)
 const currentIcao = ref('')
+const loading = ref(false)
+const error = ref(null)
 
-// Derive screen from route — no extra state needed
-const screen = computed(() => route.params.icao ? 'station' : 'search')
+const screen = computed(() => (route.params.icao ? 'airport' : 'search'))
 
-// ── Navigation helpers ────────────────────────────────────────────────────
+const loadAirport = async (icao) => {
+  if (!icao || icao.length < 3) return
+  loading.value = true
+  error.value = null
 
-const handleOpenAirport = async (airport) => {
-  currentIcao.value = airport.code
-  router.push({ name: 'airport', params: { icao: airport.code } })
-  await handleSearch(airport.code)
+  try {
+    const response = await fetch(`/api/search?icao=${encodeURIComponent(icao.trim())}`)
+    if (!response.ok) {
+      throw new Error(response.status === 404 ? 'Airport not found' : 'Airport lookup is unavailable right now')
+    }
+
+    const payload = await response.json()
+    airport.value = payload.airport || null
+    currentIcao.value = String(payload.airport?.icao || icao).toUpperCase()
+  } catch (err) {
+    console.error('Failed to load airport', err)
+    airport.value = null
+    error.value = err?.message || 'Failed to load airport'
+  } finally {
+    loading.value = false
+  }
 }
 
-const handleSelectFeed = async (channel) => {
-  if (activeChannel.value?.id === channel.id) return
-  disconnect()
-  activeChannel.value = channel
-  isConnected.value   = false
-  router.push({ name: 'channel', params: { icao: currentIcao.value, channel: channel.id } })
-  await connect()
-}
+const handleOpenAirport = async (selectedAirport) => {
+  const nextIcao = String(selectedAirport.icao || selectedAirport.code || '').toUpperCase()
+  if (!nextIcao) return
 
-const handleStop = () => {
-  disconnect()
-}
-
-const handleStart = async () => {
-  if (!activeChannel.value) return
-  disconnect()
-  await connect()
+  currentIcao.value = nextIcao
+  router.push({ name: 'airport', params: { icao: nextIcao } })
+  await loadAirport(nextIcao)
 }
 
 const handleBack = () => {
-  disconnect()
+  airport.value = null
+  error.value = null
+  currentIcao.value = ''
   router.push({ name: 'home' })
 }
 
-// ── Restore state from URL on load / navigation ───────────────────────────
-
-const restoreFromRoute = async (icao, channelId) => {
-  if (!icao) return
-  currentIcao.value = icao.toUpperCase()
-  await handleSearch(icao)
-  if (channelId && data.value?.channels) {
-    const ch = data.value.channels.find(c => c.id === channelId)
-    if (ch) {
-      activeChannel.value = ch
-      await connect()
-    }
-  }
-}
-
-// On first load, restore from URL params
 onMounted(() => {
-  const { icao, channel } = route.params
-  if (icao) restoreFromRoute(icao, channel)
-})
-
-// If the user navigates back/forward with browser buttons, re-sync
-watch(() => route.params, ({ icao, channel }) => {
-  if (icao && icao !== currentIcao.value) {
-    restoreFromRoute(icao, channel)
-  } else if (!icao && currentIcao.value) {
-    // Navigated back to home via browser button
-    disconnect()
-    currentIcao.value = ''
+  const { icao } = route.params
+  if (icao) {
+    loadAirport(String(icao))
   }
 })
 
+watch(
+  () => route.params.icao,
+  (icao) => {
+    if (icao && String(icao).toUpperCase() !== currentIcao.value) {
+      loadAirport(String(icao))
+      return
+    }
+
+    if (!icao && currentIcao.value) {
+      airport.value = null
+      error.value = null
+      currentIcao.value = ''
+    }
+  },
+)
 </script>

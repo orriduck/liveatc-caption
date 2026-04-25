@@ -14,8 +14,7 @@ const routes = [
     },
     {
         path: '/:icao/:channel',
-        name: 'channel',
-        component: HomeView
+        redirect: to => ({ name: 'airport', params: { icao: to.params.icao } })
     },
     {
         path: '/settings',

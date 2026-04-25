@@ -9,7 +9,7 @@
     </div>
     <div class="leading-none">
       <div class="text-base font-bold tracking-tight text-atc-text" style="letter-spacing:-0.3px">
-        LiveATC<span class="text-atc-orange">·</span>Caption
+        ATC<span class="text-atc-orange">·</span>Caption
       </div>
     </div>
   </div>
