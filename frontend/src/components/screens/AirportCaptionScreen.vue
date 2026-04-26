@@ -71,69 +71,78 @@
 
       <main class="airport-dashboard">
         <section
-          class="glass-panel raw-metar-panel"
+          class="glass-panel weather-instrument-panel"
           data-dashboard-group="weather"
           :data-active-group="activeDashboardTab === 'weather'"
         >
           <div class="panel-heading">
             <div>
-              <div class="panel-kicker">Raw METAR</div>
-              <h2>Observation string</h2>
+              <div class="panel-kicker">METAR / Weather</div>
+              <h2>{{ activeWeatherView === 'parsed' ? weatherSummary : 'Observation string' }}</h2>
             </div>
             <span class="panel-pill">{{ formatObsTime(metar?.obsTime) }}</span>
           </div>
 
-          <div class="metar-code">
-            <span v-if="metarRaw">{{ metarRaw }}</span>
-            <span v-else-if="metarLoading">Loading METAR...</span>
-            <span v-else>No METAR available.</span>
+          <div class="weather-view-frame">
+            <dl v-if="activeWeatherView === 'parsed'" class="weather-readout">
+              <div>
+                <dt>Wind</dt>
+                <dd>{{ metar?.wind || '—' }}</dd>
+              </div>
+              <div>
+                <dt>Visibility</dt>
+                <dd>
+                  <template v-if="visInfo">
+                    <NumberFlow :value="visInfo.value" :suffix="visInfo.plus ? '+ SM' : ' SM'" />
+                  </template>
+                  <template v-else>{{ metar?.vis || '—' }}</template>
+                </dd>
+              </div>
+              <div>
+                <dt>Ceiling</dt>
+                <dd>{{ metar?.ceiling || '—' }}</dd>
+              </div>
+              <div>
+                <dt>Temp / Dew</dt>
+                <dd>{{ metar ? `${metar.temp} / ${metar.dew}` : '—' }}</dd>
+              </div>
+              <div>
+                <dt>Altimeter</dt>
+                <dd>{{ metar?.altim || '—' }}</dd>
+              </div>
+              <div>
+                <dt>Weather</dt>
+                <dd>{{ metar?.wxString || 'None reported' }}</dd>
+              </div>
+            </dl>
+
+            <div v-else class="metar-code">
+              <span v-if="metarRaw">{{ metarRaw }}</span>
+              <span v-else-if="metarLoading">Loading METAR...</span>
+              <span v-else>No METAR available.</span>
+            </div>
           </div>
+
           <div v-if="metarError" class="panel-error">{{ metarError }}</div>
-        </section>
 
-        <section
-          class="glass-panel weather-panel"
-          data-dashboard-group="weather"
-          :data-active-group="activeDashboardTab === 'weather'"
-        >
-          <div class="panel-heading">
-            <div>
-              <div class="panel-kicker">Parsed weather</div>
-              <h2>{{ weatherSummary }}</h2>
-            </div>
+          <div class="weather-view-dots" role="tablist" aria-label="Weather card view">
+            <button
+              type="button"
+              role="tab"
+              aria-label="Parsed weather"
+              :aria-selected="activeWeatherView === 'parsed'"
+              :class="{ active: activeWeatherView === 'parsed' }"
+              @click="activeWeatherView = 'parsed'"
+            />
+            <button
+              type="button"
+              role="tab"
+              aria-label="Raw METAR"
+              :aria-selected="activeWeatherView === 'raw'"
+              :class="{ active: activeWeatherView === 'raw' }"
+              @click="activeWeatherView = 'raw'"
+            />
           </div>
-
-          <dl class="weather-readout">
-            <div>
-              <dt>Wind</dt>
-              <dd>{{ metar?.wind || '—' }}</dd>
-            </div>
-            <div>
-              <dt>Visibility</dt>
-              <dd>
-                <template v-if="visInfo">
-                  <NumberFlow :value="visInfo.value" :suffix="visInfo.plus ? '+ SM' : ' SM'" />
-                </template>
-                <template v-else>{{ metar?.vis || '—' }}</template>
-              </dd>
-            </div>
-            <div>
-              <dt>Ceiling</dt>
-              <dd>{{ metar?.ceiling || '—' }}</dd>
-            </div>
-            <div>
-              <dt>Temp / Dew</dt>
-              <dd>{{ metar ? `${metar.temp} / ${metar.dew}` : '—' }}</dd>
-            </div>
-            <div>
-              <dt>Altimeter</dt>
-              <dd>{{ metar?.altim || '—' }}</dd>
-            </div>
-            <div>
-              <dt>Weather</dt>
-              <dd>{{ metar?.wxString || 'None reported' }}</dd>
-            </div>
-          </dl>
         </section>
 
         <section
@@ -224,6 +233,7 @@ const props = defineProps({
 defineEmits(['back'])
 
 const activeDashboardTab = ref('weather')
+const activeWeatherView = ref('parsed')
 
 const AIRPORT_FALLBACKS = {
   KLAX: { iata: 'LAX', name: 'Los Angeles Intl', city: 'Los Angeles', country: 'US' },
@@ -499,7 +509,7 @@ const formatObsTime = (value) => {
   align-items: stretch;
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr));
   margin-inline: auto;
   padding-bottom: 16px;
   width: min(75vw, 1280px);
@@ -563,14 +573,25 @@ const formatObsTime = (value) => {
   text-transform: uppercase;
 }
 
+.weather-instrument-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+}
+
+.weather-view-frame {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .metar-code {
   color: var(--atc-text);
   font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(14px, 1.25vw, 20px);
+  font-size: clamp(14px, 1.1vw, 18px);
   font-weight: 800;
   line-height: 1.3;
-  margin-top: 16px;
-  max-height: 142px;
+  margin-top: 14px;
+  max-height: 156px;
   overflow: auto;
   white-space: pre-wrap;
 }
@@ -586,14 +607,14 @@ const formatObsTime = (value) => {
 
 .weather-readout {
   display: grid;
-  gap: 8px 18px;
+  gap: 7px 18px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 16px 0 0;
+  margin: 14px 0 0;
 }
 
 .weather-readout div {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 9px;
+  padding-top: 8px;
 }
 
 .weather-readout dt,
@@ -612,7 +633,34 @@ const formatObsTime = (value) => {
   font-size: 14px;
   font-weight: 800;
   line-height: 1.18;
-  margin: 7px 0 0;
+  margin: 6px 0 0;
+}
+
+.weather-view-dots {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+  position: relative;
+}
+
+.weather-view-dots button {
+  appearance: none;
+  background: rgba(245, 245, 247, 0.3);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  height: 7px;
+  padding: 0;
+  transition: background 0.16s ease, transform 0.16s ease, width 0.16s ease;
+  width: 7px;
+}
+
+.weather-view-dots button.active {
+  background: var(--atc-orange);
+  transform: scale(1.08);
+  width: 18px;
 }
 
 .traffic-counts {
@@ -656,12 +704,8 @@ const formatObsTime = (value) => {
 
 @media (max-width: 1180px) {
   .airport-dashboard {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr));
     width: min(75vw, 960px);
-  }
-
-  .traffic-panel {
-    display: none;
   }
 }
 
@@ -706,12 +750,20 @@ const formatObsTime = (value) => {
     display: block;
   }
 
+  .weather-instrument-panel[data-active-group="true"] {
+    display: flex;
+  }
+
   .glass-panel {
     max-height: none;
   }
 
+  .weather-instrument-panel {
+    grid-column: 1 / -1;
+  }
+
   .wiki-panel,
-  .weather-panel {
+  .traffic-panel {
     grid-column: span 1;
   }
 }
