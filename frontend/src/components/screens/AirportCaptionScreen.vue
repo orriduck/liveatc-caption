@@ -152,16 +152,16 @@
               <strong><NumberFlow :value="aircraft.length" /></strong>
             </div>
             <div>
-              <span>Arrivals</span>
-              <strong class="text-sky-300"><NumberFlow :value="trafficCounts.arrival" /></strong>
+              <span>Ascending</span>
+              <strong style="color:#fb923c"><NumberFlow :value="trafficCounts.ascending" /></strong>
             </div>
             <div>
-              <span>Departures</span>
-              <strong class="text-orange-300"><NumberFlow :value="trafficCounts.departure" /></strong>
+              <span>Descending</span>
+              <strong style="color:#2dd4bf"><NumberFlow :value="trafficCounts.descending" /></strong>
             </div>
             <div>
-              <span>Unknown</span>
-              <strong class="text-slate-200"><NumberFlow :value="trafficCounts.unknown" /></strong>
+              <span>Level</span>
+              <strong style="color:#94a3b8"><NumberFlow :value="trafficCounts.level" /></strong>
             </div>
           </div>
         </section>
@@ -315,13 +315,18 @@ const coordinatesLabel = computed(() => {
   return `${lat} / ${lon}`
 })
 
+const BARO_RATE_THRESHOLD_FPM = 200
+const SLOW_KT = 30
+
 const trafficCounts = computed(() => aircraft.value.reduce((counts, item) => {
-  const intent = item.trafficIntent === 'arrival' || item.trafficIntent === 'departure'
-    ? item.trafficIntent
-    : 'unknown'
-  counts[intent] += 1
+  const showArrow = (item.velocity ?? 0) >= SLOW_KT
+  if (!item.onGround && showArrow && item.baroRate != null) {
+    if (item.baroRate > BARO_RATE_THRESHOLD_FPM) { counts.ascending += 1; return counts }
+    if (item.baroRate < -BARO_RATE_THRESHOLD_FPM) { counts.descending += 1; return counts }
+  }
+  counts.level += 1
   return counts
-}, { arrival: 0, departure: 0, unknown: 0 }))
+}, { ascending: 0, descending: 0, level: 0 }))
 
 const weatherSummary = computed(() => {
   if (!metar.value) return 'Weather report pending'
