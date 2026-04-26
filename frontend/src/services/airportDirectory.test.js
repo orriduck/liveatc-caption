@@ -130,3 +130,35 @@ const makeRecord = (code, overrides = {}) => ({
   assert.equal(result.airports.length, 1)
   assert.equal(result.airports[0].city, 'Boston')
 }
+
+{
+  const client = createAirportDirectoryClient({
+    fetchImpl: async () => createJsonResponse({
+      data: [
+        {
+          id: 'KSEA',
+          type: 'airports',
+          attributes: {
+            name: 'Seattle Tacoma International Airport',
+            code: 'KSEA',
+            type: 'large_airport',
+            latitude: 47.449,
+            longitude: -122.309,
+            gps_code: 'KSEA',
+            icao_code: 'KSEA',
+            iata_code: 'SEA',
+            local_code: 'SEA',
+            municipality: 'Seattle',
+          },
+        },
+      ],
+      links: [],
+    }),
+    now: () => 4_000,
+  })
+
+  const result = await client.loadAirports({ country: 'US', kind: 'large_airport', limit: 11 })
+
+  assert.equal(result.airports.length, 1)
+  assert.equal(result.airports[0].country, 'US')
+}
