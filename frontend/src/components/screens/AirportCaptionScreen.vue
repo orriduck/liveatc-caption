@@ -28,6 +28,8 @@
       <span class="mobile-compact-name">{{ airportName }}</span>
     </div>
 
+    <AmbientAudioButton />
+
     <div class="airport-content relative z-20 flex min-h-screen flex-col px-5 py-5 md:px-8 lg:px-10">
       <header class="airport-header">
         <div class="airport-hero">
@@ -201,6 +203,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import NumberFlow from '@number-flow/vue'
+import AmbientAudioButton from '../ui/AmbientAudioButton.vue'
 import AirportMap from '../map/AirportMap.vue'
 import { useAircraftPositions } from '../../composables/useAircraftPositions.js'
 import { useAirportWiki } from '../../composables/useAirportWiki.js'
