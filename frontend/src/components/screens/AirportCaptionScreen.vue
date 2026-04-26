@@ -2,7 +2,11 @@
   <div
     ref="screenRef"
     class="airport-screen relative min-h-screen bg-atc-bg font-sans text-atc-text"
-    :style="{ '--mobile-map-dim': mobileMapDim }"
+    :style="{
+      '--mobile-map-dim': mobileMapDim,
+      '--mobile-title-opacity': mobileTitleOpacity,
+      '--mobile-top-mask-opacity': mobileTopMaskOpacity,
+    }"
   >
     <div class="airport-map-layer absolute inset-0 z-0">
       <AirportMap
@@ -16,6 +20,7 @@
 
     <div class="airport-map-warmth absolute inset-0 z-10 bg-[radial-gradient(circle_at_18%_14%,rgba(255,90,31,0.14),transparent_28%)]" />
     <div class="mobile-map-dim" />
+    <div class="mobile-top-mask" />
 
     <div class="airport-content relative z-20 flex min-h-screen flex-col px-5 py-5 md:px-8 lg:px-10">
       <header class="airport-header">
@@ -206,6 +211,8 @@ defineEmits(['back'])
 
 const activeWeatherView = ref('parsed')
 const mobileMapDim = ref(0)
+const mobileTitleOpacity = ref(1)
+const mobileTopMaskOpacity = ref(0)
 const screenRef = ref(null)
 
 const syncMobileMapDim = () => {
@@ -213,7 +220,10 @@ const syncMobileMapDim = () => {
   if (!el) return
 
   const progress = Math.min(el.scrollTop / Math.max(window.innerHeight * 0.32, 1), 1)
+  const titleProgress = Math.min(el.scrollTop / Math.max(window.innerHeight * 0.2, 1), 1)
   mobileMapDim.value = Number((progress * 0.78).toFixed(3))
+  mobileTitleOpacity.value = Number(Math.max(1 - titleProgress, 0).toFixed(3))
+  mobileTopMaskOpacity.value = Number(Math.min(0.22 + progress * 0.78, 1).toFixed(3))
 }
 
 onMounted(() => {
@@ -345,6 +355,17 @@ const formatObsTime = (value) => {
   position: fixed;
   transition: opacity 0.08s linear;
   z-index: 11;
+}
+
+.mobile-top-mask {
+  background: linear-gradient(180deg, rgba(5, 5, 7, 0.96) 0%, rgba(5, 5, 7, 0.78) 38%, rgba(5, 5, 7, 0) 100%);
+  display: none;
+  height: 178px;
+  inset: 0 0 auto;
+  opacity: var(--mobile-top-mask-opacity);
+  pointer-events: none;
+  position: fixed;
+  z-index: 29;
 }
 
 .airport-header {
@@ -704,6 +725,10 @@ const formatObsTime = (value) => {
     display: block;
   }
 
+  .mobile-top-mask {
+    display: block;
+  }
+
   .airport-content {
     min-height: 100dvh;
     padding-bottom: 22px;
@@ -789,6 +814,9 @@ const formatObsTime = (value) => {
     grid-template-columns: auto minmax(0, 1fr);
     margin-top: 28px;
     max-width: calc(100vw - 40px);
+    opacity: var(--mobile-title-opacity);
+    transform: translateY(calc((1 - var(--mobile-title-opacity)) * -12px));
+    transition: opacity 0.08s linear, transform 0.08s linear;
   }
 
   .airport-code {
