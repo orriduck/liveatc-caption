@@ -14,7 +14,7 @@ Backend runs on `http://localhost:8000`, frontend on `http://localhost:5173`. Ct
 
 - **Backend**: FastAPI + uvicorn, managed by `uv`. Entry point: `backend/main.py`.
 - **Frontend**: Vue 3 + Vite + Tailwind + DaisyUI, managed by `pnpm` (installed via Homebrew).
-- **Airport data**: OurAirports-backed airport catalog, AviationWeather METAR proxy, and ADS-B position proxy.
+- **Airport data**: Homepage airport directory is fetched live from airportsapi.com with frontend caching; backend airport lookup still keeps the OurAirports-backed catalog plus AviationWeather METAR and ADS-B proxies.
 - **Live audio**: Streaming/transcription has been removed from this build; the caption WebSocket only returns a disabled-streaming error.
 
 ## Key paths
@@ -26,7 +26,7 @@ Backend runs on `http://localhost:8000`, frontend on `http://localhost:5173`. Ct
 | `backend/api/router/proxy.py` | METAR and nearby aircraft proxy endpoints |
 | `backend/api/router/caption.py` | Disabled live-streaming WebSocket response |
 | `frontend/src/views/HomeView.vue` | Search-to-airport route flow |
-| `frontend/src/components/screens/SearchScreen.vue` | Browseable airport catalog UI |
+| `frontend/src/components/screens/SearchScreen.vue` | Live airport directory UI backed by airportsapi.com + frontend cache |
 | `frontend/src/components/screens/AirportCaptionScreen.vue` | Airport explorer map + METAR screen |
 
 ## Linting

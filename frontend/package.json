@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:airport-directory": "node src/services/airportDirectory.test.js",
     "test:aircraft-motion": "node src/utils/aircraftMotion.test.js",
     "test:aircraft-traffic-intent": "node src/utils/aircraftTrafficIntent.test.js",
     "preview": "vite preview"
