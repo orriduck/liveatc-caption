@@ -1,6 +1,6 @@
 cask "adsbao" do
-  version "0.4.7"
-  sha256 "5ed5b3483eed64bd1aadc4e0ef2d2e4dfbb21a841dbf7d8bbf1cd92f73e5a0da" # Updated automatically by CI
+  version "0.4.8"
+  sha256 "698d6bbb859bb76b2ee6dc58c68f2aa509ec1dcfe4caafd4215a35fcb070d9fd" # Updated automatically by CI
 
   url "https://github.com/orriduck/ADSBao/releases/download/v#{version}/ADSBao-#{version}-arm64.dmg"
   name "ADSBao"
