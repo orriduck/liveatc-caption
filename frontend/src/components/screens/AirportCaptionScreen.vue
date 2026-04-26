@@ -48,8 +48,33 @@
 
       <div class="dashboard-updated">Updated {{ fmtUpdated(lastUpdated) }}</div>
 
+      <div class="dashboard-tabs" role="tablist" aria-label="Dashboard panel group">
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="activeDashboardTab === 'weather'"
+          :class="{ active: activeDashboardTab === 'weather' }"
+          @click="activeDashboardTab = 'weather'"
+        >
+          Weather
+        </button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="activeDashboardTab === 'airport'"
+          :class="{ active: activeDashboardTab === 'airport' }"
+          @click="activeDashboardTab = 'airport'"
+        >
+          Airport
+        </button>
+      </div>
+
       <main class="airport-dashboard">
-        <section class="glass-panel raw-metar-panel">
+        <section
+          class="glass-panel raw-metar-panel"
+          data-dashboard-group="weather"
+          :data-active-group="activeDashboardTab === 'weather'"
+        >
           <div class="panel-heading">
             <div>
               <div class="panel-kicker">Raw METAR</div>
@@ -66,7 +91,11 @@
           <div v-if="metarError" class="panel-error">{{ metarError }}</div>
         </section>
 
-        <section class="glass-panel weather-panel">
+        <section
+          class="glass-panel weather-panel"
+          data-dashboard-group="weather"
+          :data-active-group="activeDashboardTab === 'weather'"
+        >
           <div class="panel-heading">
             <div>
               <div class="panel-kicker">Parsed weather</div>
@@ -107,7 +136,11 @@
           </dl>
         </section>
 
-        <section class="glass-panel traffic-panel">
+        <section
+          class="glass-panel traffic-panel"
+          data-dashboard-group="airport"
+          :data-active-group="activeDashboardTab === 'airport'"
+        >
           <div class="panel-heading">
             <div>
               <div class="panel-kicker">Airport traffic</div>
@@ -135,7 +168,11 @@
           </div>
         </section>
 
-        <section class="glass-panel wiki-panel">
+        <section
+          class="glass-panel wiki-panel"
+          data-dashboard-group="airport"
+          :data-active-group="activeDashboardTab === 'airport'"
+        >
           <div class="panel-heading">
             <div>
               <div class="panel-kicker">Airport wiki</div>
@@ -170,7 +207,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import NumberFlow from '@number-flow/vue'
 import AirportMap from '../map/AirportMap.vue'
 import { useAircraftPositions } from '../../composables/useAircraftPositions.js'
@@ -185,6 +222,8 @@ const props = defineProps({
 })
 
 defineEmits(['back'])
+
+const activeDashboardTab = ref('weather')
 
 const AIRPORT_FALLBACKS = {
   KLAX: { iata: 'LAX', name: 'Los Angeles Intl', city: 'Los Angeles', country: 'US' },
@@ -420,6 +459,42 @@ const formatObsTime = (value) => {
   text-transform: uppercase;
 }
 
+.dashboard-tabs {
+  display: none;
+  margin: 0 auto 10px;
+  width: min(75vw, 1280px);
+}
+
+.dashboard-tabs button {
+  background: rgba(14, 15, 18, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--atc-faint);
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  line-height: 1;
+  min-height: 34px;
+  padding: 0 14px;
+  text-transform: uppercase;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.dashboard-tabs button:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+.dashboard-tabs button:last-child {
+  border-left: 0;
+  border-radius: 0 999px 999px 0;
+}
+
+.dashboard-tabs button.active {
+  background: rgba(255, 90, 31, 0.16);
+  border-color: rgba(255, 90, 31, 0.42);
+  color: var(--atc-text);
+}
+
 .airport-dashboard {
   align-items: stretch;
   display: grid;
@@ -582,7 +657,7 @@ const formatObsTime = (value) => {
 @media (max-width: 1180px) {
   .airport-dashboard {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: min(86vw, 960px);
+    width: min(75vw, 960px);
   }
 
   .traffic-panel {
@@ -614,11 +689,25 @@ const formatObsTime = (value) => {
 
   .airport-dashboard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: 100%;
+    width: 75vw;
   }
 
-  .raw-metar-panel {
+  .dashboard-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 75vw;
+  }
+
+  .airport-dashboard > [data-dashboard-group] {
     display: none;
+  }
+
+  .airport-dashboard > [data-active-group="true"] {
+    display: block;
+  }
+
+  .glass-panel {
+    max-height: none;
   }
 
   .wiki-panel,
@@ -630,10 +719,6 @@ const formatObsTime = (value) => {
 @media (max-width: 720px) {
   .airport-dashboard {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .weather-panel {
-    display: none;
   }
 }
 
