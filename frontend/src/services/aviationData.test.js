@@ -47,5 +47,5 @@ const createJsonResponse = (payload, status = 200) => ({
 }
 
 {
-  assert.equal(DEFAULT_AIRCRAFT_POLL_MS, 15_000)
+  assert.equal(DEFAULT_AIRCRAFT_POLL_MS, 3_000)
 }

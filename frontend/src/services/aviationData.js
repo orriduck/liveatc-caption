@@ -1,6 +1,6 @@
 const env = import.meta.env ?? {}
 
-export const DEFAULT_AIRCRAFT_POLL_MS = 15_000
+export const DEFAULT_AIRCRAFT_POLL_MS = 3_000
 export const DEFAULT_AIRCRAFT_DIST_NM = 20
 
 const DEFAULT_METAR_BASE = '/api/proxy/metar'
