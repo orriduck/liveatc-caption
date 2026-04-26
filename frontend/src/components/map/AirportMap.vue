@@ -60,16 +60,17 @@ const lonStr = ref('')
 
 // Dead-reckoning: animate aircraft that exceed this speed (knots)
 const ANIMATE_THRESHOLD_KT = 30
-const TRAFFIC_INTENT_COLORS = {
-  arrival: '#38bdf8',
-  departure: '#fb923c',
-  unknown: '#cbd5e1',
-  ground: '#34d399',
+const BARO_RATE_THRESHOLD_FPM = 200
+const AIRCRAFT_COLORS = {
+  ascending:  '#fb923c',
+  descending: '#2dd4bf',
+  level:      '#94a3b8',
+  ground:     '#34d399',
 }
 const trafficLegend = [
-  { id: 'arrival', label: 'ARR', color: TRAFFIC_INTENT_COLORS.arrival },
-  { id: 'departure', label: 'DEP', color: TRAFFIC_INTENT_COLORS.departure },
-  { id: 'unknown', label: 'UNK', color: TRAFFIC_INTENT_COLORS.unknown },
+  { id: 'ascending',  label: 'ASC',   color: AIRCRAFT_COLORS.ascending },
+  { id: 'level',      label: 'LEVEL', color: AIRCRAFT_COLORS.level },
+  { id: 'descending', label: 'DESC',  color: AIRCRAFT_COLORS.descending },
 ]
 
 // RAF loop — updates visual aircraft positions on a delayed, latency-aware clock
@@ -232,11 +233,12 @@ const makeAcIcon = (color, label, rot = 0, showArrow = true, hasTelemetry = fals
   })
 }
 
-const getTrafficIntentColor = (ac, showArrow) => {
-  if (ac.onGround) return TRAFFIC_INTENT_COLORS.ground
-  if (ac.trafficIntent === 'arrival') return TRAFFIC_INTENT_COLORS.arrival
-  if (ac.trafficIntent === 'departure') return TRAFFIC_INTENT_COLORS.departure
-  return showArrow ? TRAFFIC_INTENT_COLORS.unknown : '#ffb347'
+const getAircraftColor = (ac, showArrow) => {
+  if (ac.onGround) return AIRCRAFT_COLORS.ground
+  if (!showArrow || ac.baroRate == null) return AIRCRAFT_COLORS.level
+  if (ac.baroRate > BARO_RATE_THRESHOLD_FPM) return AIRCRAFT_COLORS.ascending
+  if (ac.baroRate < -BARO_RATE_THRESHOLD_FPM) return AIRCRAFT_COLORS.descending
+  return AIRCRAFT_COLORS.level
 }
 
 const updateAircraft = () => {
@@ -250,7 +252,7 @@ const updateAircraft = () => {
     const vel        = ac.velocity ?? 0
     const showArrow  = vel >= ANIMATE_THRESHOLD_KT
     const isAnimated = !ac.onGround && showArrow
-    const color = getTrafficIntentColor(ac, showArrow)
+    const color = getAircraftColor(ac, showArrow)
     const label = (ac.callsign || ac.icao24 || '').trim()
     const rot   = Math.round(ac.track || 0)
     const hasTelemetry = !ac.onGround && showArrow && formatTelemetryValue(ac.velocity) != null && formatTelemetryValue(ac.altitude) != null
@@ -268,7 +270,7 @@ const updateAircraft = () => {
         isAnimated,
       })
       // Refresh icon only when appearance changes
-      if (color !== entry.color || label !== entry.label || rot !== entry.rot || showArrow !== entry.showArrow || hasTelemetry !== entry.hasTelemetry || ac.trafficIntent !== entry.trafficIntent) {
+      if (color !== entry.color || label !== entry.label || rot !== entry.rot || showArrow !== entry.showArrow || hasTelemetry !== entry.hasTelemetry) {
         unmountAircraftTelemetry(entry.marker)
         entry.marker.setIcon(makeAcIcon(color, label, rot, showArrow, hasTelemetry))
         entry.color = color
@@ -276,7 +278,6 @@ const updateAircraft = () => {
         entry.rot = rot
         entry.showArrow = showArrow
         entry.hasTelemetry = hasTelemetry
-        entry.trafficIntent = ac.trafficIntent
       }
       if (hasTelemetry) queueAircraftTelemetrySync(entry.marker, ac)
     } else {
@@ -284,7 +285,7 @@ const updateAircraft = () => {
       const visualPosition = calculateAircraftVisualPosition(motionState, now)
       const m = L.marker([visualPosition.lat, visualPosition.lon], { icon: makeAcIcon(color, label, rot, showArrow, hasTelemetry) }).addTo(map)
       acMarkersMap.set(ac.icao24, {
-        marker: m, color, label, rot, showArrow, hasTelemetry, trafficIntent: ac.trafficIntent,
+        marker: m, color, label, rot, showArrow, hasTelemetry,
         ...motionState,
         velocity: vel, track: ac.track ?? 0,
         isAnimated,

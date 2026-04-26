@@ -37,6 +37,7 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
           lat:      a.lat,
           lon:      a.lon,
           altitude: a.alt_baro ?? a.alt_geom ?? null,
+          baroRate: a.baro_rate ?? null,
           onGround: a.gnd ?? false,
           velocity: a.gs ?? null,
           track:    a.track ?? 0,
