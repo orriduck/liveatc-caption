@@ -531,21 +531,21 @@ const formatObsTime = (value) => {
 }
 
 .glass-panel {
-  background: linear-gradient(145deg, rgba(32, 34, 39, 0.78), rgba(16, 17, 21, 0.66));
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(145deg, rgba(38, 40, 46, 0.44), rgba(14, 16, 20, 0.34));
+  border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: 24px;
-  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 24px 64px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.14);
   max-height: 250px;
   min-width: 0;
   overflow: hidden;
   padding: 16px;
   position: relative;
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
 }
 
 .glass-panel::before {
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), transparent 44%);
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 45%, transparent 70%);
   content: '';
   inset: 0;
   pointer-events: none;
