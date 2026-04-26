@@ -9,7 +9,7 @@
       <div class="max-w-3xl relative z-10">
         <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-atc-line bg-atc-card font-mono text-[11px] tracking-[0.5px] text-atc-dim mb-7">
           <span class="w-1.5 h-1.5 rounded-full bg-atc-mint flex-shrink-0 animate-pulse-dot" style="box-shadow:0 0 8px #34d399" />
-          LIVE DIRECTORY · {{ catalogLabel }}
+          US AIRPORT DIRECTORY · {{ catalogLabel }}
         </div>
 
         <h1 class="font-sans text-[clamp(54px,9vw,88px)] leading-[0.95] font-bold text-atc-text m-0" style="letter-spacing:-3.2px">
@@ -17,8 +17,8 @@
           <span class="font-display italic font-normal text-atc-orange" style="letter-spacing:-2px">traffic</span> fast.
         </h1>
         <p class="mt-6 text-lg leading-relaxed text-atc-dim max-w-xl font-normal">
-          Search airportsapi.com by ICAO, IATA, city, or airport name.
-          Results are fetched live, then cached in the browser for faster follow-up lookups.
+          Search U.S. airports on airportsapi.com by ICAO, IATA, city, or airport name.
+          The homepage is now filtered to United States airports only and cached in the browser for faster follow-up lookups.
         </p>
 
         <div
@@ -34,7 +34,7 @@
             @focus="focused = true"
             @blur="focused = false"
             @keydown.enter="doSearch"
-            placeholder="KJFK, Heathrow, Boston, LHR…"
+            placeholder="KJFK, KLAX, Boston, JFK…"
             class="flex-1 bg-transparent border-none outline-none text-atc-text text-[17px] font-medium placeholder:text-atc-faint font-sans"
           />
           <button v-if="searchLoading" class="font-mono text-[11px] text-atc-dim tracking-widest">…</button>
@@ -50,18 +50,6 @@
             :class="kind === option.id
               ? 'bg-atc-text text-atc-bg border-atc-text'
               : 'bg-transparent border-atc-line text-atc-dim hover:border-atc-line-strong'"
-          >{{ option.label }}</button>
-        </div>
-
-        <div class="mt-4 flex flex-wrap gap-2">
-          <button
-            v-for="option in countryOptions"
-            :key="option.id"
-            @click="country = option.id"
-            class="px-3.5 py-2 rounded-xl border font-mono text-[11px] uppercase tracking-[1px] cursor-pointer transition-all"
-            :class="country === option.id
-              ? 'bg-atc-orange text-atc-bg border-atc-orange'
-              : 'bg-atc-card border-atc-line text-atc-dim hover:border-atc-line-strong'"
           >{{ option.label }}</button>
         </div>
       </div>
@@ -123,7 +111,7 @@
       <div class="flex gap-6 text-[13px] text-atc-dim">
         <span class="cursor-pointer hover:text-atc-text transition-colors">About</span>
         <span class="cursor-pointer hover:text-atc-text transition-colors">airportsapi.com</span>
-        <span class="cursor-pointer hover:text-atc-text transition-colors">Live airport directory</span>
+        <span class="cursor-pointer hover:text-atc-text transition-colors">US airport directory</span>
       </div>
     </footer>
   </div>
@@ -135,34 +123,23 @@ import TopBar from '../ui/TopBar.vue'
 import Wordmark from '../ui/Wordmark.vue'
 import AirportCard from '../ui/AirportCard.vue'
 import { airportDirectoryClient } from '../../services/airportDirectory.js'
+import {
+  HOME_AIRPORT_COUNTRY,
+  HOME_AIRPORT_KIND_OPTIONS,
+  buildHomeAirportBrowseTitle,
+} from '../../config/homeAirportDirectory.js'
 
 const emit = defineEmits(['open-airport'])
 
 const q = ref('')
 const kind = ref('all')
-const country = ref('')
 const focused = ref(false)
 const results = ref([])
 const searchLoading = ref(false)
 const searchError = ref(null)
 const cacheState = ref('cold')
 
-const kindOptions = [
-  { id: 'all', label: 'All airports' },
-  { id: 'large_airport', label: 'Large' },
-  { id: 'medium_airport', label: 'Medium' },
-  { id: 'small_airport', label: 'Small' },
-  { id: 'heliport', label: 'Heliports' },
-]
-
-const countryOptions = [
-  { id: '', label: 'World' },
-  { id: 'US', label: 'US' },
-  { id: 'CA', label: 'CA' },
-  { id: 'GB', label: 'GB' },
-  { id: 'JP', label: 'JP' },
-  { id: 'AU', label: 'AU' },
-]
+const kindOptions = HOME_AIRPORT_KIND_OPTIONS
 
 let searchTimer = null
 let activeRequestId = 0
@@ -183,11 +160,7 @@ const cacheStatusLabel = computed(() => (
   cacheState.value === 'hit' ? 'frontend cache hit' : 'frontend cache warming'
 ))
 
-const browseTitle = computed(() => {
-  const selectedKind = kindOptions.find((option) => option.id === kind.value)?.label || 'All airports'
-  const selectedCountry = countryOptions.find((option) => option.id === country.value)?.label || country.value
-  return country.value ? `${selectedKind} · ${selectedCountry}` : selectedKind
-})
+const browseTitle = computed(() => buildHomeAirportBrowseTitle(kind.value))
 
 const loadAirports = async (query = '') => {
   const requestId = ++activeRequestId
@@ -197,7 +170,7 @@ const loadAirports = async (query = '') => {
     const payload = await airportDirectoryClient.loadAirports({
       query,
       kind: kind.value,
-      country: country.value,
+      country: HOME_AIRPORT_COUNTRY,
       limit: 60,
     })
     if (requestId !== activeRequestId) {
@@ -259,7 +232,7 @@ watch(q, (value) => {
   }, value.trim() ? 250 : 0)
 })
 
-watch([kind, country], () => {
+watch(kind, () => {
   loadAirports(q.value)
 })
 
