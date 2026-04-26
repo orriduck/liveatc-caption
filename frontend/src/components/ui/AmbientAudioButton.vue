@@ -1,4 +1,5 @@
 <template>
+  <div ref="playerEl" class="yt-sink" />
   <button
     class="ambient-audio-btn"
     :class="{ playing, loading: !ready }"
@@ -7,8 +8,6 @@
     aria-label="Ambient audio"
     @click="toggle"
   >
-    <div ref="playerEl" class="yt-sink" />
-
     <svg v-if="playing" class="icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <rect x="5" y="4" width="3.5" height="12" rx="1.5" fill="currentColor" />
       <rect x="11.5" y="4" width="3.5" height="12" rx="1.5" fill="currentColor" />
@@ -46,8 +45,8 @@ const loadApi = () => new Promise((resolve) => {
 onMounted(async () => {
   await loadApi()
   player = new window.YT.Player(playerEl.value, {
-    height: 0,
-    width: 0,
+    height: 1,
+    width: 1,
     videoId: VIDEO_ID,
     playerVars: {
       autoplay: 0,
@@ -82,6 +81,17 @@ const toggle = () => {
 </script>
 
 <style scoped>
+.yt-sink {
+  clip-path: inset(100%);
+  height: 1px;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  width: 1px;
+}
+
 .ambient-audio-btn {
   align-items: center;
   background: linear-gradient(145deg, rgba(32, 34, 39, 0.88), rgba(16, 17, 21, 0.78));
@@ -133,13 +143,5 @@ const toggle = () => {
   letter-spacing: 1.2px;
   line-height: 1;
   text-transform: uppercase;
-}
-
-.yt-sink {
-  height: 0;
-  overflow: hidden;
-  pointer-events: none;
-  position: absolute;
-  width: 0;
 }
 </style>
