@@ -212,7 +212,7 @@ const syncMobileMapDim = () => {
   const el = screenRef.value
   if (!el) return
 
-  const progress = Math.min(el.scrollTop / Math.max(window.innerHeight * 0.38, 1), 1)
+  const progress = Math.min(el.scrollTop / Math.max(window.innerHeight * 0.32, 1), 1)
   mobileMapDim.value = Number((progress * 0.78).toFixed(3))
 }
 
@@ -762,14 +762,33 @@ const formatObsTime = (value) => {
 }
 
 @media (max-width: 620px) {
+  .airport-content {
+    display: block;
+    padding: 0 0 22px;
+  }
+
   .airport-header {
-    min-height: auto;
+    display: block;
+    left: 20px;
+    min-height: 0;
+    position: fixed;
+    right: 20px;
+    top: 18px;
+    z-index: 30;
+  }
+
+  .airport-breadcrumb {
+    font-size: 10px;
+    gap: 8px;
+    max-width: calc(100vw - 40px);
   }
 
   .airport-title-row {
-    align-items: start;
-    grid-template-columns: 1fr;
+    align-items: center;
+    gap: 10px;
+    grid-template-columns: auto minmax(0, 1fr);
     margin-top: 28px;
+    max-width: calc(100vw - 40px);
   }
 
   .airport-code {
@@ -783,12 +802,22 @@ const formatObsTime = (value) => {
 
   .airport-title-stack::before {
     top: -12px;
-    width: 180px;
+    width: min(210px, 52vw);
+  }
+
+  .airport-coordinates {
+    display: none;
+  }
+
+  .dashboard-updated {
+    display: none;
   }
 
   .airport-dashboard {
     grid-template-columns: 1fr;
+    margin-top: calc(100dvh - 178px);
     padding-bottom: 18px;
+    width: min(92vw, 430px);
   }
 
   .wiki-panel {
@@ -796,8 +825,12 @@ const formatObsTime = (value) => {
   }
 
   .glass-panel {
-    border-radius: 18px;
+    border-radius: 24px;
     padding: 16px;
+  }
+
+  .weather-instrument-panel {
+    min-height: 292px;
   }
 
   .wiki-copy {
