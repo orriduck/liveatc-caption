@@ -425,7 +425,9 @@ const formatObsTime = (value) => {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-inline: auto;
   padding-bottom: 16px;
+  width: min(75vw, 1280px);
 }
 
 .glass-panel {
@@ -580,6 +582,7 @@ const formatObsTime = (value) => {
 @media (max-width: 1180px) {
   .airport-dashboard {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: min(86vw, 960px);
   }
 
   .traffic-panel {
@@ -611,6 +614,7 @@ const formatObsTime = (value) => {
 
   .airport-dashboard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
   }
 
   .raw-metar-panel {
