@@ -32,7 +32,7 @@ export function useMetar(icaoRef) {
         altim:    m.altim   ? `${m.altim} inHg`       : '—',
         ceiling:  formatCeiling(m),
         wxString: m.wxString || '',
-        flightCategory: m.flightCategory || '',
+        flightCategory: m.flightCategory || m.fltCat || '',
         obsTime: m.obsTime || '',
         // Raw numbers for animated display
         rawTemp:  m.temp  ?? null,
@@ -64,10 +64,10 @@ function formatWind(m) {
   return m.wgst ? `${dir} / ${spd} G${m.wgst}kt` : `${dir} / ${spd}`
 }
 
-function formatCeiling(m) {
+export function formatCeiling(m) {
   const layers = m.clouds || []
   const ceiling = layers.find(l => ['BKN','OVC','VV'].includes(l.cover))
   if (!ceiling) return 'CLR'
-  const ft = ceiling.base != null ? `${(ceiling.base * 100).toLocaleString()} ft` : '?'
+  const ft = ceiling.base != null ? `${Number(ceiling.base).toLocaleString()} ft` : '?'
   return `${ceiling.cover} ${ft}`
 }

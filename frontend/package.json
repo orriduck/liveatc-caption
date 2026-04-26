@@ -8,6 +8,8 @@
     "build": "vite build",
     "test:home-airport-directory": "node src/config/homeAirportDirectory.test.js",
     "test:airport-directory": "node src/services/airportDirectory.test.js",
+    "test:airport-wiki": "node src/services/airportWiki.test.js",
+    "test:metar": "node src/composables/useMetar.test.js",
     "test:aircraft-motion": "node src/utils/aircraftMotion.test.js",
     "test:aircraft-traffic-intent": "node src/utils/aircraftTrafficIntent.test.js",
     "preview": "vite preview"
