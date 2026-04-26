@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "npx --yes pnpm@10.33.0 --dir frontend install --frozen-lockfile && npx --yes pnpm@10.33.0 --dir frontend build && rm -rf dist && cp -R frontend/dist dist"
+  }
+}

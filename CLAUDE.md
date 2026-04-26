@@ -2,45 +2,46 @@
 
 ## Dev environment
 
-Start backend + frontend together:
+Start the frontend:
 
 ```bash
 make dev
 ```
 
-Backend runs on `http://localhost:8000`, frontend on `http://localhost:5173`. Ctrl-C stops both.
+Frontend runs on `http://localhost:5173`.
 
 ## Stack
 
-- **Backend**: FastAPI + uvicorn, managed by `uv`. Entry point: `backend/main.py`.
 - **Frontend**: Vue 3 + Vite + Tailwind + DaisyUI, managed by `pnpm` (installed via Homebrew).
-- **Airport data**: Homepage airport directory is fetched live from airportsapi.com with frontend caching; backend airport lookup still keeps the OurAirports-backed catalog plus AviationWeather METAR and ADS-B proxies.
-- **Live audio**: Streaming/transcription has been removed from this build; the caption WebSocket only returns a disabled-streaming error.
+- **Airport data**: Airport directory and route lookup are fetched live from airportsapi.com with frontend caching.
+- **Weather/traffic data**: Web deployment uses minimal Vercel external rewrites under `api/proxy/*` because AviationWeather and adsb.lol do not expose browser CORS headers. Local Vite dev uses equivalent proxy rules.
+- **Removed scope**: Live audio/transcription and Python backend code are no longer part of this repository.
 
 ## Key paths
 
 | Path | What |
 |---|---|
-| `backend/api/router/airport_catalog.py` | OurAirports CSV catalog loading, TTL cache, search ranking |
-| `backend/api/router/search.py` | Airport search/lookup API and preview channel metadata |
-| `backend/api/router/proxy.py` | METAR and nearby aircraft proxy endpoints |
-| `backend/api/router/caption.py` | Disabled live-streaming WebSocket response |
+| `vercel.json` | Vercel Git integration build/output config and external rewrites |
+| `frontend/vercel.json` | Equivalent frontend-directory Vercel config for manual deploys from `frontend/` |
+| `frontend/vite.config.js` | Local dev proxy rules matching the Vercel data paths |
 | `frontend/src/views/HomeView.vue` | Search-to-airport route flow |
 | `frontend/src/components/screens/SearchScreen.vue` | Live airport directory UI backed by airportsapi.com + frontend cache |
 | `frontend/src/components/screens/AirportCaptionScreen.vue` | Airport explorer map + METAR screen |
+| `frontend/src/services/aviationData.js` | Frontend-owned METAR and ADS-B data access clients |
+| `docs/frontend-vercel-migration.md` | Endpoint inventory, CORS findings, and Vercel deployment notes |
 
-## Linting
+## Build
 
 ```bash
-cd backend && uvx ruff check . && uvx ruff format --check .
+pnpm --dir frontend build
 ```
 
 ## Tests
 
 ```bash
-cd backend && .venv/bin/python -m pytest tests/ -v
+pnpm --dir frontend test:home-airport-directory && pnpm --dir frontend test:airport-directory && pnpm --dir frontend test:aviation-data && pnpm --dir frontend test:airport-wiki && pnpm --dir frontend test:metar && pnpm --dir frontend test:aircraft-motion && pnpm --dir frontend test:aircraft-traffic-intent
 ```
 
 ## Runtime config
 
-Runtime config is backend-only. There is no frontend settings page or `/api/config` flow.
+There is no Python backend runtime config, frontend settings page, or `/api/config` flow.

@@ -330,6 +330,22 @@ export const createAirportDirectoryClient = ({
       }
       return loadBrowseAirports({ country, kind, limit })
     },
+    async resolveAirport(code) {
+      const trimmed = String(code || '').trim().toUpperCase()
+      if (!trimmed) {
+        throw new Error('Airport code is required')
+      }
+
+      const exactPayload = await fetchJson(`${API_BASE_URL}/airports/${trimmed}`, { allow404: true })
+      if (exactPayload?.data) {
+        return normalizeAirport(exactPayload.data)
+      }
+
+      const result = await searchAirports({ query: trimmed, limit: 1 })
+      if (result.airports[0]) return result.airports[0]
+
+      throw new Error('Airport not found')
+    },
   }
 }
 

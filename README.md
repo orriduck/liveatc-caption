@@ -5,11 +5,12 @@ A modern airport-monitoring HUD with dynamic airport search, METAR context, and 
 ![Live App Screenshot](screenshot.png)
 
 ## Overview
-ADSBao provides a search-first airport operations view with weather context and aircraft position overlays. Airport search is backed by the public OurAirports catalog.
+ADSBao provides a search-first airport operations view with weather context and aircraft position overlays. Airport search is backed by public airport directory data.
 
 ## Tech Stack
-- **Backend**: FastAPI (Python), `uv`, OurAirports catalog data, AviationWeather METAR, and ADS-B position proxying.
 - **Frontend**: Vue 3 (Vite), Tailwind CSS, DaisyUI, Lucide Icons.
+- **Data access**: Browser-managed airport directory requests to airportsapi.com, with conservative client caching.
+- **Minimal proxy**: Vercel external rewrites for AviationWeather METAR and adsb.lol aircraft positions, because those upstream responses do not currently expose browser CORS headers.
 - **Typography**: Google Sans Flex & Google Sans Code.
 
 ## Installation (macOS)
@@ -41,20 +42,9 @@ Download the latest `.dmg` or `.app.zip` from the [Releases](https://github.com/
 ## Getting Started
 
 ### Prerequisites
-- Python 3.12+
 - Node.js 18+ & [pnpm](https://pnpm.io/installation)
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) (Python package manager)
 
-### 1. Backend Setup
-```bash
-cd backend
-uv sync
-uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-The backend runs on `http://localhost:8000`.
-
-### 2. Frontend Setup
+### Frontend Setup
 ```bash
 cd frontend
 pnpm install
@@ -65,6 +55,16 @@ The dev server starts on `http://localhost:5173`.
 
 Open [http://localhost:5173](http://localhost:5173) to start exploring.
 
+### Vercel Web Deployment
+The repo includes `vercel.json` for Git-triggered Vercel builds, plus `frontend/vercel.json` for manual deploys from `frontend/`. Both serve minimal same-origin external rewrites for browser-blocked upstream data.
+
+```bash
+cd frontend
+vercel
+```
+
+The deployment path intentionally keeps upstream data visible: airport search goes to airportsapi.com from the browser, while `/api/proxy/metar/:icao` and `/api/proxy/aircraft/positions/:lat/:lon/:dist` exist only for sources blocked by browser CORS.
+
 ---
 
 ## Contributing
@@ -72,7 +72,6 @@ Open [http://localhost:5173](http://localhost:5173) to start exploring.
 We welcome contributions! Here's how to set up the full development environment:
 
 ### Prerequisites
-- Python 3.12+ with [uv](https://docs.astral.sh/uv/getting-started/installation/)
 - Node.js 18+ with [pnpm](https://pnpm.io/installation)
 - Git
 
@@ -84,18 +83,7 @@ git clone https://github.com/orriduck/ADSBao.git
 cd ADSBao
 ```
 
-**2. Start the backend** (from the repo root)
-```bash
-cd backend
-uv sync                          # install Python dependencies
-uv run uvicorn main:app \
-  --host 0.0.0.0 \
-  --port 8000 \
-  --reload                       # hot-reload on file changes
-```
-Backend available at `http://localhost:8000`. API docs at `http://localhost:8000/docs`.
-
-**3. Start the frontend** (in a separate terminal)
+**2. Start the frontend**
 ```bash
 cd frontend
 pnpm install                     # install Node dependencies
@@ -106,14 +94,16 @@ Frontend available at `http://localhost:5173`.
 ### Project structure
 ```
 ADSBao/
-├── backend/          # FastAPI app (Python)
-│   ├── api/          # Route handlers
-│   ├── models/       # Pydantic models
-│   ├── tests/        # Backend tests
-│   └── main.py       # App entry point
-└── frontend/         # Vue 3 app (Vite)
-    └── src/
-        ├── components/
-        ├── views/
-        └── router/
+├── frontend/         # Vue 3 app (Vite)
+│   ├── src/
+│   │   ├── components/
+│   │   ├── views/
+│   │   └── router/
+│   └── vercel.json   # Manual frontend-directory Vercel deployment config
+├── packaging/        # Optional Electron shell packaging
+├── package.json      # Root Vercel/Git build shim
+└── vercel.json       # Git-triggered Vercel deployment config
 ```
+
+## External Data Use
+ADSBao uses public aviation data sources and avoids intentionally high-volume polling. The aircraft overlay polls every 15 seconds by default, and airport directory results are cached in the browser for six hours. See `docs/frontend-vercel-migration.md` for endpoint decisions and CORS findings.

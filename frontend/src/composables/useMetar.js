@@ -1,7 +1,5 @@
 import { ref, watch } from 'vue'
-
-// Proxied through backend — aviationweather.gov blocks browser User-Agent/CORS
-const BASE = '/api/proxy/metar'
+import { metarClient } from '../services/aviationData.js'
 
 export function useMetar(icaoRef) {
   const raw    = ref('')
@@ -14,9 +12,7 @@ export function useMetar(icaoRef) {
     loading.value = true
     error.value = null
     try {
-      const res = await fetch(`${BASE}/${icao.toUpperCase()}`)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const json = await res.json()
+      const json = await metarClient.fetchMetar(icao)
 
       // API returns an array; take first result
       const m = Array.isArray(json) ? json[0] : json

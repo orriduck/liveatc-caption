@@ -162,3 +162,26 @@ const makeRecord = (code, overrides = {}) => ({
   assert.equal(result.airports.length, 1)
   assert.equal(result.airports[0].country, 'US')
 }
+
+{
+  const client = createAirportDirectoryClient({
+    fetchImpl: async (url) => {
+      if (url.includes('/api/airports/KBOS')) {
+        return createJsonResponse({
+          data: makeRecord('KBOS', {
+            name: 'Boston Logan International Airport',
+            municipality: 'Boston',
+          }),
+        })
+      }
+      throw new Error(`Unexpected URL: ${url}`)
+    },
+    now: () => 5_000,
+  })
+
+  const airport = await client.resolveAirport('kbos')
+
+  assert.equal(airport.icao, 'KBOS')
+  assert.equal(airport.name, 'Boston Logan International Airport')
+  assert.equal(airport.city, 'Boston')
+}
