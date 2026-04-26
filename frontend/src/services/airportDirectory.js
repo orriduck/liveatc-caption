@@ -24,7 +24,7 @@ const toFiniteNumber = (value) => {
   return Number.isFinite(number) ? number : null
 }
 
-const normalizeAirport = (record) => {
+const normalizeAirport = (record, fallbackCountry = '') => {
   const attrs = record?.attributes || record || {}
   const code = attrs.icao_code || attrs.gps_code || attrs.code || attrs.local_code || ''
   const type = attrs.type || ''
@@ -34,7 +34,7 @@ const normalizeAirport = (record) => {
     iata: attrs.iata_code || attrs.local_code || '',
     name: attrs.name || code,
     city: attrs.municipality || '',
-    country: attrs.country_code || attrs.iso_country || '',
+    country: attrs.country_code || attrs.iso_country || fallbackCountry,
     lat: toFiniteNumber(attrs.latitude),
     lon: toFiniteNumber(attrs.longitude),
     type,
@@ -204,7 +204,7 @@ export const createAirportDirectoryClient = ({
       }))
       airports.push(
         ...(payload?.data || [])
-          .map(normalizeAirport)
+          .map((record) => normalizeAirport(record, country))
           .filter((airport) => airport.icao || airport.code || airport.name),
       )
 
