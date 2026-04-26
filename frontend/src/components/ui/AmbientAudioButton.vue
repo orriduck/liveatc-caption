@@ -1,22 +1,20 @@
 <template>
   <div ref="playerEl" class="yt-sink" />
   <button
-    class="ambient-audio-btn"
+    class="ambient-btn"
     :class="{ playing, loading: !ready }"
-    :title="playing ? 'Pause ambient audio' : 'Play ambient audio'"
     :aria-pressed="playing"
-    aria-label="Ambient audio"
+    :title="playing ? 'Pause Focus mode' : 'Start Focus mode'"
     @click="toggle"
   >
-    <svg v-if="playing" class="icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect x="5" y="4" width="3.5" height="12" rx="1.5" fill="currentColor" />
-      <rect x="11.5" y="4" width="3.5" height="12" rx="1.5" fill="currentColor" />
+    <svg class="wave" viewBox="0 0 22 12" fill="currentColor" aria-hidden="true">
+      <rect class="bar" x="0"     y="0" width="3" height="12" rx="1.5" />
+      <rect class="bar" x="4.75"  y="0" width="3" height="12" rx="1.5" />
+      <rect class="bar" x="9.5"   y="0" width="3" height="12" rx="1.5" />
+      <rect class="bar" x="14.25" y="0" width="3" height="12" rx="1.5" />
+      <rect class="bar" x="19"    y="0" width="3" height="12" rx="1.5" />
     </svg>
-    <svg v-else class="icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M6 4.5L15.5 10L6 15.5V4.5Z" fill="currentColor" />
-    </svg>
-
-    <span class="audio-label">{{ playing ? 'Live' : 'ATC' }}</span>
+    <span class="label">Focus mode</span>
   </button>
 </template>
 
@@ -28,7 +26,6 @@ const VIDEO_ID = 'JDQiaRYmTGk'
 const playerEl = ref(null)
 const playing = ref(false)
 const ready = ref(false)
-
 let player = null
 
 const loadApi = () => new Promise((resolve) => {
@@ -48,35 +45,21 @@ onMounted(async () => {
     height: 1,
     width: 1,
     videoId: VIDEO_ID,
-    playerVars: {
-      autoplay: 0,
-      loop: 1,
-      playlist: VIDEO_ID,
-      controls: 0,
-      playsinline: 1,
-      rel: 0,
-    },
+    playerVars: { autoplay: 0, loop: 1, playlist: VIDEO_ID, controls: 0, playsinline: 1, rel: 0 },
     events: {
       onReady() { ready.value = true },
-      onStateChange(e) {
-        playing.value = e.data === window.YT.PlayerState.PLAYING
-      },
+      onStateChange(e) { playing.value = e.data === window.YT.PlayerState.PLAYING },
     },
   })
 })
 
-onBeforeUnmount(() => {
-  player?.destroy()
-  player = null
-})
+onBeforeUnmount(() => { player?.destroy(); player = null })
 
 const toggle = () => {
   if (!player || !ready.value) return
-  if (player.getPlayerState() === window.YT.PlayerState.PLAYING) {
-    player.pauseVideo()
-  } else {
-    player.playVideo()
-  }
+  player.getPlayerState() === window.YT.PlayerState.PLAYING
+    ? player.pauseVideo()
+    : player.playVideo()
 }
 </script>
 
@@ -92,56 +75,87 @@ const toggle = () => {
   width: 1px;
 }
 
-.ambient-audio-btn {
+.ambient-btn {
   align-items: center;
-  background: linear-gradient(145deg, rgba(32, 34, 39, 0.88), rgba(16, 17, 21, 0.78));
-  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: linear-gradient(145deg, rgba(28, 30, 35, 0.82), rgba(14, 15, 19, 0.72));
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  color: rgba(245, 245, 247, 0.55);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  color: rgba(245, 245, 247, 0.38);
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 10px;
+  gap: 7px;
+  padding: 14px 11px;
   position: fixed;
-  right: 20px;
+  right: 18px;
   top: 50%;
   transform: translateY(-50%);
-  transition: color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
   z-index: 50;
 }
 
-.ambient-audio-btn:hover {
-  border-color: rgba(255, 90, 31, 0.45);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 90, 31, 0.2);
-  color: rgba(245, 245, 247, 0.9);
+.ambient-btn:hover {
+  border-color: rgba(255, 90, 31, 0.35);
+  color: rgba(245, 245, 247, 0.72);
 }
 
-.ambient-audio-btn.playing {
-  border-color: rgba(255, 90, 31, 0.6);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 90, 31, 0.28), 0 0 18px rgba(255, 90, 31, 0.18);
-  color: var(--atc-orange, #ff5a1f);
+.ambient-btn.playing {
+  border-color: rgba(255, 90, 31, 0.55);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 14px rgba(255, 90, 31, 0.16);
+  color: #ff5a1f;
 }
 
-.ambient-audio-btn.loading {
-  opacity: 0.5;
+.ambient-btn.loading {
+  opacity: 0.4;
   pointer-events: none;
 }
 
-.icon {
-  flex-shrink: 0;
-  height: 18px;
-  width: 18px;
+/* ── Wave icon ─────────────────────────────── */
+.wave {
+  height: 12px;
+  width: 22px;
 }
 
-.audio-label {
+.bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 0.3s ease;
+}
+
+/* Static shape: low-high-low wave */
+.bar:nth-child(1) { transform: scaleY(0.30); }
+.bar:nth-child(2) { transform: scaleY(0.65); }
+.bar:nth-child(3) { transform: scaleY(1.00); }
+.bar:nth-child(4) { transform: scaleY(0.65); }
+.bar:nth-child(5) { transform: scaleY(0.30); }
+
+/* Flowing animation when playing */
+@keyframes wave-flow {
+  0%, 100% { transform: scaleY(0.22); }
+  50%       { transform: scaleY(1.00); }
+}
+
+.playing .bar {
+  animation: wave-flow 0.9s ease-in-out infinite;
+  transition: none;
+}
+.playing .bar:nth-child(1) { animation-delay:  0.00s; }
+.playing .bar:nth-child(2) { animation-delay: -0.18s; }
+.playing .bar:nth-child(3) { animation-delay: -0.36s; }
+.playing .bar:nth-child(4) { animation-delay: -0.54s; }
+.playing .bar:nth-child(5) { animation-delay: -0.72s; }
+
+/* ── Label ─────────────────────────────────── */
+.label {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 1.2px;
+  font-size: 8px;
+  letter-spacing: 1.1px;
   line-height: 1;
   text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
 }
 </style>
