@@ -1,6 +1,10 @@
 <template>
-  <div class="relative min-h-screen overflow-hidden bg-atc-bg font-sans text-atc-text">
-    <div class="absolute inset-0 z-0">
+  <div
+    ref="screenRef"
+    class="airport-screen relative min-h-screen bg-atc-bg font-sans text-atc-text"
+    :style="{ '--mobile-map-dim': mobileMapDim }"
+  >
+    <div class="airport-map-layer absolute inset-0 z-0">
       <AirportMap
         :icao="airport?.icao || icao"
         :lat="airportLat"
@@ -10,9 +14,10 @@
       />
     </div>
 
-    <div class="absolute inset-0 z-10 bg-[radial-gradient(circle_at_18%_14%,rgba(255,90,31,0.14),transparent_28%)]" />
+    <div class="airport-map-warmth absolute inset-0 z-10 bg-[radial-gradient(circle_at_18%_14%,rgba(255,90,31,0.14),transparent_28%)]" />
+    <div class="mobile-map-dim" />
 
-    <div class="relative z-20 flex min-h-screen flex-col px-5 py-5 md:px-8 lg:px-10">
+    <div class="airport-content relative z-20 flex min-h-screen flex-col px-5 py-5 md:px-8 lg:px-10">
       <header class="airport-header">
         <div class="airport-hero">
           <nav class="airport-breadcrumb" aria-label="Airport navigation">
@@ -48,33 +53,8 @@
 
       <div class="dashboard-updated">Updated {{ fmtUpdated(lastUpdated) }}</div>
 
-      <div class="dashboard-tabs" role="tablist" aria-label="Dashboard panel group">
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="activeDashboardTab === 'weather'"
-          :class="{ active: activeDashboardTab === 'weather' }"
-          @click="activeDashboardTab = 'weather'"
-        >
-          Weather
-        </button>
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="activeDashboardTab === 'airport'"
-          :class="{ active: activeDashboardTab === 'airport' }"
-          @click="activeDashboardTab = 'airport'"
-        >
-          Airport
-        </button>
-      </div>
-
       <main class="airport-dashboard">
-        <section
-          class="glass-panel weather-instrument-panel"
-          data-dashboard-group="weather"
-          :data-active-group="activeDashboardTab === 'weather'"
-        >
+        <section class="glass-panel weather-instrument-panel">
           <div class="panel-heading">
             <div>
               <div class="panel-kicker">METAR / Weather</div>
@@ -145,11 +125,7 @@
           </div>
         </section>
 
-        <section
-          class="glass-panel traffic-panel"
-          data-dashboard-group="airport"
-          :data-active-group="activeDashboardTab === 'airport'"
-        >
+        <section class="glass-panel traffic-panel">
           <div class="panel-heading">
             <div>
               <div class="panel-kicker">Airport traffic</div>
@@ -177,11 +153,7 @@
           </div>
         </section>
 
-        <section
-          class="glass-panel wiki-panel"
-          data-dashboard-group="airport"
-          :data-active-group="activeDashboardTab === 'airport'"
-        >
+        <section class="glass-panel wiki-panel">
           <div class="panel-heading">
             <div>
               <div class="panel-kicker">Airport wiki</div>
@@ -216,7 +188,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import NumberFlow from '@number-flow/vue'
 import AirportMap from '../map/AirportMap.vue'
 import { useAircraftPositions } from '../../composables/useAircraftPositions.js'
@@ -232,8 +204,32 @@ const props = defineProps({
 
 defineEmits(['back'])
 
-const activeDashboardTab = ref('weather')
 const activeWeatherView = ref('parsed')
+const mobileMapDim = ref(0)
+const screenRef = ref(null)
+
+const syncMobileMapDim = () => {
+  const el = screenRef.value
+  if (!el) return
+
+  const progress = Math.min(el.scrollTop / Math.max(window.innerHeight * 0.38, 1), 1)
+  mobileMapDim.value = Number((progress * 0.78).toFixed(3))
+}
+
+onMounted(() => {
+  const el = screenRef.value
+  if (!el) return
+
+  syncMobileMapDim()
+  el.addEventListener('scroll', syncMobileMapDim, { passive: true })
+  window.addEventListener('resize', syncMobileMapDim)
+})
+
+onBeforeUnmount(() => {
+  const el = screenRef.value
+  el?.removeEventListener('scroll', syncMobileMapDim)
+  window.removeEventListener('resize', syncMobileMapDim)
+})
 
 const AIRPORT_FALLBACKS = {
   KLAX: { iata: 'LAX', name: 'Los Angeles Intl', city: 'Los Angeles', country: 'US' },
@@ -336,6 +332,21 @@ const formatObsTime = (value) => {
 </script>
 
 <style scoped>
+.airport-screen {
+  overflow: hidden;
+}
+
+.mobile-map-dim {
+  background: linear-gradient(180deg, rgba(5, 5, 7, 0.1), rgba(5, 5, 7, 0.9));
+  display: none;
+  inset: 0;
+  opacity: var(--mobile-map-dim);
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 0.08s linear;
+  z-index: 11;
+}
+
 .airport-header {
   align-items: flex-start;
   display: flex;
@@ -467,42 +478,6 @@ const formatObsTime = (value) => {
   padding-bottom: 10px;
   text-align: center;
   text-transform: uppercase;
-}
-
-.dashboard-tabs {
-  display: none;
-  margin: 0 auto 10px;
-  width: min(75vw, 1280px);
-}
-
-.dashboard-tabs button {
-  background: rgba(14, 15, 18, 0.58);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--atc-faint);
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  line-height: 1;
-  min-height: 34px;
-  padding: 0 14px;
-  text-transform: uppercase;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
-}
-
-.dashboard-tabs button:first-child {
-  border-radius: 999px 0 0 999px;
-}
-
-.dashboard-tabs button:last-child {
-  border-left: 0;
-  border-radius: 0 999px 999px 0;
-}
-
-.dashboard-tabs button.active {
-  background: rgba(255, 90, 31, 0.16);
-  border-color: rgba(255, 90, 31, 0.42);
-  color: var(--atc-text);
 }
 
 .airport-dashboard {
@@ -710,6 +685,30 @@ const formatObsTime = (value) => {
 }
 
 @media (max-width: 980px) {
+  .airport-screen {
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scroll-padding-bottom: 18px;
+  }
+
+  .airport-map-layer,
+  .airport-map-warmth {
+    bottom: auto;
+    height: 100dvh;
+    position: fixed;
+  }
+
+  .mobile-map-dim {
+    display: block;
+  }
+
+  .airport-content {
+    min-height: 100dvh;
+    padding-bottom: 22px;
+  }
+
   .airport-header {
     flex-direction: column;
     gap: 14px;
@@ -732,26 +731,9 @@ const formatObsTime = (value) => {
   }
 
   .airport-dashboard {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    grid-template-columns: minmax(0, 1fr);
     width: 75vw;
-  }
-
-  .dashboard-tabs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: 75vw;
-  }
-
-  .airport-dashboard > [data-dashboard-group] {
-    display: none;
-  }
-
-  .airport-dashboard > [data-active-group="true"] {
-    display: block;
-  }
-
-  .weather-instrument-panel[data-active-group="true"] {
-    display: flex;
   }
 
   .glass-panel {
@@ -759,12 +741,17 @@ const formatObsTime = (value) => {
   }
 
   .weather-instrument-panel {
-    grid-column: 1 / -1;
+    grid-column: 1;
   }
 
   .wiki-panel,
   .traffic-panel {
-    grid-column: span 1;
+    grid-column: 1;
+  }
+
+  .traffic-panel,
+  .wiki-panel {
+    min-height: 220px;
   }
 }
 
