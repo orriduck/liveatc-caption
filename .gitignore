@@ -5,6 +5,7 @@
 **/__pycache__
 *_backup
 **/.ruff_cache
+**/.zed
 
 docs/superpowers
 backend/data

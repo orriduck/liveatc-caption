@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "test:aircraft-motion": "node src/utils/aircraftMotion.test.js",
+    "test:aircraft-traffic-intent": "node src/utils/aircraftTrafficIntent.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

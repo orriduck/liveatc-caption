@@ -11,6 +11,15 @@
          style="color:rgba(245,245,247,0.28);text-shadow:0 0 6px #0a0a0b">
       © OpenStreetMap · CartoDB
     </div>
+    <div
+      class="absolute right-3 top-[168px] pointer-events-none flex max-w-[calc(100%-24px)] flex-wrap gap-2 rounded border border-white/10 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.8px]"
+      style="background:rgba(10,10,11,0.58);backdrop-filter:blur(10px);color:rgba(245,245,247,0.72);text-shadow:0 0 6px #0a0a0b"
+    >
+      <span v-for="item in trafficLegend" :key="item.id" class="inline-flex items-center gap-1.5">
+        <span class="h-1.5 w-1.5 rounded-full" :style="{ background: item.color, boxShadow: `0 0 6px ${item.color}` }" />
+        {{ item.label }}
+      </span>
+    </div>
 
     <!-- Loading state -->
     <div v-if="!mapReady" class="absolute inset-0 flex items-center justify-center bg-atc-card rounded-lg">
@@ -51,6 +60,17 @@ const lonStr = ref('')
 
 // Dead-reckoning: animate aircraft that exceed this speed (knots)
 const ANIMATE_THRESHOLD_KT = 30
+const TRAFFIC_INTENT_COLORS = {
+  arrival: '#38bdf8',
+  departure: '#fb923c',
+  unknown: '#cbd5e1',
+  ground: '#34d399',
+}
+const trafficLegend = [
+  { id: 'arrival', label: 'ARR', color: TRAFFIC_INTENT_COLORS.arrival },
+  { id: 'departure', label: 'DEP', color: TRAFFIC_INTENT_COLORS.departure },
+  { id: 'unknown', label: 'UNK', color: TRAFFIC_INTENT_COLORS.unknown },
+]
 
 // RAF loop — updates visual aircraft positions on a delayed, latency-aware clock
 let rafId = null
@@ -212,6 +232,13 @@ const makeAcIcon = (color, label, rot = 0, showArrow = true, hasTelemetry = fals
   })
 }
 
+const getTrafficIntentColor = (ac, showArrow) => {
+  if (ac.onGround) return TRAFFIC_INTENT_COLORS.ground
+  if (ac.trafficIntent === 'arrival') return TRAFFIC_INTENT_COLORS.arrival
+  if (ac.trafficIntent === 'departure') return TRAFFIC_INTENT_COLORS.departure
+  return showArrow ? TRAFFIC_INTENT_COLORS.unknown : '#ffb347'
+}
+
 const updateAircraft = () => {
   if (!map) return
 
@@ -223,7 +250,7 @@ const updateAircraft = () => {
     const vel        = ac.velocity ?? 0
     const showArrow  = vel >= ANIMATE_THRESHOLD_KT
     const isAnimated = !ac.onGround && showArrow
-    const color = ac.onGround ? '#34d399' : showArrow ? props.accent : '#ffb347'
+    const color = getTrafficIntentColor(ac, showArrow)
     const label = (ac.callsign || ac.icao24 || '').trim()
     const rot   = Math.round(ac.track || 0)
     const hasTelemetry = !ac.onGround && showArrow && formatTelemetryValue(ac.velocity) != null && formatTelemetryValue(ac.altitude) != null
@@ -241,11 +268,15 @@ const updateAircraft = () => {
         isAnimated,
       })
       // Refresh icon only when appearance changes
-      if (color !== entry.color || label !== entry.label || rot !== entry.rot || showArrow !== entry.showArrow || hasTelemetry !== entry.hasTelemetry) {
+      if (color !== entry.color || label !== entry.label || rot !== entry.rot || showArrow !== entry.showArrow || hasTelemetry !== entry.hasTelemetry || ac.trafficIntent !== entry.trafficIntent) {
         unmountAircraftTelemetry(entry.marker)
         entry.marker.setIcon(makeAcIcon(color, label, rot, showArrow, hasTelemetry))
-        entry.color = color; entry.label = label; entry.rot = rot; entry.showArrow = showArrow
+        entry.color = color
+        entry.label = label
+        entry.rot = rot
+        entry.showArrow = showArrow
         entry.hasTelemetry = hasTelemetry
+        entry.trafficIntent = ac.trafficIntent
       }
       if (hasTelemetry) queueAircraftTelemetrySync(entry.marker, ac)
     } else {
@@ -253,7 +284,7 @@ const updateAircraft = () => {
       const visualPosition = calculateAircraftVisualPosition(motionState, now)
       const m = L.marker([visualPosition.lat, visualPosition.lon], { icon: makeAcIcon(color, label, rot, showArrow, hasTelemetry) }).addTo(map)
       acMarkersMap.set(ac.icao24, {
-        marker: m, color, label, rot, showArrow, hasTelemetry,
+        marker: m, color, label, rot, showArrow, hasTelemetry, trafficIntent: ac.trafficIntent,
         ...motionState,
         velocity: vel, track: ac.track ?? 0,
         isAnimated,

@@ -1,5 +1,6 @@
 import { ref, watch, onUnmounted } from 'vue'
 import { parseAdsbPositionTime } from '../utils/aircraftMotion'
+import { createAircraftIntentTracker } from '../utils/aircraftTrafficIntent.js'
 
 // Proxied through backend — adsb.lol has no CORS headers for browser requests
 const API = '/api/proxy/aircraft/positions'
@@ -10,6 +11,7 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
   const aircraft    = ref([])
   const loading     = ref(false)
   const lastUpdated = ref(null)
+  const intentTracker = createAircraftIntentTracker()
   let timer = null
 
   const poll = async () => {
@@ -26,7 +28,7 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
       const receiveTime = Date.now()
 
       // adsb.lol response: { ac: [{ hex, flight, lat, lon, alt_baro, gs, track, gnd, ... }] }
-      aircraft.value = (json.ac || [])
+      const snapshots = (json.ac || [])
         .filter(a => a.lat != null && a.lon != null)
         .map(a => ({
           icao24:   a.hex || '',
@@ -40,6 +42,7 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
           positionTime: parseAdsbPositionTime(a, json.now, receiveTime),
           receiveTime,
         }))
+      aircraft.value = intentTracker.update(snapshots, { lat, lon }, receiveTime)
       lastUpdated.value = new Date()
     } catch (e) {
       console.warn('ADS-B fetch failed:', e.message)
@@ -50,12 +53,14 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
 
   const start = () => {
     stop()
+    intentTracker.clear()
     poll()
     timer = setInterval(poll, POLL_MS)
   }
 
   const stop = () => {
     if (timer) { clearInterval(timer); timer = null }
+    intentTracker.clear()
     aircraft.value = []
   }
 
