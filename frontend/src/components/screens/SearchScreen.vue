@@ -9,7 +9,7 @@
       <div class="max-w-3xl relative z-10">
         <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-atc-line bg-atc-card font-mono text-[11px] tracking-[0.5px] text-atc-dim mb-7">
           <span class="w-1.5 h-1.5 rounded-full bg-atc-mint flex-shrink-0 animate-pulse-dot" style="box-shadow:0 0 8px #34d399" />
-          OURAIRPORTS CATALOG · {{ catalogLabel }}
+          LIVE DIRECTORY · {{ catalogLabel }}
         </div>
 
         <h1 class="font-sans text-[clamp(54px,9vw,88px)] leading-[0.95] font-bold text-atc-text m-0" style="letter-spacing:-3.2px">
@@ -17,8 +17,8 @@
           <span class="font-display italic font-normal text-atc-orange" style="letter-spacing:-2px">traffic</span> fast.
         </h1>
         <p class="mt-6 text-lg leading-relaxed text-atc-dim max-w-xl font-normal">
-          Search the public OurAirports catalog by ICAO, IATA, city, or airport name.
-          Narrow the catalog before opening the weather and nearby-traffic explorer.
+          Search airportsapi.com by ICAO, IATA, city, or airport name.
+          Results are fetched live, then cached in the browser for faster follow-up lookups.
         </p>
 
         <div
@@ -88,7 +88,7 @@
           <button class="px-3.5 py-2 rounded-lg bg-atc-card border border-atc-line text-atc-text text-[13px] cursor-pointer font-sans">
             {{ sourceLabel }}
           </button>
-          <span class="text-atc-faint">airportsapi.com kept as fallback</span>
+          <span class="text-atc-faint">{{ cacheStatusLabel }}</span>
         </div>
       </div>
 
@@ -122,8 +122,8 @@
       </div>
       <div class="flex gap-6 text-[13px] text-atc-dim">
         <span class="cursor-pointer hover:text-atc-text transition-colors">About</span>
-        <span class="cursor-pointer hover:text-atc-text transition-colors">OurAirports</span>
-        <span class="cursor-pointer hover:text-atc-text transition-colors">Browseable airport catalog</span>
+        <span class="cursor-pointer hover:text-atc-text transition-colors">airportsapi.com</span>
+        <span class="cursor-pointer hover:text-atc-text transition-colors">Live airport directory</span>
       </div>
     </footer>
   </div>
@@ -134,6 +134,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import TopBar from '../ui/TopBar.vue'
 import Wordmark from '../ui/Wordmark.vue'
 import AirportCard from '../ui/AirportCard.vue'
+import { airportDirectoryClient } from '../../services/airportDirectory.js'
 
 const emit = defineEmits(['open-airport'])
 
@@ -144,8 +145,7 @@ const focused = ref(false)
 const results = ref([])
 const searchLoading = ref(false)
 const searchError = ref(null)
-const source = ref('ourairports')
-const catalogCount = ref(0)
+const cacheState = ref('cold')
 
 const kindOptions = [
   { id: 'all', label: 'All airports' },
@@ -165,14 +165,23 @@ const countryOptions = [
 ]
 
 let searchTimer = null
+let activeRequestId = 0
 
 const filtered = computed(() => results.value)
 
 const catalogLabel = computed(() => (
-  catalogCount.value ? `${catalogCount.value.toLocaleString()} airports indexed` : `${results.value.length} loaded`
+  cacheState.value === 'hit'
+    ? `${results.value.length.toLocaleString()} cached locally`
+    : `${results.value.length.toLocaleString()} live results`
 ))
 
-const sourceLabel = computed(() => source.value === 'airportsapi.com' ? 'airportsapi.com fallback' : 'OurAirports CSV')
+const sourceLabel = computed(() => (
+  cacheState.value === 'hit' ? 'airportsapi.com · cached' : 'airportsapi.com · live'
+))
+
+const cacheStatusLabel = computed(() => (
+  cacheState.value === 'hit' ? 'frontend cache hit' : 'frontend cache warming'
+))
 
 const browseTitle = computed(() => {
   const selectedKind = kindOptions.find((option) => option.id === kind.value)?.label || 'All airports'
@@ -181,29 +190,32 @@ const browseTitle = computed(() => {
 })
 
 const loadAirports = async (query = '') => {
+  const requestId = ++activeRequestId
   searchLoading.value = true
   searchError.value = null
   try {
-    const params = new URLSearchParams()
-    if (query.trim()) params.set('query', query.trim())
-    if (kind.value !== 'all') params.set('kind', kind.value)
-    if (country.value) params.set('country', country.value)
-    params.set('limit', '60')
-    const url = `/api/search/airports?${params.toString()}`
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error(response.status >= 500 ? 'Airport search is unavailable right now' : `Airport search failed (${response.status})`)
+    const payload = await airportDirectoryClient.loadAirports({
+      query,
+      kind: kind.value,
+      country: country.value,
+      limit: 60,
+    })
+    if (requestId !== activeRequestId) {
+      return
     }
-    const payload = await response.json()
     results.value = payload.airports || []
-    source.value = payload.source || 'ourairports'
-    catalogCount.value = payload.catalog_count || catalogCount.value
+    cacheState.value = payload.cache || 'miss'
   } catch (err) {
+    if (requestId !== activeRequestId) {
+      return
+    }
     console.error('Airport search failed', err)
     results.value = []
-    searchError.value = err?.message || 'Airport search failed'
+    searchError.value = err?.message || 'Airport directory is unavailable right now'
   } finally {
-    searchLoading.value = false
+    if (requestId === activeRequestId) {
+      searchLoading.value = false
+    }
   }
 }
 
