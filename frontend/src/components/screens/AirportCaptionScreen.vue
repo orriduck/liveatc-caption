@@ -4,7 +4,9 @@
     class="airport-screen relative min-h-screen bg-atc-bg font-sans text-atc-text"
     :style="{
       '--mobile-map-dim': mobileMapDim,
+      '--mobile-breadcrumb-opacity': mobileBreadcrumbOpacity,
       '--mobile-title-opacity': mobileTitleOpacity,
+      '--mobile-compact-title-opacity': mobileCompactTitleOpacity,
       '--mobile-top-mask-opacity': mobileTopMaskOpacity,
     }"
   >
@@ -21,6 +23,10 @@
     <div class="airport-map-warmth absolute inset-0 z-10 bg-[radial-gradient(circle_at_18%_14%,rgba(255,90,31,0.14),transparent_28%)]" />
     <div class="mobile-map-dim" />
     <div class="mobile-top-mask" />
+    <div class="mobile-compact-title" aria-hidden="true">
+      <span class="mobile-compact-code">{{ airportCodeLabel }}</span>
+      <span class="mobile-compact-name">{{ airportName }}</span>
+    </div>
 
     <div class="airport-content relative z-20 flex min-h-screen flex-col px-5 py-5 md:px-8 lg:px-10">
       <header class="airport-header">
@@ -211,7 +217,9 @@ defineEmits(['back'])
 
 const activeWeatherView = ref('parsed')
 const mobileMapDim = ref(0)
+const mobileBreadcrumbOpacity = ref(1)
 const mobileTitleOpacity = ref(1)
+const mobileCompactTitleOpacity = ref(0)
 const mobileTopMaskOpacity = ref(0)
 const screenRef = ref(null)
 
@@ -220,9 +228,12 @@ const syncMobileMapDim = () => {
   if (!el) return
 
   const progress = Math.min(el.scrollTop / Math.max(window.innerHeight * 0.32, 1), 1)
-  const titleProgress = Math.min(el.scrollTop / Math.max(window.innerHeight * 0.2, 1), 1)
+  const titleProgress = Math.min(el.scrollTop / Math.max(window.innerHeight * 0.14, 1), 1)
+  const compactProgress = Math.max(0, Math.min((titleProgress - 0.08) / 0.34, 1))
   mobileMapDim.value = Number((progress * 0.78).toFixed(3))
+  mobileBreadcrumbOpacity.value = Number(Math.max(1 - compactProgress, 0).toFixed(3))
   mobileTitleOpacity.value = Number(Math.max(1 - titleProgress, 0).toFixed(3))
+  mobileCompactTitleOpacity.value = Number(compactProgress.toFixed(3))
   mobileTopMaskOpacity.value = Number(Math.min(0.22 + progress * 0.78, 1).toFixed(3))
 }
 
@@ -735,24 +746,92 @@ const formatObsTime = (value) => {
   }
 
   .airport-header {
-    flex-direction: column;
-    gap: 14px;
+    display: block;
+    left: 20px;
+    min-height: 0;
+    position: fixed;
+    right: 20px;
+    top: 18px;
+    z-index: 40;
   }
 
   .airport-breadcrumb {
+    font-size: 10px;
+    gap: 8px;
     max-width: calc(100vw - 40px);
+    opacity: var(--mobile-breadcrumb-opacity);
+    transform: translateY(calc((1 - var(--mobile-breadcrumb-opacity)) * -8px));
+    transition: opacity 0.08s linear, transform 0.08s linear;
+  }
+
+  .mobile-compact-title {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    left: 0;
+    min-height: 42px;
+    opacity: var(--mobile-compact-title-opacity);
+    pointer-events: none;
+    position: fixed;
+    right: 0;
+    top: 40px;
+    transform: translateY(calc((1 - var(--mobile-compact-title-opacity)) * 5px));
+    transition: opacity 0.08s linear, transform 0.08s linear;
+    z-index: 41;
+  }
+
+  .mobile-compact-code {
+    color: rgba(255, 90, 31, 0.34);
+    font-family: 'Instrument Serif', serif;
+    font-size: 72px;
+    font-style: italic;
+    left: 50%;
+    line-height: 0.8;
+    position: absolute;
+    top: -8px;
+    transform: translateX(-50%);
+  }
+
+  .mobile-compact-name {
+    color: rgb(245, 245, 247);
+    display: block;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.05;
+    max-width: min(300px, calc(100vw - 72px));
+    position: relative;
+    text-align: center;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.92);
+    z-index: 1;
   }
 
   .airport-title-row {
+    align-items: center;
+    gap: 10px;
+    grid-template-columns: auto minmax(0, 1fr);
+    margin-top: 28px;
     max-width: calc(100vw - 40px);
+    opacity: var(--mobile-title-opacity);
+    transform: translateY(calc((1 - var(--mobile-title-opacity)) * -12px));
+    transition: opacity 0.08s linear, transform 0.08s linear;
+  }
+
+  .airport-code {
+    font-size: 58px;
+  }
+
+  .airport-title {
+    font-size: 34px;
+    letter-spacing: -0.04em;
+  }
+
+  .airport-title-stack::before {
+    top: -12px;
+    width: min(210px, 52vw);
   }
 
   .airport-coordinates {
-    flex-direction: row;
-    justify-content: space-between;
-    padding-top: 0;
-    text-align: left;
-    width: 100%;
+    display: none;
   }
 
   .airport-dashboard {
@@ -793,48 +872,7 @@ const formatObsTime = (value) => {
   }
 
   .airport-header {
-    display: block;
-    left: 20px;
-    min-height: 0;
-    position: fixed;
-    right: 20px;
     top: 18px;
-    z-index: 30;
-  }
-
-  .airport-breadcrumb {
-    font-size: 10px;
-    gap: 8px;
-    max-width: calc(100vw - 40px);
-  }
-
-  .airport-title-row {
-    align-items: center;
-    gap: 10px;
-    grid-template-columns: auto minmax(0, 1fr);
-    margin-top: 28px;
-    max-width: calc(100vw - 40px);
-    opacity: var(--mobile-title-opacity);
-    transform: translateY(calc((1 - var(--mobile-title-opacity)) * -12px));
-    transition: opacity 0.08s linear, transform 0.08s linear;
-  }
-
-  .airport-code {
-    font-size: 58px;
-  }
-
-  .airport-title {
-    font-size: 34px;
-    letter-spacing: -0.04em;
-  }
-
-  .airport-title-stack::before {
-    top: -12px;
-    width: min(210px, 52vw);
-  }
-
-  .airport-coordinates {
-    display: none;
   }
 
   .dashboard-updated {
