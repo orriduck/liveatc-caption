@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  lint-frontend:
+  frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,22 +29,3 @@ jobs:
         run: |
           cd frontend
           pnpm run build
-
-  lint-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-      - name: Setup Python
-        run: uv python install
-      - name: Lint (check format)
-        run: |
-          cd backend
-          uvx ruff check .
-      - name: Check format
-        run: |
-          cd backend
-          uvx ruff format --check .

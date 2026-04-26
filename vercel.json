@@ -1,0 +1,21 @@
+{
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "routes": [
+    {
+      "src": "^/api/proxy/metar/([^/]+)$",
+      "dest": "https://aviationweather.gov/api/data/metar?ids=$1&format=json"
+    },
+    {
+      "src": "^/api/proxy/aircraft/positions/([^/]+)/([^/]+)/([^/]+)$",
+      "dest": "https://api.adsb.lol/v2/lat/$1/lon/$2/dist/$3"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

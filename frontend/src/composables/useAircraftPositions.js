@@ -1,11 +1,11 @@
 import { ref, watch, onUnmounted } from 'vue'
+import {
+  aircraftPositionClient,
+  DEFAULT_AIRCRAFT_DIST_NM,
+  DEFAULT_AIRCRAFT_POLL_MS,
+} from '../services/aviationData.js'
 import { parseAdsbPositionTime } from '../utils/aircraftMotion'
 import { createAircraftIntentTracker } from '../utils/aircraftTrafficIntent.js'
-
-// Proxied through backend — adsb.lol has no CORS headers for browser requests
-const API = '/api/proxy/aircraft/positions'
-const POLL_MS = 3_000
-const DIST_NM = 20  // nautical miles radius (~37 km) — catches approach traffic too
 
 export function useAircraftPositions(icaoRef, latRef, lonRef) {
   const aircraft    = ref([])
@@ -21,10 +21,11 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
 
     loading.value = true
     try {
-      const url = `${API}?lat=${lat}&lon=${lon}&dist=${DIST_NM}`
-      const res = await fetch(url, { signal: AbortSignal.timeout(14_000) })
-      if (!res.ok) throw new Error(`ADS-B HTTP ${res.status}`)
-      const json = await res.json()
+      const json = await aircraftPositionClient.fetchNearbyAircraft({
+        lat,
+        lon,
+        distNm: DEFAULT_AIRCRAFT_DIST_NM,
+      })
       const receiveTime = Date.now()
 
       // adsb.lol response: { ac: [{ hex, flight, lat, lon, alt_baro, gs, track, gnd, ... }] }
@@ -55,7 +56,7 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
     stop()
     intentTracker.clear()
     poll()
-    timer = setInterval(poll, POLL_MS)
+    timer = setInterval(poll, DEFAULT_AIRCRAFT_POLL_MS)
   }
 
   const stop = () => {

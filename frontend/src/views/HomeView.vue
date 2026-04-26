@@ -25,6 +25,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AirportCaptionScreen from '../components/screens/AirportCaptionScreen.vue'
 import SearchScreen from '../components/screens/SearchScreen.vue'
+import { airportDirectoryClient } from '../services/airportDirectory.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -42,14 +43,9 @@ const loadAirport = async (icao) => {
   error.value = null
 
   try {
-    const response = await fetch(`/api/search?icao=${encodeURIComponent(icao.trim())}`)
-    if (!response.ok) {
-      throw new Error(response.status === 404 ? 'Airport not found' : 'Airport lookup is unavailable right now')
-    }
-
-    const payload = await response.json()
-    airport.value = payload.airport || null
-    currentIcao.value = String(payload.airport?.icao || icao).toUpperCase()
+    const resolvedAirport = await airportDirectoryClient.resolveAirport(icao)
+    airport.value = resolvedAirport
+    currentIcao.value = String(resolvedAirport?.icao || icao).toUpperCase()
   } catch (err) {
     console.error('Failed to load airport', err)
     airport.value = null

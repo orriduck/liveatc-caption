@@ -8,16 +8,15 @@ NC='\033[0m' # No Color
 
 echo "${BLUE}Step 1: Building Frontend...${NC}"
 cd frontend
-npm run build
+pnpm install --frozen-lockfile
+pnpm run build
 cd ..
 
-echo "${BLUE}Step 2: Bundling Python Backend (this may take a few minutes)...${NC}"
-./packaging/scripts/build_backend.sh
-
-echo "${BLUE}Step 3: Packaging Electron App...${NC}"
+echo "${BLUE}Step 2: Packaging Electron App...${NC}"
 cd packaging/electron
 export CSC_IDENTITY_AUTO_DISCOVERY=false
-npm run dist
+pnpm install --frozen-lockfile
+pnpm run dist
 cd ../..
 
 echo "${GREEN}Build Complete!${NC}"

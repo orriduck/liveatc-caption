@@ -75,15 +75,6 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm run build
 
-      # ── Backend ──────────────────────────────────────────────────────────────
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-
-      - name: Build backend (PyInstaller)
-        run: ./packaging/scripts/build_backend.sh
-
       # ── Electron ─────────────────────────────────────────────────────────────
       - name: Pin electron package version
         run: |
