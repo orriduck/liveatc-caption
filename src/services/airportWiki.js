@@ -1,3 +1,5 @@
+import { withAuditLogging } from '../utils/apiLogger.js'
+
 const WIKIPEDIA_SUMMARY_BASE = 'https://en.wikipedia.org/api/rest_v1/page/summary'
 
 const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim()
@@ -53,10 +55,16 @@ export const normalizeWikipediaSummary = (payload) => {
 
 export const fetchAirportWikiSummary = async (airport, fetchImpl = fetch) => {
   const candidates = getAirportWikiTitleCandidates(airport)
+  const auditedFetch = withAuditLogging(fetchImpl, {
+    service: 'Wikipedia',
+    getParams(url) {
+      return { title: decodeURIComponent(url.split('/').pop() || '') }
+    },
+  })
 
   for (const title of candidates) {
     try {
-      const response = await fetchImpl(getWikipediaSummaryUrl(title), {
+      const response = await auditedFetch(getWikipediaSummaryUrl(title), {
         headers: { Accept: 'application/json' },
       })
       if (!response.ok) continue

@@ -1,4 +1,5 @@
 import { toFiniteNumber } from '../utils/math.js'
+import { withAuditLogging } from '../utils/apiLogger.js'
 
 const API_BASE_URL = 'https://airportsapi.com/api'
 const CACHE_PREFIX = 'adsbao:airport-directory:v1:'
@@ -140,6 +141,8 @@ export const createAirportDirectoryClient = ({
 
   const resolvedStorage = resolveStorage(storage)
 
+  const auditedFetch = withAuditLogging(fetchImpl, { service: 'airportsapi.com' })
+
   const getCached = (cacheKey) => {
     const memoryEntry = memoryCache.get(cacheKey)
     if (memoryEntry && memoryEntry.expiresAt > now()) {
@@ -174,7 +177,7 @@ export const createAirportDirectoryClient = ({
   }
 
   const fetchJson = async (url, { allow404 = false } = {}) => {
-    const response = await fetchImpl(url, {
+    const response = await auditedFetch(url, {
       headers: {
         Accept: 'application/json, application/vnd.api+json',
       },

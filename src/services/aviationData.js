@@ -1,3 +1,5 @@
+import { withAuditLogging } from '../utils/apiLogger.js'
+
 const env = import.meta.env ?? {}
 
 export const DEFAULT_AIRCRAFT_POLL_MS = 3_000
@@ -29,11 +31,18 @@ export const createMetarClient = ({
 } = {}) => {
   if (!fetchImpl) throw new Error('METAR client requires fetch support')
 
+  const auditedFetch = withAuditLogging(fetchImpl, {
+    service: 'AviationWeather/METAR',
+    getParams(url) {
+      return { icao: decodeURIComponent(url.split('/').pop() || '') }
+    },
+  })
+
   return {
     fetchMetar(icao) {
       const normalized = String(icao || '').trim().toUpperCase()
       if (!normalized) return []
-      return fetchJson(fetchImpl, `${baseUrl}/${encodeURIComponent(normalized)}`, {
+      return fetchJson(auditedFetch, `${baseUrl}/${encodeURIComponent(normalized)}`, {
         timeoutMs: 10_000,
       })
     },
@@ -46,12 +55,20 @@ export const createAircraftPositionClient = ({
 } = {}) => {
   if (!fetchImpl) throw new Error('Aircraft position client requires fetch support')
 
+  const auditedFetch = withAuditLogging(fetchImpl, {
+    service: 'adsb.lol/Aircraft',
+    getParams(url) {
+      const p = url.split('/')
+      return { lat: p[p.length - 3], lon: p[p.length - 2], distNm: p[p.length - 1] }
+    },
+  })
+
   return {
     fetchNearbyAircraft({ lat, lon, distNm = DEFAULT_AIRCRAFT_DIST_NM }) {
       const encodedLat = encodeURIComponent(String(lat))
       const encodedLon = encodeURIComponent(String(lon))
       const encodedDist = encodeURIComponent(String(distNm))
-      return fetchJson(fetchImpl, `${baseUrl}/${encodedLat}/${encodedLon}/${encodedDist}`, {
+      return fetchJson(auditedFetch, `${baseUrl}/${encodedLat}/${encodedLon}/${encodedDist}`, {
         timeoutMs: 14_000,
       })
     },
