@@ -6,12 +6,12 @@
             </transition>
         </router-view>
     </div>
+    <SpeedInsights />
 </template>
 
 <script setup>
 import { inject as injectAnalytics } from "@vercel/analytics";
-import { injectSpeedInsights } from "@vercel/speed-insights";
+import { SpeedInsights } from "@vercel/speed-insights/vue";
 
 injectAnalytics();
-injectSpeedInsights();
 </script>
