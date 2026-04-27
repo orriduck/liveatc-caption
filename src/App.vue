@@ -7,11 +7,10 @@
         </router-view>
         <Analytics />
     </div>
+    <SpeedInsights />
 </template>
 
 <script setup>
+import { SpeedInsights } from "@vercel/speed-insights/vue";
 import { Analytics } from "@vercel/analytics/vue";
-import { injectSpeedInsights } from "@vercel/speed-insights";
-
-injectSpeedInsights();
 </script>
