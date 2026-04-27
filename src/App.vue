@@ -9,6 +9,9 @@
 </template>
 
 <script setup>
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { inject as injectAnalytics } from "@vercel/analytics";
+import { injectSpeedInsights } from "@vercel/speed-insights";
+
+injectAnalytics();
+injectSpeedInsights();
 </script>
