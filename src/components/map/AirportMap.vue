@@ -75,7 +75,9 @@ import NumberFlow from "@number-flow/vue";
 import {
     beginAircraftMotionState,
     calculateAircraftVisualPosition,
+    SLOW_AIRCRAFT_THRESHOLD_KT,
 } from "../../utils/aircraftMotion";
+import { AIRCRAFT_COLORS, BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft";
 
 const props = defineProps({
     icao: { type: String, default: "" },
@@ -97,15 +99,6 @@ const acMarkersMap = new Map();
 const latStr = ref("");
 const lonStr = ref("");
 
-// Dead-reckoning: animate aircraft that exceed this speed (knots)
-const ANIMATE_THRESHOLD_KT = 30;
-const BARO_RATE_THRESHOLD_FPM = 100;
-const AIRCRAFT_COLORS = {
-    ascending: "#fb923c",
-    descending: "#2dd4bf",
-    level: "#94a3b8",
-    ground: "#34d399",
-};
 const trafficLegend = [
     { id: "ascending", label: "ASC", color: AIRCRAFT_COLORS.ascending },
     { id: "level", label: "LEVEL", color: AIRCRAFT_COLORS.level },
@@ -335,7 +328,7 @@ const updateAircraft = () => {
         if (!ac.lat || !ac.lon) return;
         seen.add(ac.icao24);
         const vel = ac.velocity ?? 0;
-        const showArrow = vel >= ANIMATE_THRESHOLD_KT;
+        const showArrow = vel >= SLOW_AIRCRAFT_THRESHOLD_KT;
         const isAnimated = !ac.onGround && showArrow;
         const color = getAircraftColor(ac, showArrow);
         const label = (ac.callsign || ac.icao24 || "").trim();

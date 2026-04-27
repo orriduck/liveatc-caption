@@ -213,19 +213,19 @@
                         </div>
                         <div>
                             <span>Ascending</span>
-                            <strong style="color: #fb923c"
+                            <strong :style="{ color: AIRCRAFT_COLORS.ascending }"
                                 ><NumberFlow :value="trafficCounts.ascending"
                             /></strong>
                         </div>
                         <div>
                             <span>Descending</span>
-                            <strong style="color: #2dd4bf"
+                            <strong :style="{ color: AIRCRAFT_COLORS.descending }"
                                 ><NumberFlow :value="trafficCounts.descending"
                             /></strong>
                         </div>
                         <div>
                             <span>Level</span>
-                            <strong style="color: #94a3b8"
+                            <strong :style="{ color: AIRCRAFT_COLORS.level }"
                                 ><NumberFlow :value="trafficCounts.level"
                             /></strong>
                         </div>
@@ -277,6 +277,9 @@ import AirportMap from "../map/AirportMap.vue";
 import { useAircraftPositions } from "../../composables/useAircraftPositions.js";
 import { useAirportWiki } from "../../composables/useAirportWiki.js";
 import { useMetar } from "../../composables/useMetar.js";
+import { AIRCRAFT_COLORS, BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft.js";
+import { SLOW_AIRCRAFT_THRESHOLD_KT } from "../../utils/aircraftMotion.js";
+import { AIRPORT_FALLBACKS, COORDS } from "../../data/airportFallbacks.js";
 
 const props = defineProps({
     icao: { type: String, default: "" },
@@ -339,85 +342,6 @@ onBeforeUnmount(() => {
     window.removeEventListener("resize", syncMobileMapDim);
 });
 
-const AIRPORT_FALLBACKS = {
-    KLAX: {
-        iata: "LAX",
-        name: "Los Angeles Intl",
-        city: "Los Angeles",
-        country: "US",
-    },
-    KJFK: {
-        iata: "JFK",
-        name: "John F. Kennedy Intl",
-        city: "New York",
-        country: "US",
-    },
-    KORD: {
-        iata: "ORD",
-        name: "Chicago O'Hare",
-        city: "Chicago",
-        country: "US",
-    },
-    KATL: {
-        iata: "ATL",
-        name: "Hartsfield-Jackson",
-        city: "Atlanta",
-        country: "US",
-    },
-    KDFW: {
-        iata: "DFW",
-        name: "Dallas / Fort Worth",
-        city: "Dallas",
-        country: "US",
-    },
-    KSFO: {
-        iata: "SFO",
-        name: "San Francisco Intl",
-        city: "San Francisco",
-        country: "US",
-    },
-    KBOS: { iata: "BOS", name: "Boston Logan", city: "Boston", country: "US" },
-    KSEA: {
-        iata: "SEA",
-        name: "Seattle-Tacoma",
-        city: "Seattle",
-        country: "US",
-    },
-    EGLL: {
-        iata: "LHR",
-        name: "London Heathrow",
-        city: "London",
-        country: "UK",
-    },
-    LFPG: {
-        iata: "CDG",
-        name: "Paris Charles de Gaulle",
-        city: "Paris",
-        country: "FR",
-    },
-    EDDF: {
-        iata: "FRA",
-        name: "Frankfurt Main",
-        city: "Frankfurt",
-        country: "DE",
-    },
-    RJTT: { iata: "HND", name: "Tokyo Haneda", city: "Tokyo", country: "JP" },
-};
-
-const COORDS = {
-    KLAX: [33.9425, -118.4081],
-    KJFK: [40.6413, -73.7781],
-    KORD: [41.9742, -87.9073],
-    KATL: [33.6407, -84.4277],
-    KDFW: [32.8998, -97.0403],
-    KSFO: [37.6213, -122.379],
-    KBOS: [42.3656, -71.0096],
-    KSEA: [47.4502, -122.3088],
-    EGLL: [51.4775, -0.4614],
-    LFPG: [49.0097, 2.5479],
-    EDDF: [50.0379, 8.5622],
-    RJTT: [35.5494, 139.7798],
-};
 
 const airportFallback = computed(
     () => AIRPORT_FALLBACKS[props.icao?.toUpperCase()] || null,
@@ -473,13 +397,10 @@ const coordinatesLabel = computed(() => {
     return `${lat} / ${lon}`;
 });
 
-const BARO_RATE_THRESHOLD_FPM = 100;
-const SLOW_KT = 30;
-
 const trafficCounts = computed(() =>
     aircraft.value.reduce(
         (counts, item) => {
-            const showArrow = (item.velocity ?? 0) >= SLOW_KT;
+            const showArrow = (item.velocity ?? 0) >= SLOW_AIRCRAFT_THRESHOLD_KT;
             if (!item.onGround && showArrow && item.baroRate != null) {
                 if (item.baroRate > BARO_RATE_THRESHOLD_FPM) {
                     counts.ascending += 1;

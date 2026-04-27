@@ -1,12 +1,9 @@
+import { toFiniteNumber } from './math.js'
+
 const EARTH_RADIUS_NM = 3440.065
 const MIN_SAMPLE_SPAN_MS = 2_000
 const MIN_DISTANCE_DELTA_NM = 0.08
 const MIN_ALTITUDE_DELTA_FT = 75
-
-const toFiniteNumber = (value) => {
-  const number = Number(value)
-  return Number.isFinite(number) ? number : null
-}
 
 const toRadians = (degrees) => (degrees * Math.PI) / 180
 

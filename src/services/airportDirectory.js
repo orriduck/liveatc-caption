@@ -1,3 +1,5 @@
+import { toFiniteNumber } from '../utils/math.js'
+
 const API_BASE_URL = 'https://airportsapi.com/api'
 const CACHE_PREFIX = 'adsbao:airport-directory:v1:'
 const DEFAULT_TTL_MS = 6 * 60 * 60 * 1000
@@ -18,11 +20,6 @@ const ALL_KIND_SEQUENCE = [
 ]
 
 const memoryCache = new Map()
-
-const toFiniteNumber = (value) => {
-  const number = Number(value)
-  return Number.isFinite(number) ? number : null
-}
 
 const normalizeAirport = (record, fallbackCountry = '') => {
   const attrs = record?.attributes || record || {}

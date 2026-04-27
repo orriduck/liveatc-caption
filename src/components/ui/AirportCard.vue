@@ -38,6 +38,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { airportSubtitle } from '../../utils/airport.js'
 
 const props = defineProps({
   a:         { type: Object,  required: true },
@@ -45,12 +46,7 @@ const props = defineProps({
 })
 defineEmits(['click'])
 
-const subtitle = computed(() => {
-  if (props.a.city && props.a.country) return `${props.a.city} · ${props.a.country}`
-  if (props.a.city) return props.a.city
-  if (props.a.country) return props.a.country
-  return props.a.type_label || props.a.type || 'Airport data'
-})
+const subtitle = computed(() => airportSubtitle(props.a))
 
 const typeShort = computed(() => {
   if (props.a.type === 'large_airport') return 'L'

@@ -1,3 +1,5 @@
+import { toFiniteNumber } from './math.js'
+
 const KT_TO_MPS = 0.514444
 const METERS_PER_DEGREE_LAT = 111_320
 
@@ -7,11 +9,6 @@ export const SLOW_AIRCRAFT_THRESHOLD_KT = 30
 export const FAST_EXTRAPOLATION_LIMIT_MS = 4_000
 export const SLOW_FULL_SPEED_WINDOW_MS = 500
 export const SLOW_EXTRAPOLATION_SCALE = 0.25
-
-const toFiniteNumber = (value) => {
-  const number = Number(value)
-  return Number.isFinite(number) ? number : null
-}
 
 const normalizeEpochMs = (value) => {
   const number = toFiniteNumber(value)

@@ -15,21 +15,6 @@ ADSBao provides a search-first airport operations view with weather context and 
 
 ## Installation (macOS)
 
-### Homebrew (recommended)
-
-```bash
-# Add the tap once
-brew tap orriduck/adsbao https://github.com/orriduck/ADSBao
-
-# Install
-brew install --cask adsbao
-
-# Stay up to date — run after any new release
-brew upgrade --cask adsbao
-```
-
-### Direct download
-
 Download the latest `.dmg` or `.app.zip` from the [Releases](https://github.com/orriduck/ADSBao/releases) page.
 
 > **Note** — ADSBao is not code-signed with an Apple Developer certificate.
@@ -46,20 +31,16 @@ Download the latest `.dmg` or `.app.zip` from the [Releases](https://github.com/
 
 ### Frontend Setup
 ```bash
-cd frontend
 pnpm install
 pnpm run dev
 ```
 
 The dev server starts on `http://localhost:5173`.
 
-Open [http://localhost:5173](http://localhost:5173) to start exploring.
-
 ### Vercel Web Deployment
-The repo includes `vercel.json` for Git-triggered Vercel builds, plus `frontend/vercel.json` for manual deploys from `frontend/`. Both serve minimal same-origin external rewrites for browser-blocked upstream data.
+The repo includes `vercel.json` for Git-triggered Vercel builds with minimal same-origin external rewrites for browser-blocked upstream data.
 
 ```bash
-cd frontend
 vercel
 ```
 
@@ -85,7 +66,6 @@ cd ADSBao
 
 **2. Start the frontend**
 ```bash
-cd frontend
 pnpm install                     # install Node dependencies
 pnpm run dev                     # Vite dev server with HMR
 ```
@@ -94,15 +74,14 @@ Frontend available at `http://localhost:5173`.
 ### Project structure
 ```
 ADSBao/
-├── frontend/         # Vue 3 app (Vite)
-│   ├── src/
-│   │   ├── components/
-│   │   ├── views/
-│   │   └── router/
-│   └── vercel.json   # Manual frontend-directory Vercel deployment config
+├── src/
+│   ├── components/
+│   ├── views/
+│   ├── constants/
+│   └── router/
 ├── packaging/        # Optional Electron shell packaging
-├── package.json      # Root Vercel/Git build shim
-└── vercel.json       # Git-triggered Vercel deployment config
+├── package.json
+└── vercel.json       # Vercel deployment config
 ```
 
 ## External Data Use
