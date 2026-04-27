@@ -15,6 +15,7 @@
                 :icao="airport?.icao || icao"
                 :lat="airportLat"
                 :lon="airportLon"
+                :zoom="mapZoom"
                 accent="#FF5A1F"
                 :aircraft="aircraft"
             />
@@ -30,7 +31,7 @@
             <span class="mobile-compact-name">{{ airportName }}</span>
         </div>
 
-        <AmbientAudioButton />
+        <MapControlBar :active-zoom="mapZoom" @zoom="mapZoom = $event" />
 
         <div
             class="airport-content relative z-20 flex min-h-screen flex-col px-5 py-5 md:px-8 lg:px-10"
@@ -272,7 +273,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import NumberFlow from "@number-flow/vue";
-import AmbientAudioButton from "../ui/AmbientAudioButton.vue";
+import MapControlBar from "../ui/MapControlBar.vue";
 import AirportMap from "../map/AirportMap.vue";
 import { useAircraftPositions } from "../../composables/useAircraftPositions.js";
 import { useAirportWiki } from "../../composables/useAirportWiki.js";
@@ -290,6 +291,7 @@ const props = defineProps({
 
 defineEmits(["back"]);
 
+const mapZoom = ref(13);
 const activeWeatherView = ref("parsed");
 const mobileMapDim = ref(0);
 const mobileBreadcrumbOpacity = ref(1);

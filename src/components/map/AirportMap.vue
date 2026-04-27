@@ -416,6 +416,12 @@ watch(
         }
     },
 );
+watch(
+    () => props.zoom,
+    (zoom) => {
+        if (map) map.setZoom(zoom);
+    },
+);
 
 onMounted(initMap);
 onUnmounted(() => {
