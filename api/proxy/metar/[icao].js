@@ -1,8 +1,17 @@
 export const config = { runtime: 'edge' }
 
 export default async function handler(request) {
-  const url = new URL(request.url)
-  const icao = decodeURIComponent(url.pathname.split('/').pop())
+  const requestUrl = typeof request?.url === 'string' ? request.url : ''
+  const url = requestUrl.startsWith('http')
+    ? new URL(requestUrl)
+    : new URL(requestUrl, 'https://adsbao.vercel.app')
+  const rawIcao = url.pathname.split('/').filter(Boolean).pop() || ''
+  let icao = rawIcao
+  try {
+    icao = decodeURIComponent(rawIcao)
+  } catch {
+    // Keep raw ICAO when decode fails instead of crashing the edge function.
+  }
   const start = Date.now()
 
   try {

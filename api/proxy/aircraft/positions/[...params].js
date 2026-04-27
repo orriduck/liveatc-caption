@@ -1,9 +1,22 @@
 export const config = { runtime: 'edge' }
 
 export default async function handler(request) {
-  const url = new URL(request.url)
+  const requestUrl = typeof request?.url === 'string' ? request.url : ''
+  const url = requestUrl.startsWith('http')
+    ? new URL(requestUrl)
+    : new URL(requestUrl, 'https://adsbao.vercel.app')
   const segments = url.pathname.split('/').filter(Boolean)
-  const [lat, lon, dist] = segments.slice(-3).map(decodeURIComponent)
+  const [rawLat, rawLon, rawDist] = segments.slice(-3)
+  const safeDecode = (value = '') => {
+    try {
+      return decodeURIComponent(value)
+    } catch {
+      return value
+    }
+  }
+  const lat = safeDecode(rawLat)
+  const lon = safeDecode(rawLon)
+  const dist = safeDecode(rawDist)
   const start = Date.now()
 
   try {
