@@ -34,8 +34,7 @@ export const createMetarClient = ({
   const auditedFetch = withAuditLogging(fetchImpl, {
     service: 'AviationWeather/METAR',
     getParams(url) {
-      const icao = decodeURIComponent(url.split('/').pop() || '')
-      return { icao }
+      return { icao: decodeURIComponent(url.split('/').pop() || '') }
     },
   })
 
@@ -59,12 +58,8 @@ export const createAircraftPositionClient = ({
   const auditedFetch = withAuditLogging(fetchImpl, {
     service: 'adsb.lol/Aircraft',
     getParams(url) {
-      const parts = url.split('/')
-      return {
-        lat: decodeURIComponent(parts[parts.length - 3] ?? ''),
-        lon: decodeURIComponent(parts[parts.length - 2] ?? ''),
-        distNm: decodeURIComponent(parts[parts.length - 1] ?? ''),
-      }
+      const p = url.split('/')
+      return { lat: p[p.length - 3], lon: p[p.length - 2], distNm: p[p.length - 1] }
     },
   })
 
