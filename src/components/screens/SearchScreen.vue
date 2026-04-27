@@ -81,6 +81,7 @@
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { airportDirectoryClient } from '../../services/airportDirectory.js'
 import { HOME_AIRPORT_COUNTRY } from '../../config/homeAirportDirectory.js'
+import { airportSubtitle } from '../../utils/airport.js'
 
 const emit = defineEmits(['open-airport'])
 
@@ -259,13 +260,6 @@ const openAirport = (airport) => {
     type: airport.type || '',
     type_label: airport.type_label || '',
   })
-}
-
-const airportSubtitle = (airport) => {
-  if (airport.city && airport.country) return `${airport.city} · ${airport.country}`
-  if (airport.city) return airport.city
-  if (airport.country) return airport.country
-  return airport.type_label || airport.type || 'Airport'
 }
 
 watch(q, (value) => {
