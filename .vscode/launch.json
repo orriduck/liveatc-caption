@@ -1,51 +1,17 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Backend (FastAPI)",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "uvicorn",
-            "args": [
-                "main:app",
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8000",
-                "--reload"
-            ],
-            "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python",
-            "jinja": true,
-            "envFile": "${workspaceFolder}/backend/.env",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/backend"
-            }
-        },
-        {
-            "name": "Frontend (Vite)",
-            "type": "node",
-            "request": "launch",
-            "runtimeExecutable": "pnpm",
-            "runtimeArgs": [
-                "run",
-                "dev"
-            ],
-            "cwd": "${workspaceFolder}/frontend",
-            "console": "integratedTerminal",
-            "env": {
-                "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:${env:PATH}"
-            }
-        }
-    ],
-    "compounds": [
-        {
-            "name": "Launch App (Backend + Frontend)",
-            "configurations": [
-                "Backend (FastAPI)",
-                "Frontend (Vite)"
-            ],
-            "stopAll": true
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Frontend (Vite dev)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": {
+        "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:${env:PATH}",
+      },
+    },
+  ],
 }

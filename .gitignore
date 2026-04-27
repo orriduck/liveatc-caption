@@ -5,14 +5,11 @@
 **/__pycache__
 *_backup
 **/.ruff_cache
-**/.zed
 
 docs/superpowers
 .vercel
 
 # Editor
-.vscode/*
-!.vscode/extensions.json
 .idea
 
 # OS
