@@ -7,6 +7,7 @@ export const DEFAULT_AIRCRAFT_DIST_NM = 20
 
 const DEFAULT_METAR_BASE = '/api/proxy/metar'
 const DEFAULT_AIRCRAFT_POSITIONS_BASE = '/api/proxy/aircraft/positions'
+const DEFAULT_FLIGHT_ROUTE_BASE = '/api/proxy/flight-routes/callsign'
 
 const createTimeoutSignal = (timeoutMs) => (
   typeof AbortSignal !== 'undefined' && AbortSignal.timeout
@@ -80,5 +81,88 @@ export const createAircraftPositionClient = ({
   }
 }
 
+const normalizeAirport = (airport) => {
+  if (!airport) return null
+  const lat = Number(airport.latitude)
+  const lon = Number(airport.longitude)
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null
+
+  return {
+    icao: String(airport.icao_code || '').trim().toUpperCase(),
+    iata: String(airport.iata_code || '').trim().toUpperCase(),
+    name: String(airport.name || '').trim(),
+    municipality: String(airport.municipality || '').trim(),
+    country: String(airport.country_name || '').trim(),
+    lat,
+    lon,
+  }
+}
+
+export const normalizeFlightRoute = (payload) => {
+  const route = payload?.response?.flightroute
+  if (!route) return null
+
+  const origin = normalizeAirport(route.origin)
+  const destination = normalizeAirport(route.destination)
+  if (!origin || !destination || !origin.icao || !destination.icao) return null
+
+  const callsign = String(route.callsign || route.callsign_icao || '').trim().toUpperCase()
+  if (!callsign) return null
+
+  return {
+    callsign,
+    callsignIcao: String(route.callsign_icao || '').trim().toUpperCase(),
+    callsignIata: String(route.callsign_iata || '').trim().toUpperCase(),
+    airlineName: String(route.airline?.name || '').trim(),
+    airlineIcao: String(route.airline?.icao || '').trim().toUpperCase(),
+    airlineIata: String(route.airline?.iata || '').trim().toUpperCase(),
+    origin,
+    destination,
+    source: 'adsbdb',
+  }
+}
+
+const normalizeCallsign = (callsign) =>
+  String(callsign || '').trim().toUpperCase().replace(/\s+/g, '')
+
+export const createFlightRouteClient = ({
+  fetchImpl = globalThis.fetch?.bind(globalThis),
+  baseUrl = env.VITE_FLIGHT_ROUTE_BASE || DEFAULT_FLIGHT_ROUTE_BASE,
+} = {}) => {
+  if (!fetchImpl) throw new Error('Flight route client requires fetch support')
+
+  const auditedFetch = withAuditLogging(fetchImpl, {
+    service: 'adsbdb/FlightRoute',
+    getParams(url) {
+      return { callsign: decodeURIComponent(url.split('/').pop() || '') }
+    },
+  })
+
+  return {
+    async fetchFlightRoute(callsign) {
+      const normalized = normalizeCallsign(callsign)
+      if (!normalized) return null
+
+      const response = await auditedFetch(`${baseUrl}/${encodeURIComponent(normalized)}`, {
+        signal: createTimeoutSignal(10_000),
+        headers: {
+          Accept: 'application/json',
+        },
+      })
+
+      if (response.status === 400 || response.status === 404) return null
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+
+      const body = await response.text()
+      try {
+        return normalizeFlightRoute(JSON.parse(body))
+      } catch {
+        throw new Error(`Expected JSON from ${baseUrl}/${normalized}`)
+      }
+    },
+  }
+}
+
 export const metarClient = createMetarClient()
 export const aircraftPositionClient = createAircraftPositionClient()
+export const flightRouteClient = createFlightRouteClient()

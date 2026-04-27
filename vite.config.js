@@ -25,6 +25,14 @@ export default defineConfig({
           '/v2/lat/$1/lon/$2/dist/$3',
         ),
       },
+      '/api/proxy/flight-routes/callsign': {
+        target: 'https://api.adsbdb.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(
+          /^\/api\/proxy\/flight-routes\/callsign\/([^/]+)$/,
+          '/v0/callsign/$1',
+        ),
+      },
     }
   }
 })

@@ -77,6 +77,10 @@ import {
     calculateAircraftVisualPosition,
     SLOW_AIRCRAFT_THRESHOLD_KT,
 } from "../../utils/aircraftMotion";
+import {
+    countGroundAircraft,
+    shouldShowAirportArea,
+} from "../../utils/airportMapDisplay.js";
 import { AIRCRAFT_COLORS, BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft";
 
 const props = defineProps({
@@ -92,6 +96,7 @@ const mapEl = ref(null);
 const mapReady = ref(false);
 let map = null;
 let sizeObs = null;
+let airportAreaLayer = null;
 // Track markers by icao24 for smooth position updates
 // Entry shape: { marker, color, label, lat, lon, positionTime, correctionLat, correctionLon, ... }
 const acMarkersMap = new Map();
@@ -158,25 +163,7 @@ const initMap = () => {
         },
     ).addTo(map);
 
-    // Airport perimeter box (approx ±0.03° from center)
-    if (props.lat && props.lon) {
-        const d = 0.032;
-        L.polygon(
-            [
-                [props.lat + d, props.lon - d],
-                [props.lat + d, props.lon + d],
-                [props.lat - d, props.lon + d],
-                [props.lat - d, props.lon - d],
-            ],
-            {
-                color: "rgba(255,255,255,0.2)",
-                weight: 1,
-                dashArray: "4 4",
-                fillColor: "rgba(255,255,255,0.02)",
-                fillOpacity: 1,
-            },
-        ).addTo(map);
-    }
+    updateAirportArea();
 
     latStr.value = props.lat
         ? `${Math.abs(props.lat).toFixed(2)}°${props.lat >= 0 ? "N" : "S"}`
@@ -270,12 +257,54 @@ const queueAircraftTelemetrySync = (marker, ac) => {
     requestAnimationFrame(() => syncAircraftTelemetry(marker, ac));
 };
 
+const makeAirportAreaIcon = (groundCount) =>
+    L.divIcon({
+        className: "airport-area-count-icon",
+        html: `<div class="airport-area-count">
+      <span>Ground</span>
+      <strong>${groundCount}</strong>
+    </div>`,
+        iconSize: [76, 38],
+        iconAnchor: [38, 19],
+    });
+
+const updateAirportArea = () => {
+    if (!map) return;
+
+    airportAreaLayer?.removeFrom(map);
+    airportAreaLayer = null;
+
+    if (!props.lat || !props.lon || !shouldShowAirportArea(props.zoom)) return;
+
+    const d = 0.032;
+    const bounds = [
+        [props.lat + d, props.lon - d],
+        [props.lat + d, props.lon + d],
+        [props.lat - d, props.lon + d],
+        [props.lat - d, props.lon - d],
+    ];
+    airportAreaLayer = L.layerGroup([
+        L.polygon(bounds, {
+            color: "rgba(255,255,255,0.2)",
+            weight: 1,
+            dashArray: "4 4",
+            fillColor: "rgba(255,255,255,0.02)",
+            fillOpacity: 1,
+        }),
+        L.marker([props.lat, props.lon], {
+            icon: makeAirportAreaIcon(countGroundAircraft(props.aircraft)),
+            interactive: false,
+        }),
+    ]).addTo(map);
+};
+
 const makeAcIcon = (
     color,
     label,
     rot = 0,
     showArrow = true,
     hasTelemetry = false,
+    routeLabel = "",
 ) => {
     const symbol = showArrow
         ? `<svg width="18" height="18" viewBox="0 0 24 24" style="transform:rotate(${rot}deg);filter:drop-shadow(0 0 4px ${color})">
@@ -285,6 +314,7 @@ const makeAcIcon = (
         <circle cx="3.5" cy="3.5" r="3.5" fill="${color}"/>
        </svg>`;
     const safeLabel = escapeHtml(label);
+    const safeRouteLabel = escapeHtml(routeLabel);
     const labelTop = showArrow && hasTelemetry ? "-4px" : "2px";
     const telemetryLine =
         showArrow && hasTelemetry
@@ -294,13 +324,25 @@ const makeAcIcon = (
         <span data-aircraft-flow="altitude"></span>
       </div>`
             : "";
+    const routeLine = safeRouteLabel
+        ? `<div class="aircraft-route-label">${safeRouteLabel}</div>`
+        : "";
+    const labelClass = safeRouteLabel
+        ? "aircraft-label aircraft-label--route-cycle"
+        : "aircraft-label";
+    const titleLine = safeRouteLabel
+        ? `<div class="aircraft-title-cycle">
+          <div class="aircraft-label-title aircraft-callsign-state">${safeLabel}</div>
+          ${routeLine}
+        </div>`
+        : `<div class="aircraft-label-title">${safeLabel}</div>`;
 
     return L.divIcon({
         className: "",
         html: `<div style="position:relative;display:flex;align-items:center">
       ${symbol}
-      <div class="aircraft-label" style="left:${showArrow ? 22 : 18}px;top:${labelTop};color:${color}">
-        <div class="aircraft-label-title">${safeLabel}</div>
+      <div class="${labelClass}" style="left:${showArrow ? 22 : 18}px;top:${labelTop};color:${color}">
+        ${titleLine}
         ${telemetryLine}
       </div>
     </div>`,
@@ -332,6 +374,7 @@ const updateAircraft = () => {
         const isAnimated = !ac.onGround && showArrow;
         const color = getAircraftColor(ac, showArrow);
         const label = (ac.callsign || ac.icao24 || "").trim();
+        const routeLabel = (ac.flightRouteLabel || "").trim();
         const rot = Math.round(ac.track || 0);
         const hasTelemetry =
             !ac.onGround &&
@@ -357,17 +400,26 @@ const updateAircraft = () => {
                 label !== entry.label ||
                 rot !== entry.rot ||
                 showArrow !== entry.showArrow ||
-                hasTelemetry !== entry.hasTelemetry
+                hasTelemetry !== entry.hasTelemetry ||
+                routeLabel !== entry.routeLabel
             ) {
                 unmountAircraftTelemetry(entry.marker);
                 entry.marker.setIcon(
-                    makeAcIcon(color, label, rot, showArrow, hasTelemetry),
+                    makeAcIcon(
+                        color,
+                        label,
+                        rot,
+                        showArrow,
+                        hasTelemetry,
+                        routeLabel,
+                    ),
                 );
                 entry.color = color;
                 entry.label = label;
                 entry.rot = rot;
                 entry.showArrow = showArrow;
                 entry.hasTelemetry = hasTelemetry;
+                entry.routeLabel = routeLabel;
             }
             if (hasTelemetry) queueAircraftTelemetrySync(entry.marker, ac);
         } else {
@@ -377,7 +429,14 @@ const updateAircraft = () => {
                 now,
             );
             const m = L.marker([visualPosition.lat, visualPosition.lon], {
-                icon: makeAcIcon(color, label, rot, showArrow, hasTelemetry),
+                icon: makeAcIcon(
+                    color,
+                    label,
+                    rot,
+                    showArrow,
+                    hasTelemetry,
+                    routeLabel,
+                ),
             }).addTo(map);
             acMarkersMap.set(ac.icao24, {
                 marker: m,
@@ -386,6 +445,7 @@ const updateAircraft = () => {
                 rot,
                 showArrow,
                 hasTelemetry,
+                routeLabel,
                 ...motionState,
                 velocity: vel,
                 track: ac.track ?? 0,
@@ -403,6 +463,8 @@ const updateAircraft = () => {
             acMarkersMap.delete(id);
         }
     }
+
+    updateAirportArea();
 };
 
 watch(() => props.aircraft, updateAircraft, { deep: true });
@@ -413,13 +475,17 @@ watch(
             map.setView([lat, lon], props.zoom);
             latStr.value = `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"}`;
             lonStr.value = `${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`;
+            updateAirportArea();
         }
     },
 );
 watch(
     () => props.zoom,
     (zoom) => {
-        if (map) map.setZoom(zoom);
+        if (map) {
+            map.setZoom(zoom);
+            updateAirportArea();
+        }
     },
 );
 
@@ -430,6 +496,8 @@ onUnmounted(() => {
     for (const [, entry] of acMarkersMap)
         unmountAircraftTelemetry(entry.marker);
     acMarkersMap.clear();
+    airportAreaLayer?.removeFrom(map);
+    airportAreaLayer = null;
     if (map) {
         map.remove();
         map = null;
@@ -461,6 +529,69 @@ onUnmounted(() => {
     font-size: 10px;
 }
 
+.aircraft-label--route-cycle {
+    min-height: 20px;
+    min-width: 74px;
+}
+
+.aircraft-title-cycle {
+    min-height: 11px;
+    min-width: 74px;
+    position: relative;
+}
+
+.aircraft-callsign-state,
+.aircraft-route-label {
+    transition: opacity 0.32s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.aircraft-label--route-cycle .aircraft-callsign-state {
+    animation: aircraft-callsign-fade 7.2s infinite;
+}
+
+.aircraft-route-label {
+    color: inherit;
+    font-size: 9px;
+    font-weight: 800;
+    left: 0;
+    letter-spacing: 0.4px;
+    line-height: 1.05;
+    opacity: 0;
+    position: absolute;
+    text-shadow:
+        0 0 4px #0a0a0b,
+        0 0 8px #0a0a0b;
+    top: 0;
+}
+
+.aircraft-label--route-cycle .aircraft-route-label {
+    animation: aircraft-route-fade 7.2s infinite;
+}
+
+@keyframes aircraft-callsign-fade {
+    0%,
+    42%,
+    100% {
+        opacity: 1;
+    }
+    50%,
+    84% {
+        opacity: 0;
+    }
+}
+
+@keyframes aircraft-route-fade {
+    0%,
+    42%,
+    100% {
+        opacity: 0;
+    }
+    50%,
+    84% {
+        opacity: 1;
+    }
+}
+
 .aircraft-telemetry {
     align-items: baseline;
     color: rgba(245, 245, 247, 0.86);
@@ -489,5 +620,52 @@ onUnmounted(() => {
 .aircraft-telemetry-separator {
     color: rgba(255, 90, 31, 0.72);
     font-size: 0.9em;
+}
+
+.airport-area-count {
+    align-items: center;
+    background: rgba(10, 10, 11, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    color: rgba(245, 245, 247, 0.86);
+    display: flex;
+    font-family: "JetBrains Mono", monospace;
+    gap: 7px;
+    justify-content: center;
+    min-width: 76px;
+    padding: 7px 8px;
+    text-shadow: 0 0 7px #0a0a0b;
+}
+
+.airport-area-count span {
+    color: rgba(245, 245, 247, 0.46);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.airport-area-count strong {
+    color: var(--atc-mint);
+    font-size: 15px;
+    line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aircraft-label--route-cycle .aircraft-callsign-state,
+    .aircraft-label--route-cycle .aircraft-route-label {
+        animation: none;
+    }
+
+    .aircraft-label--route-cycle .aircraft-callsign-state {
+        opacity: 1;
+    }
+
+    .aircraft-label--route-cycle .aircraft-route-label {
+        display: none;
+    }
 }
 </style>

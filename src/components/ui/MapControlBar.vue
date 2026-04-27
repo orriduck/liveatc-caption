@@ -200,10 +200,11 @@
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from "vue";
-
-const ZOOM_APPROACH = 10;
-const ZOOM_AIRPORT = 13;
-const ZOOM_DETAIL = 14;
+import {
+    ZOOM_AIRPORT,
+    ZOOM_APPROACH,
+    ZOOM_DETAIL,
+} from "../../utils/airportMapDisplay.js";
 
 const VIDEO_ID = "JDQiaRYmTGk";
 
