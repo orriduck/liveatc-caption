@@ -9,6 +9,7 @@
     "test:home-airport-directory": "node src/config/homeAirportDirectory.test.js",
     "test:airport-directory": "node src/services/airportDirectory.test.js",
     "test:aviation-data": "node src/services/aviationData.test.js",
+    "test:vercel-routing": "node src/config/vercelRouting.test.js",
     "test:airport-wiki": "node src/services/airportWiki.test.js",
     "test:metar": "node src/composables/useMetar.test.js",
     "test:aircraft-motion": "node src/utils/aircraftMotion.test.js",

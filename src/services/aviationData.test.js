@@ -9,7 +9,20 @@ import {
 const createJsonResponse = (payload, status = 200) => ({
   ok: status >= 200 && status < 300,
   status,
+  headers: new Map([['content-type', 'application/json']]),
   async json() {
+    return payload
+  },
+  async text() {
+    return JSON.stringify(payload)
+  },
+})
+
+const createTextResponse = (payload, status = 200, contentType = 'text/html') => ({
+  ok: status >= 200 && status < 300,
+  status,
+  headers: new Map([['content-type', contentType]]),
+  async text() {
     return payload
   },
 })
@@ -48,4 +61,25 @@ const createJsonResponse = (payload, status = 200) => ({
 
 {
   assert.equal(DEFAULT_AIRCRAFT_POLL_MS, 3_000)
+}
+
+{
+  const metarClient = createMetarClient({
+    fetchImpl: async () => createTextResponse('<!doctype html><html></html>'),
+  })
+  const aircraftClient = createAircraftPositionClient({
+    fetchImpl: async () => createJsonResponse({ ac: [{ hex: 'def456', lat: 33, lon: -118 }] }),
+  })
+
+  await assert.rejects(
+    () => metarClient.fetchMetar('klax'),
+    /Expected JSON from \/api\/proxy\/metar\/KLAX/,
+  )
+
+  const aircraft = await aircraftClient.fetchNearbyAircraft({
+    lat: 33.9425,
+    lon: -118.4081,
+    distNm: 20,
+  })
+  assert.equal(aircraft.ac[0].hex, 'def456')
 }

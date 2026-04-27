@@ -22,7 +22,12 @@ const fetchJson = async (fetchImpl, url, { timeoutMs = 14_000 } = {}) => {
     },
   })
   if (!response.ok) throw new Error(`HTTP ${response.status}`)
-  return response.json()
+  const body = await response.text()
+  try {
+    return JSON.parse(body)
+  } catch {
+    throw new Error(`Expected JSON from ${url}`)
+  }
 }
 
 export const createMetarClient = ({
