@@ -5,13 +5,13 @@
                 <component :is="Component" />
             </transition>
         </router-view>
+        <Analytics />
     </div>
 </template>
 
 <script setup>
-import { inject as injectAnalytics } from "@vercel/analytics";
+import { Analytics } from "@vercel/analytics/vue";
 import { injectSpeedInsights } from "@vercel/speed-insights";
 
-injectAnalytics();
 injectSpeedInsights();
 </script>
