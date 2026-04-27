@@ -17,7 +17,7 @@
                 :lon="airportLon"
                 :zoom="mapZoom"
                 accent="#FF5A1F"
-                :aircraft="aircraft"
+                :aircraft="aircraftWithRoutes"
             />
         </div>
 
@@ -277,9 +277,12 @@ import MapControlBar from "../ui/MapControlBar.vue";
 import AirportMap from "../map/AirportMap.vue";
 import { useAircraftPositions } from "../../composables/useAircraftPositions.js";
 import { useAirportWiki } from "../../composables/useAirportWiki.js";
+import { useFlightRoutes } from "../../composables/useFlightRoutes.js";
 import { useMetar } from "../../composables/useMetar.js";
 import { AIRCRAFT_COLORS, BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft.js";
 import { SLOW_AIRCRAFT_THRESHOLD_KT } from "../../utils/aircraftMotion.js";
+import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
+import { formatLocalFlightRouteLabel } from "../../utils/flightRouteDisplay.js";
 import { AIRPORT_FALLBACKS, COORDS } from "../../data/airportFallbacks.js";
 
 const props = defineProps({
@@ -291,7 +294,7 @@ const props = defineProps({
 
 defineEmits(["back"]);
 
-const mapZoom = ref(13);
+const mapZoom = ref(ZOOM_APPROACH);
 const activeWeatherView = ref("parsed");
 const mobileMapDim = ref(0);
 const mobileBreadcrumbOpacity = ref(1);
@@ -383,6 +386,30 @@ const airportLon = computed(
 const latRef = computed(() => airportLat.value);
 const lonRef = computed(() => airportLon.value);
 const { aircraft, lastUpdated } = useAircraftPositions(icaoRef, latRef, lonRef);
+const { routesByCallsign } = useFlightRoutes(aircraft);
+
+const normalizeCallsign = (callsign) =>
+    String(callsign || "").trim().toUpperCase().replace(/\s+/g, "");
+
+const aircraftWithRoutes = computed(() =>
+    aircraft.value.map((item) => {
+        const key = normalizeCallsign(item.callsign);
+        const route = routesByCallsign.value[key] || null;
+        const localAirport = {
+            iata: airportCodeLabel.value,
+            icao: props.airport?.icao || props.icao,
+        };
+        return {
+            ...item,
+            flightRoute: route,
+            flightRouteLabel: formatLocalFlightRouteLabel(
+                route,
+                localAirport,
+                item.trafficIntent,
+            ),
+        };
+    }),
+);
 
 const wikiAirport = computed(() => ({
     name: airportName.value,
