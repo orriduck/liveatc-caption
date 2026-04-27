@@ -9,3 +9,16 @@
 
 docs/superpowers
 .vercel
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# OS
+.DS_Store
+
+# Logs & local
+*.log
+*.local
+dist-ssr
