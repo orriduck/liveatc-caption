@@ -13,21 +13,10 @@ ADSBao provides a search-first airport operations view with weather context and 
 - **Minimal proxy**: Vercel external rewrites for AviationWeather METAR and adsb.lol aircraft positions, because those upstream responses do not currently expose browser CORS headers.
 - **Typography**: Google Sans Flex & Google Sans Code.
 
-## Installation (macOS)
-
-Download the latest `.dmg` or `.app.zip` from the [Releases](https://github.com/orriduck/ADSBao/releases) page.
-
-> **Note** — ADSBao is not code-signed with an Apple Developer certificate.
-> On first launch macOS will show a Gatekeeper warning.
-> Open **System Settings → Privacy & Security** and click **Open Anyway**, or run:
-> ```bash
-> xattr -dr com.apple.quarantine "/Applications/ADSBao.app"
-> ```
-
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ & [pnpm](https://pnpm.io/installation)
+- Node.js 24+ & [pnpm](https://pnpm.io/installation)
 
 ### Frontend Setup
 ```bash
