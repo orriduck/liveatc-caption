@@ -66,12 +66,11 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: |
-            frontend/pnpm-lock.yaml
+            pnpm-lock.yaml
             packaging/electron/pnpm-lock.yaml
 
       - name: Build frontend
         run: |
-          cd frontend
           pnpm install --frozen-lockfile
           pnpm run build
 
