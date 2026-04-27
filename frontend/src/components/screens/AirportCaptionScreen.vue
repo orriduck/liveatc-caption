@@ -473,7 +473,7 @@ const coordinatesLabel = computed(() => {
     return `${lat} / ${lon}`;
 });
 
-const BARO_RATE_THRESHOLD_FPM = 200;
+const BARO_RATE_THRESHOLD_FPM = 100;
 const SLOW_KT = 30;
 
 const trafficCounts = computed(() =>
