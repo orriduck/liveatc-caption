@@ -152,6 +152,7 @@
   --glass-card-glint-soft: rgba(255,255,255,0.14);
   --glass-card-border: rgba(0,0,0,0.12);
   --glass-card-inset: rgba(255,255,255,0.3);
+  --traffic-level-color: #64748b;
 }
 
 :root[data-theme='dark'] {
@@ -174,6 +175,7 @@
   --glass-card-glint-soft: rgba(255,255,255,0.03);
   --glass-card-border: rgba(255,255,255,0.13);
   --glass-card-inset: rgba(255,255,255,0.14);
+  --traffic-level-color: #94a3b8;
 }
 
 body {

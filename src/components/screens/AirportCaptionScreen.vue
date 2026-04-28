@@ -208,7 +208,7 @@
                     <div class="traffic-counts">
                         <div>
                             <span>Total</span>
-                            <strong
+                            <strong style="color: var(--atc-text)"
                                 ><NumberFlow :value="aircraft.length"
                             /></strong>
                         </div>
@@ -226,7 +226,7 @@
                         </div>
                         <div>
                             <span>Level</span>
-                            <strong :style="{ color: AIRCRAFT_COLORS.level }"
+                            <strong :style="{ color: 'var(--traffic-level-color)' }"
                                 ><NumberFlow :value="trafficCounts.level"
                             /></strong>
                         </div>
