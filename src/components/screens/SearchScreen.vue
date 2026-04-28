@@ -2,10 +2,21 @@
   <div class="min-h-screen bg-atc-bg bg-[radial-gradient(circle_at_22%_12%,rgba(255,90,31,0.22),transparent_32%),radial-gradient(circle_at_78%_80%,rgba(255,255,255,0.045),transparent_34%),linear-gradient(135deg,rgba(255,90,31,0.08),transparent_38%)] text-atc-text">
     <main class="grid min-h-screen place-items-start px-5 py-6 sm:place-items-center sm:p-10 lg:p-14">
       <section class="w-full max-w-[860px]">
-        <div class="mb-4 flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[1.4px] text-atc-dim">
-          <span class="text-atc-text">ADSBao</span>
-          <span class="text-atc-orange">/</span>
-          <span>Airport search</span>
+        <div class="mb-4 flex items-center justify-between gap-2.5 font-mono text-[11px] uppercase tracking-[1.4px] text-atc-dim">
+          <div class="flex items-center gap-2.5">
+            <span class="text-atc-text">ADSBao</span>
+            <span class="text-atc-orange">/</span>
+            <span>Airport search</span>
+          </div>
+          <button
+            type="button"
+            class="inline-flex h-8 items-center gap-1.5 rounded-full border border-atc-line-strong/70 bg-atc-card/65 px-3 text-[10px] tracking-[1.2px] text-atc-dim transition hover:border-atc-orange/45 hover:text-atc-text"
+            :title="themeTitle"
+            @click="cycleTheme"
+          >
+            <ThemeModeIcon class="h-3.5 w-3.5" :theme="themePreference" />
+            <span>{{ themePreference }}</span>
+          </button>
         </div>
 
         <label
@@ -84,10 +95,20 @@
 </template>
 
 <script setup>
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
 import { airportDirectoryClient } from '../../services/airportDirectory.js'
 import { HOME_AIRPORT_COUNTRY } from '../../config/homeAirportDirectory.js'
 import { airportSubtitle } from '../../utils/airport.js'
+import ThemeModeIcon from '../ui/icons/ThemeModeIcon.vue'
+import {
+  THEME_DARK,
+  THEME_LIGHT,
+  THEME_SYSTEM,
+  applyThemePreference,
+  initThemePreference,
+  nextTheme,
+  writeStoredTheme,
+} from '../../utils/theme.js'
 
 const emit = defineEmits(['open-airport'])
 
@@ -168,6 +189,22 @@ const featuredAirports = [
 
 let searchTimer = null
 let activeRequestId = 0
+const themePreference = ref(THEME_SYSTEM)
+let mediaQueryList = null
+let mediaQueryListener = null
+
+const themeTitle = computed(() => {
+  if (themePreference.value === THEME_LIGHT) return 'Theme: Light (click to switch)'
+  if (themePreference.value === THEME_DARK) return 'Theme: Dark (click to switch)'
+  return 'Theme: System (click to switch)'
+})
+
+const cycleTheme = () => {
+  const next = nextTheme(themePreference.value)
+  themePreference.value = next
+  writeStoredTheme(next)
+  applyThemePreference({ theme: next, mediaQueryList })
+}
 
 const searchRows = computed(() => {
   const query = q.value.trim().toUpperCase()
@@ -273,6 +310,23 @@ watch(q, (value) => {
   searchTimer = setTimeout(() => {
     loadAirports(value)
   }, value.trim() ? 220 : 0)
+})
+
+onMounted(() => {
+  mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)')
+  themePreference.value = initThemePreference({ mediaQueryList }).preference
+  mediaQueryListener = () => {
+    if (themePreference.value === THEME_SYSTEM) {
+      applyThemePreference({ theme: THEME_SYSTEM, mediaQueryList })
+    }
+  }
+  mediaQueryList.addEventListener('change', mediaQueryListener)
+})
+
+onBeforeUnmount(() => {
+  if (mediaQueryList && mediaQueryListener) {
+    mediaQueryList.removeEventListener('change', mediaQueryListener)
+  }
 })
 
 onUnmounted(() => {
