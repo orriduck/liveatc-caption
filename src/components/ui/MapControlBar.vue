@@ -162,36 +162,40 @@
                 </svg>
             </button>
 
-            <button
-                class="ctrl-btn ctrl-liveatc"
-                disabled
-                title="LiveATC (coming soon)"
-            >
+            <button class="ctrl-btn ctrl-theme" :title="themeTitle" @click="cycleTheme">
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <line
-                        x1="10"
-                        y1="15"
-                        x2="10"
-                        y2="9"
-                        stroke="currentColor"
-                        stroke-width="1.4"
-                        stroke-linecap="round"
+                    <circle
+                        v-if="currentTheme === THEME_LIGHT"
+                        cx="10"
+                        cy="10"
+                        r="3.1"
+                        fill="currentColor"
                     />
-                    <path
-                        d="M7 12 Q10 9 13 12"
-                        stroke="currentColor"
-                        stroke-width="1.4"
+                    <g
+                        v-if="currentTheme === THEME_LIGHT"
                         fill="none"
-                        stroke-linecap="round"
-                    />
-                    <path
-                        d="M4.5 14.5 Q10 7 15.5 14.5"
                         stroke="currentColor"
-                        stroke-width="1.4"
-                        fill="none"
+                        stroke-width="1.3"
                         stroke-linecap="round"
+                    >
+                        <line x1="10" y1="2.3" x2="10" y2="4.3" />
+                        <line x1="10" y1="15.7" x2="10" y2="17.7" />
+                        <line x1="2.3" y1="10" x2="4.3" y2="10" />
+                        <line x1="15.7" y1="10" x2="17.7" y2="10" />
+                        <line x1="4.4" y1="4.4" x2="5.8" y2="5.8" />
+                        <line x1="14.2" y1="14.2" x2="15.6" y2="15.6" />
+                        <line x1="14.2" y1="5.8" x2="15.6" y2="4.4" />
+                        <line x1="4.4" y1="15.6" x2="5.8" y2="14.2" />
+                    </g>
+                    <path
+                        v-else-if="currentTheme === THEME_DARK"
+                        d="M13.6 2.7A6.8 6.8 0 1 0 17.3 10a7.1 7.1 0 0 1-3.7-7.3z"
+                        fill="currentColor"
                     />
-                    <circle cx="10" cy="16.5" r="1.2" fill="currentColor" />
+                    <g v-else stroke="currentColor" stroke-width="1.2" fill="none">
+                        <rect x="3" y="4.2" width="14" height="9.2" rx="1.3" />
+                        <line x1="7.2" y1="16.4" x2="12.8" y2="16.4" />
+                    </g>
                 </svg>
             </button>
         </div>
@@ -199,16 +203,25 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import {
     ZOOM_AIRPORT,
     ZOOM_APPROACH,
     ZOOM_DETAIL,
 } from "../../utils/airportMapDisplay.js";
+import {
+    THEME_DARK,
+    THEME_LIGHT,
+    THEME_SYSTEM,
+    applyThemePreference,
+    initThemePreference,
+    nextTheme,
+    writeStoredTheme,
+} from "../../utils/theme.js";
 
 const VIDEO_ID = "JDQiaRYmTGk";
 
-const props = defineProps({
+defineProps({
     activeZoom: { type: Number, default: ZOOM_AIRPORT },
 });
 
@@ -217,7 +230,23 @@ defineEmits(["zoom"]);
 const playerEl = ref(null);
 const playing = ref(false);
 const audioReady = ref(false);
+const currentTheme = ref(THEME_SYSTEM);
 let player = null;
+let mediaQueryList = null;
+let mediaQueryListener = null;
+
+const themeTitle = computed(() => {
+    if (currentTheme.value === THEME_LIGHT) return "Theme: Light (click to switch)";
+    if (currentTheme.value === THEME_DARK) return "Theme: Dark (click to switch)";
+    return "Theme: System (click to switch)";
+});
+
+const cycleTheme = () => {
+    const next = nextTheme(currentTheme.value);
+    currentTheme.value = next;
+    writeStoredTheme(next);
+    applyThemePreference({ theme: next, mediaQueryList });
+};
 
 const loadApi = () =>
     new Promise((resolve) => {
@@ -238,6 +267,15 @@ const loadApi = () =>
     });
 
 onMounted(async () => {
+    mediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
+    currentTheme.value = initThemePreference({ mediaQueryList }).preference;
+    mediaQueryListener = () => {
+        if (currentTheme.value === THEME_SYSTEM) {
+            applyThemePreference({ theme: THEME_SYSTEM, mediaQueryList });
+        }
+    };
+    mediaQueryList.addEventListener("change", mediaQueryListener);
+
     await loadApi();
     player = new window.YT.Player(playerEl.value, {
         height: 1,
@@ -263,6 +301,9 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    if (mediaQueryList && mediaQueryListener) {
+        mediaQueryList.removeEventListener("change", mediaQueryListener);
+    }
     player?.destroy();
     player = null;
 });
@@ -453,15 +494,7 @@ const toggleAudio = () => {
     animation-delay: -0.72s;
 }
 
-/* ── LiveATC disabled ─────────────────────── */
-.ctrl-liveatc {
-    cursor: not-allowed;
-    opacity: 0.28;
-}
-
-.ctrl-liveatc:hover {
-    background: transparent;
-    border-color: transparent;
-    color: rgba(245, 245, 247, 0.38);
+.ctrl-theme {
+    color: rgba(245, 245, 247, 0.7);
 }
 </style>
