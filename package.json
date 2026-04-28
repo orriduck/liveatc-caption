@@ -13,6 +13,7 @@
     "test:airport-wiki": "node src/services/airportWiki.test.js",
     "test:flight-route-display": "node src/utils/flightRouteDisplay.test.js",
     "test:airport-map-display": "node src/utils/airportMapDisplay.test.js",
+    "test:theme": "node src/utils/theme.test.js",
     "test:metar": "node src/composables/useMetar.test.js",
     "test:aircraft-motion": "node src/utils/aircraftMotion.test.js",
     "test:aircraft-traffic-intent": "node src/utils/aircraftTrafficIntent.test.js",

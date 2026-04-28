@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-atc-bg bg-[radial-gradient(circle_at_22%_12%,rgba(255,90,31,0.22),transparent_32%),radial-gradient(circle_at_78%_80%,rgba(255,255,255,0.045),transparent_34%),linear-gradient(135deg,rgba(255,90,31,0.08),transparent_38%)] text-atc-text">
+  <div class="min-h-screen bg-atc-bg bg-[image:var(--atc-page-glow)] text-atc-text">
     <main class="grid min-h-screen place-items-start px-5 py-6 sm:place-items-center sm:p-10 lg:p-14">
       <section class="w-full max-w-[860px]">
         <div class="mb-4 flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[1.4px] text-atc-dim">
@@ -9,8 +9,8 @@
         </div>
 
         <label
-          class="input flex h-auto w-full items-center gap-3 rounded-[26px] border-white/20 bg-[linear-gradient(145deg,rgba(38,40,46,0.9),rgba(17,18,22,0.84))] px-4 py-4 text-atc-text shadow-[0_26px_90px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] transition-[border-color,box-shadow] duration-150 sm:gap-3.5 sm:px-5 sm:py-5"
-          :class="{ 'border-atc-orange/70 shadow-[0_30px_100px_rgba(0,0,0,0.42),0_0_0_1px_rgba(255,90,31,0.18)_inset]': focused }"
+          class="input flex h-auto w-full items-center gap-3 rounded-[26px] border-[var(--atc-line-strong)] bg-[image:var(--atc-search-gradient)] px-4 py-4 text-atc-text shadow-[var(--atc-search-shadow)] transition-[border-color,box-shadow] duration-150 sm:gap-3.5 sm:px-5 sm:py-5"
+          :class="{ 'border-atc-orange/70 shadow-[var(--atc-search-focus-shadow)]': focused }"
         >
           <svg class="shrink-0 text-atc-orange" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8" />
@@ -25,13 +25,13 @@
             class="min-w-0 flex-1 border-0 bg-transparent p-0 text-2xl font-extrabold tracking-normal text-atc-text outline-none placeholder:text-atc-dim sm:text-3xl"
             placeholder="Search by ICAO, IATA, city, or airport name"
           />
-          <kbd class="kbd hidden shrink-0 border-white/10 bg-transparent font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
+          <kbd class="kbd hidden shrink-0 border-[var(--atc-soft-border)] bg-transparent font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
             {{ searchLoading ? '...' : 'enter' }}
           </kbd>
         </label>
 
         <div v-if="q.trim()" class="mt-5">
-          <div class="flex items-center justify-between border-b border-white/10 pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
+          <div class="flex items-center justify-between border-b border-atc-line pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
             <span>Search results</span>
             <span>{{ resultCountLabel }}</span>
           </div>
@@ -43,7 +43,7 @@
             <button
               v-for="airport in searchRows"
               :key="airport.icao || airport.code || airport.name"
-              class="btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 rounded-[18px] border-white/15 bg-white/[0.06] px-4 py-3.5 text-left font-sans normal-case text-atc-text hover:-translate-y-px hover:border-atc-orange/40 hover:bg-white/[0.09] sm:grid-cols-[86px_minmax(0,1fr)_auto]"
+              class="btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 rounded-[18px] border-[var(--atc-muted-border)] !bg-[var(--atc-row-bg)] px-4 py-3.5 text-left font-sans normal-case !text-atc-text hover:-translate-y-px hover:border-atc-orange/40 hover:!bg-[var(--atc-row-hover-bg)] sm:grid-cols-[86px_minmax(0,1fr)_auto]"
               @click="openAirport(airport)"
             >
               <span class="font-display text-[32px] italic leading-[0.8] text-atc-orange sm:text-[38px]">{{ airport.iata || airport.icao || airport.code }}</span>
@@ -57,7 +57,7 @@
         </div>
 
         <div v-else class="mt-5">
-          <div class="flex items-center justify-between border-b border-white/10 pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
+          <div class="flex items-center justify-between border-b border-atc-line pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
             <span>Featured airports</span>
             <span>{{ featuredAirports.length }}</span>
           </div>
@@ -66,7 +66,7 @@
             <button
               v-for="airport in featuredAirports"
               :key="airport.icao"
-              class="btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 rounded-[18px] border-white/15 bg-white/[0.06] px-4 py-3.5 text-left font-sans normal-case text-atc-text first:bg-[linear-gradient(100deg,rgba(255,90,31,0.16),rgba(255,255,255,0.065))] hover:-translate-y-px hover:border-atc-orange/40 hover:bg-white/[0.09] sm:grid-cols-[86px_minmax(0,1fr)_auto]"
+              class="btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 rounded-[18px] border-[var(--atc-muted-border)] !bg-[var(--atc-row-bg)] px-4 py-3.5 text-left font-sans normal-case !text-atc-text first:!bg-[image:var(--atc-row-featured-bg)] hover:-translate-y-px hover:border-atc-orange/40 hover:!bg-[var(--atc-row-hover-bg)] sm:grid-cols-[86px_minmax(0,1fr)_auto]"
               @click="openAirport(airport)"
             >
               <span class="font-display text-[32px] italic leading-[0.8] text-atc-orange sm:text-[38px]">{{ airport.iata }}</span>

@@ -7,7 +7,7 @@
   logs: false;
 }
 @plugin "daisyui/theme" {
-  name: "adsbao";
+  name: "adsbao-dark";
   default: true;
   prefersdark: true;
   color-scheme: dark;
@@ -42,21 +42,55 @@
   --depth: 0;
   --noise: 0;
 }
+@plugin "daisyui/theme" {
+  name: "adsbao-light";
+  color-scheme: light;
+
+  --color-base-100: #f7f2ea;
+  --color-base-200: #fffaf3;
+  --color-base-300: #e9dfd2;
+  --color-base-content: #191614;
+  --color-primary: #FF5A1F;
+  --color-primary-content: #191614;
+  --color-secondary: #047857;
+  --color-secondary-content: #fffaf3;
+  --color-accent: #047857;
+  --color-accent-content: #fffaf3;
+  --color-neutral: #eee4d8;
+  --color-neutral-content: #191614;
+  --color-info: #2563eb;
+  --color-info-content: #fffaf3;
+  --color-success: #047857;
+  --color-success-content: #fffaf3;
+  --color-warning: #b45309;
+  --color-warning-content: #fffaf3;
+  --color-error: #dc2626;
+  --color-error-content: #fffaf3;
+
+  --radius-selector: 999px;
+  --radius-field: 1rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
 
 @theme {
-  --color-atc-bg: #0a0a0b;
-  --color-atc-card: #151518;
-  --color-atc-elev: #1d1d22;
-  --color-atc-high: #27272e;
-  --color-atc-orange: #FF5A1F;
-  --color-atc-orange-soft: rgba(255,90,31,0.12);
-  --color-atc-mint: #34d399;
-  --color-atc-red: #ff3b30;
-  --color-atc-text: #f5f5f7;
-  --color-atc-dim: rgba(245,245,247,0.62);
-  --color-atc-faint: rgba(245,245,247,0.38);
-  --color-atc-line: rgba(255,255,255,0.08);
-  --color-atc-line-strong: rgba(255,255,255,0.16);
+  --color-atc-bg: var(--atc-bg);
+  --color-atc-card: var(--atc-card);
+  --color-atc-elev: var(--atc-elev);
+  --color-atc-high: var(--atc-high);
+  --color-atc-orange: var(--atc-orange);
+  --color-atc-orange-soft: var(--atc-orange-soft);
+  --color-atc-mint: var(--atc-mint);
+  --color-atc-red: var(--atc-red);
+  --color-atc-text: var(--atc-text);
+  --color-atc-dim: var(--atc-dim);
+  --color-atc-faint: var(--atc-faint);
+  --color-atc-line: var(--atc-line);
+  --color-atc-line-strong: var(--atc-line-strong);
 
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Instrument Serif", "Playfair Display", Georgia, serif;
@@ -120,6 +154,44 @@
   --atc-faint:       rgba(245,245,247,0.38);
   --atc-line:        rgba(255,255,255,0.08);
   --atc-line-strong: rgba(255,255,255,0.16);
+  --atc-page-glow: radial-gradient(circle at 22% 12%, rgba(255,90,31,0.22), transparent 32%),
+    radial-gradient(circle at 78% 80%, rgba(255,255,255,0.045), transparent 34%),
+    linear-gradient(135deg, rgba(255,90,31,0.08), transparent 38%);
+  --atc-search-gradient: linear-gradient(145deg, rgba(38,40,46,0.9), rgba(17,18,22,0.84));
+  --atc-search-shadow: 0 26px 90px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08);
+  --atc-search-focus-shadow: 0 30px 100px rgba(0,0,0,0.42), 0 0 0 1px rgba(255,90,31,0.18) inset;
+  --atc-muted-border: rgba(255,255,255,0.13);
+  --atc-soft-border: rgba(255,255,255,0.1);
+  --atc-row-bg: rgba(255,255,255,0.06);
+  --atc-row-hover-bg: rgba(255,255,255,0.09);
+  --atc-row-featured-bg: linear-gradient(100deg, rgba(255,90,31,0.16), rgba(255,255,255,0.065));
+}
+
+[data-theme="adsbao-light"] {
+  --atc-bg:          #f7f2ea;
+  --atc-card:        #fffaf3;
+  --atc-elev:        #eee4d8;
+  --atc-high:        #e3d5c4;
+  --atc-orange:      #e84f17;
+  --atc-orange-soft: rgba(232,79,23,0.13);
+  --atc-mint:        #047857;
+  --atc-red:         #dc2626;
+  --atc-text:        #191614;
+  --atc-dim:         rgba(25,22,20,0.68);
+  --atc-faint:       rgba(25,22,20,0.45);
+  --atc-line:        rgba(75,55,35,0.14);
+  --atc-line-strong: rgba(75,55,35,0.26);
+  --atc-page-glow: radial-gradient(circle at 20% 12%, rgba(255,90,31,0.2), transparent 34%),
+    radial-gradient(circle at 84% 78%, rgba(25,22,20,0.075), transparent 34%),
+    linear-gradient(135deg, rgba(255,90,31,0.1), transparent 42%);
+  --atc-search-gradient: linear-gradient(145deg, rgba(255,250,243,0.94), rgba(240,230,216,0.88));
+  --atc-search-shadow: 0 24px 80px rgba(91,66,38,0.18), inset 0 1px 0 rgba(255,255,255,0.75);
+  --atc-search-focus-shadow: 0 28px 84px rgba(91,66,38,0.2), 0 0 0 1px rgba(232,79,23,0.18) inset;
+  --atc-muted-border: rgba(75,55,35,0.18);
+  --atc-soft-border: rgba(75,55,35,0.12);
+  --atc-row-bg: rgba(255,250,243,0.7);
+  --atc-row-hover-bg: rgba(255,250,243,0.92);
+  --atc-row-featured-bg: linear-gradient(100deg, rgba(255,90,31,0.16), rgba(255,250,243,0.82));
 }
 
 body {

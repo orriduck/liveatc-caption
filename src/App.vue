@@ -5,6 +5,9 @@
                 <component :is="Component" />
             </transition>
         </router-view>
+        <div class="fixed right-4 top-4 z-50">
+            <ThemeSwitcher />
+        </div>
         <Analytics />
     </div>
     <SpeedInsights />
@@ -13,4 +16,5 @@
 <script setup>
 import { SpeedInsights } from "@vercel/speed-insights/vue";
 import { Analytics } from "@vercel/analytics/vue";
+import ThemeSwitcher from "./components/ThemeSwitcher.vue";
 </script>
