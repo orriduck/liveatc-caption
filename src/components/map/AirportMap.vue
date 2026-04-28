@@ -76,7 +76,6 @@ import {
     SLOW_AIRCRAFT_THRESHOLD_KT,
 } from "../../utils/aircraftMotion";
 import {
-    countGroundAircraft,
     shouldShowAirportArea,
 } from "../../utils/airportMapDisplay.js";
 import { AIRCRAFT_COLORS, BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft";
@@ -293,17 +292,6 @@ const queueAircraftTelemetrySync = (marker, ac) => {
     requestAnimationFrame(() => syncAircraftTelemetry(marker, ac));
 };
 
-const makeAirportAreaIcon = (groundCount) =>
-    L.divIcon({
-        className: "airport-area-count-icon",
-        html: `<div class="airport-area-count">
-      <span>Ground</span>
-      <strong>${groundCount}</strong>
-    </div>`,
-        iconSize: [76, 38],
-        iconAnchor: [38, 19],
-    });
-
 const updateAirportArea = () => {
     if (!map) return;
 
@@ -335,10 +323,6 @@ const updateAirportArea = () => {
             dashArray: "4 4",
             fillColor,
             fillOpacity: 1,
-        }),
-        L.marker([props.lat, props.lon], {
-            icon: makeAirportAreaIcon(countGroundAircraft(props.aircraft)),
-            interactive: false,
         }),
     ]).addTo(map);
 };
@@ -398,7 +382,9 @@ const makeAcIcon = (
 
 const getAircraftColor = (ac, showArrow) => {
     if (ac.onGround) return AIRCRAFT_COLORS.ground;
-    if (!showArrow || ac.baroRate == null) return AIRCRAFT_COLORS.level;
+    if (!showArrow || ac.baroRate == null) {
+        return currentTheme.value === "light" ? "#475569" : AIRCRAFT_COLORS.level;
+    }
     if (ac.baroRate >= BARO_RATE_THRESHOLD_FPM)
         return AIRCRAFT_COLORS.ascending;
     if (ac.baroRate < -BARO_RATE_THRESHOLD_FPM)
@@ -578,20 +564,12 @@ onUnmounted(() => {
     --map-label-glow: rgba(248, 250, 252, 0.95);
     --map-telemetry-color: rgba(18, 21, 26, 0.8);
     --map-telemetry-dim: rgba(18, 21, 26, 0.5);
-    --map-airport-pill-bg: rgba(248, 250, 252, 0.72);
-    --map-airport-pill-border: rgba(18, 21, 26, 0.13);
-    --map-airport-pill-text: rgba(18, 21, 26, 0.84);
-    --map-airport-pill-dim: rgba(18, 21, 26, 0.5);
 }
 
 :root[data-theme="dark"] {
     --map-label-glow: #0a0a0b;
     --map-telemetry-color: rgba(245, 245, 247, 0.86);
     --map-telemetry-dim: rgba(245, 245, 247, 0.54);
-    --map-airport-pill-bg: rgba(10, 10, 11, 0.7);
-    --map-airport-pill-border: rgba(255, 255, 255, 0.14);
-    --map-airport-pill-text: rgba(245, 245, 247, 0.86);
-    --map-airport-pill-dim: rgba(245, 245, 247, 0.46);
 }
 
 /* No CSS transition — fast aircraft use RAF dead-reckoning; slow/ground aircraft
@@ -716,38 +694,6 @@ onUnmounted(() => {
 .aircraft-telemetry-separator {
     color: rgba(255, 90, 31, 0.72);
     font-size: 0.9em;
-}
-
-.airport-area-count {
-    align-items: center;
-    background: var(--map-airport-pill-bg);
-    border: 1px solid var(--map-airport-pill-border);
-    border-radius: 10px;
-    box-shadow:
-        0 8px 24px rgba(0, 0, 0, 0.26),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    color: var(--map-airport-pill-text);
-    display: flex;
-    font-family: "JetBrains Mono", monospace;
-    gap: 7px;
-    justify-content: center;
-    min-width: 76px;
-    padding: 7px 8px;
-    text-shadow: 0 0 7px var(--map-label-glow);
-}
-
-.airport-area-count span {
-    color: var(--map-airport-pill-dim);
-    font-size: 8px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.airport-area-count strong {
-    color: var(--atc-mint);
-    font-size: 15px;
-    line-height: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

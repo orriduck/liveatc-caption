@@ -680,15 +680,15 @@ const formatObsTime = (value) => {
 .glass-panel {
     background: linear-gradient(
         145deg,
-        color-mix(in oklab, var(--atc-card) 78%, transparent),
-        color-mix(in oklab, var(--atc-elev) 86%, transparent)
+        var(--glass-card-top),
+        var(--glass-card-bottom)
     );
-    border: 1px solid var(--atc-line-strong);
+    border: 1px solid var(--glass-card-border);
     border-radius: 24px;
     box-shadow:
         0 8px 24px rgba(0, 0, 0, 0.18),
         0 24px 64px rgba(0, 0, 0, 0.22),
-        inset 0 1px 0 color-mix(in oklab, var(--atc-line-strong) 90%, transparent);
+        inset 0 1px 0 var(--glass-card-inset);
     max-height: 250px;
     min-width: 0;
     overflow: hidden;
@@ -701,8 +701,8 @@ const formatObsTime = (value) => {
 .glass-panel::before {
     background: linear-gradient(
         120deg,
-        color-mix(in oklab, var(--atc-line-strong) 84%, transparent) 0%,
-        color-mix(in oklab, var(--atc-line) 64%, transparent) 45%,
+        var(--glass-card-glint-strong) 0%,
+        var(--glass-card-glint-soft) 45%,
         transparent 60%
     );
     content: "";

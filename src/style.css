@@ -146,6 +146,12 @@
   --atc-faint:       rgba(18,21,26,0.45);
   --atc-line:        rgba(0,0,0,0.08);
   --atc-line-strong: rgba(0,0,0,0.16);
+  --glass-card-top: rgba(255,255,255,0.34);
+  --glass-card-bottom: rgba(229,234,241,0.46);
+  --glass-card-glint-strong: rgba(255,255,255,0.35);
+  --glass-card-glint-soft: rgba(255,255,255,0.14);
+  --glass-card-border: rgba(0,0,0,0.12);
+  --glass-card-inset: rgba(255,255,255,0.3);
 }
 
 :root[data-theme='dark'] {
@@ -162,6 +168,12 @@
   --atc-faint:       rgba(245,245,247,0.38);
   --atc-line:        rgba(255,255,255,0.08);
   --atc-line-strong: rgba(255,255,255,0.16);
+  --glass-card-top: rgba(38,40,46,0.2);
+  --glass-card-bottom: rgba(14,16,20,0.34);
+  --glass-card-glint-strong: rgba(255,255,255,0.1);
+  --glass-card-glint-soft: rgba(255,255,255,0.03);
+  --glass-card-border: rgba(255,255,255,0.13);
+  --glass-card-inset: rgba(255,255,255,0.14);
 }
 
 body {
