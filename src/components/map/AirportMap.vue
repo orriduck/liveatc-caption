@@ -3,33 +3,30 @@
         <div
             ref="mapEl"
             class="w-full h-full rounded-lg"
-            style="background: #0e0e12"
+            :style="{ background: mapBackground }"
         />
 
         <!-- Overlay chrome -->
         <div
             class="absolute top-3 left-3.5 pointer-events-none font-mono text-[10px] tracking-[2px] font-semibold"
-            :style="`color:${accent};text-shadow:0 0 6px #0a0a0b`"
+            :style="{
+                color: accent,
+                textShadow: `0 0 6px ${mapLabelShadowColor}`,
+            }"
         >
             ● {{ icao }} · {{ latStr }} {{ lonStr }}
         </div>
         <div
             class="absolute bottom-3 right-3 pointer-events-none font-sans text-[9px] whitespace-nowrap"
-            style="
-                color: rgba(245, 245, 247, 0.28);
-                text-shadow: 0 0 6px #0a0a0b;
-            "
+            :style="{
+                color: mapAttributionColor,
+                textShadow: `0 0 6px ${mapLabelShadowColor}`,
+            }"
         >
             © OpenStreetMap · CartoDB
         </div>
         <div
-            class="absolute right-3 top-[168px] pointer-events-none flex max-w-[calc(100%-24px)] flex-wrap gap-2 rounded border border-white/10 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.8px]"
-            style="
-                background: rgba(10, 10, 11, 0.58);
-                backdrop-filter: blur(10px);
-                color: rgba(245, 245, 247, 0.72);
-                text-shadow: 0 0 6px #0a0a0b;
-            "
+            class="map-traffic-legend absolute right-3 top-[168px] pointer-events-none flex max-w-[calc(100%-24px)] flex-wrap gap-2 rounded px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.8px]"
         >
             <span
                 v-for="item in trafficLegend"
@@ -62,6 +59,7 @@
 <script setup>
 import {
     createApp,
+    computed,
     h,
     ref,
     shallowRef,
@@ -94,15 +92,68 @@ const props = defineProps({
 
 const mapEl = ref(null);
 const mapReady = ref(false);
+const currentTheme = ref("dark");
 let map = null;
 let sizeObs = null;
 let airportAreaLayer = null;
+let baseTileLayer = null;
+let labelTileLayer = null;
+let themeObs = null;
 // Track markers by icao24 for smooth position updates
 // Entry shape: { marker, color, label, lat, lon, positionTime, correctionLat, correctionLon, ... }
 const acMarkersMap = new Map();
 
 const latStr = ref("");
 const lonStr = ref("");
+const mapBackground = computed(() =>
+    currentTheme.value === "light" ? "#d6dde8" : "#0e0e12",
+);
+const mapLabelShadowColor = computed(() =>
+    currentTheme.value === "light" ? "rgba(248,250,252,0.95)" : "#0a0a0b",
+);
+const mapAttributionColor = computed(() =>
+    currentTheme.value === "light"
+        ? "rgba(18,21,26,0.45)"
+        : "rgba(245,245,247,0.28)",
+);
+
+const TILE_VARIANTS = {
+    light: {
+        base: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}@2x.png",
+        labels:
+            "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}@2x.png",
+        labelOpacity: 0.66,
+    },
+    dark: {
+        base: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}@2x.png",
+        labels:
+            "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}@2x.png",
+        labelOpacity: 0.55,
+    },
+};
+
+const resolveCurrentTheme = () =>
+    document.documentElement.getAttribute("data-theme") === "light"
+        ? "light"
+        : "dark";
+
+const updateTileLayers = () => {
+    if (!map) return;
+
+    baseTileLayer?.removeFrom(map);
+    labelTileLayer?.removeFrom(map);
+
+    const variant = TILE_VARIANTS[currentTheme.value] || TILE_VARIANTS.dark;
+    baseTileLayer = L.tileLayer(variant.base, {
+        subdomains: "abcd",
+        maxZoom: 20,
+    }).addTo(map);
+    labelTileLayer = L.tileLayer(variant.labels, {
+        subdomains: "abcd",
+        maxZoom: 20,
+        opacity: variant.labelOpacity,
+    }).addTo(map);
+};
 
 const trafficLegend = [
     { id: "ascending", label: "ASC", color: AIRCRAFT_COLORS.ascending },
@@ -146,22 +197,7 @@ const initMap = () => {
         dragging: false,
     });
 
-    // CartoDB Dark Matter — no auth needed
-    L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}@2x.png",
-        {
-            subdomains: "abcd",
-            maxZoom: 20,
-        },
-    ).addTo(map);
-    L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}@2x.png",
-        {
-            subdomains: "abcd",
-            maxZoom: 20,
-            opacity: 0.55,
-        },
-    ).addTo(map);
+    updateTileLayers();
 
     updateAirportArea();
 
@@ -276,6 +312,15 @@ const updateAirportArea = () => {
 
     if (!props.lat || !props.lon || !shouldShowAirportArea(props.zoom)) return;
 
+    const borderColor =
+        currentTheme.value === "light"
+            ? "rgba(18,21,26,0.2)"
+            : "rgba(255,255,255,0.2)";
+    const fillColor =
+        currentTheme.value === "light"
+            ? "rgba(18,21,26,0.045)"
+            : "rgba(255,255,255,0.02)";
+
     const d = 0.032;
     const bounds = [
         [props.lat + d, props.lon - d],
@@ -285,10 +330,10 @@ const updateAirportArea = () => {
     ];
     airportAreaLayer = L.layerGroup([
         L.polygon(bounds, {
-            color: "rgba(255,255,255,0.2)",
+            color: borderColor,
             weight: 1,
             dashArray: "4 4",
-            fillColor: "rgba(255,255,255,0.02)",
+            fillColor,
             fillOpacity: 1,
         }),
         L.marker([props.lat, props.lon], {
@@ -469,6 +514,14 @@ const updateAircraft = () => {
 
 watch(() => props.aircraft, updateAircraft, { deep: true });
 watch(
+    () => currentTheme.value,
+    () => {
+        updateTileLayers();
+        updateAirportArea();
+    },
+);
+
+watch(
     () => [props.lat, props.lon],
     ([lat, lon]) => {
         if (map && lat && lon) {
@@ -489,7 +542,18 @@ watch(
     },
 );
 
-onMounted(initMap);
+onMounted(() => {
+    currentTheme.value = resolveCurrentTheme();
+    initMap();
+    themeObs = new MutationObserver(() => {
+        const next = resolveCurrentTheme();
+        if (next !== currentTheme.value) currentTheme.value = next;
+    });
+    themeObs.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"],
+    });
+});
 onUnmounted(() => {
     stopRaf();
     sizeObs?.disconnect();
@@ -498,6 +562,10 @@ onUnmounted(() => {
     acMarkersMap.clear();
     airportAreaLayer?.removeFrom(map);
     airportAreaLayer = null;
+    themeObs?.disconnect();
+    themeObs = null;
+    baseTileLayer = null;
+    labelTileLayer = null;
     if (map) {
         map.remove();
         map = null;
@@ -506,10 +574,38 @@ onUnmounted(() => {
 </script>
 
 <style>
+:root {
+    --map-label-glow: rgba(248, 250, 252, 0.95);
+    --map-telemetry-color: rgba(18, 21, 26, 0.8);
+    --map-telemetry-dim: rgba(18, 21, 26, 0.5);
+    --map-airport-pill-bg: rgba(248, 250, 252, 0.72);
+    --map-airport-pill-border: rgba(18, 21, 26, 0.13);
+    --map-airport-pill-text: rgba(18, 21, 26, 0.84);
+    --map-airport-pill-dim: rgba(18, 21, 26, 0.5);
+}
+
+:root[data-theme="dark"] {
+    --map-label-glow: #0a0a0b;
+    --map-telemetry-color: rgba(245, 245, 247, 0.86);
+    --map-telemetry-dim: rgba(245, 245, 247, 0.54);
+    --map-airport-pill-bg: rgba(10, 10, 11, 0.7);
+    --map-airport-pill-border: rgba(255, 255, 255, 0.14);
+    --map-airport-pill-text: rgba(245, 245, 247, 0.86);
+    --map-airport-pill-dim: rgba(245, 245, 247, 0.46);
+}
+
 /* No CSS transition — fast aircraft use RAF dead-reckoning; slow/ground aircraft
    snap on poll which is imperceptible at low speeds. */
 .leaflet-marker-icon {
     transition: none;
+}
+
+.map-traffic-legend {
+    backdrop-filter: blur(10px);
+    background: color-mix(in oklab, var(--atc-card) 72%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 90%, transparent);
+    color: var(--atc-dim);
+    text-shadow: 0 0 6px var(--map-label-glow);
 }
 
 .aircraft-label {
@@ -520,8 +616,8 @@ onUnmounted(() => {
     line-height: 1.05;
     position: absolute;
     text-shadow:
-        0 0 4px #0a0a0b,
-        0 0 7px #0a0a0b;
+        0 0 4px var(--map-label-glow),
+        0 0 7px var(--map-label-glow);
     white-space: nowrap;
 }
 
@@ -559,8 +655,8 @@ onUnmounted(() => {
     opacity: 0;
     position: absolute;
     text-shadow:
-        0 0 4px #0a0a0b,
-        0 0 8px #0a0a0b;
+        0 0 4px var(--map-label-glow),
+        0 0 8px var(--map-label-glow);
     top: 0;
 }
 
@@ -594,7 +690,7 @@ onUnmounted(() => {
 
 .aircraft-telemetry {
     align-items: baseline;
-    color: rgba(245, 245, 247, 0.86);
+    color: var(--map-telemetry-color);
     display: flex;
     font-size: 8.5px;
     font-weight: 700;
@@ -602,8 +698,8 @@ onUnmounted(() => {
     letter-spacing: 0;
     margin-top: 1px;
     text-shadow:
-        0 0 4px #0a0a0b,
-        0 0 8px #0a0a0b;
+        0 0 4px var(--map-label-glow),
+        0 0 8px var(--map-label-glow);
 }
 
 .aircraft-number-flow {
@@ -611,7 +707,7 @@ onUnmounted(() => {
 }
 
 .aircraft-number-flow::part(suffix) {
-    color: rgba(245, 245, 247, 0.54);
+    color: var(--map-telemetry-dim);
     font-size: 0.86em;
     font-weight: 700;
     margin-left: 1px;
@@ -624,24 +720,24 @@ onUnmounted(() => {
 
 .airport-area-count {
     align-items: center;
-    background: rgba(10, 10, 11, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: var(--map-airport-pill-bg);
+    border: 1px solid var(--map-airport-pill-border);
     border-radius: 10px;
     box-shadow:
         0 8px 24px rgba(0, 0, 0, 0.26),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    color: rgba(245, 245, 247, 0.86);
+    color: var(--map-airport-pill-text);
     display: flex;
     font-family: "JetBrains Mono", monospace;
     gap: 7px;
     justify-content: center;
     min-width: 76px;
     padding: 7px 8px;
-    text-shadow: 0 0 7px #0a0a0b;
+    text-shadow: 0 0 7px var(--map-label-glow);
 }
 
 .airport-area-count span {
-    color: rgba(245, 245, 247, 0.46);
+    color: var(--map-airport-pill-dim);
     font-size: 8px;
     font-weight: 800;
     letter-spacing: 1px;
