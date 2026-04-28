@@ -1,15 +1,26 @@
 <template>
-  <div class="min-h-screen bg-atc-bg bg-[radial-gradient(circle_at_22%_12%,rgba(255,90,31,0.22),transparent_32%),radial-gradient(circle_at_78%_80%,rgba(255,255,255,0.045),transparent_34%),linear-gradient(135deg,rgba(255,90,31,0.08),transparent_38%)] text-atc-text">
+  <div class="search-screen min-h-screen text-atc-text">
     <main class="grid min-h-screen place-items-start px-5 py-6 sm:place-items-center sm:p-10 lg:p-14">
       <section class="w-full max-w-[860px]">
-        <div class="mb-4 flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[1.4px] text-atc-dim">
-          <span class="text-atc-text">ADSBao</span>
-          <span class="text-atc-orange">/</span>
-          <span>Airport search</span>
+        <div class="mb-4 flex items-center justify-between gap-2.5 font-mono text-[11px] uppercase tracking-[1.4px] text-atc-dim">
+          <div class="flex items-center gap-2.5">
+            <span class="text-atc-text">ADSBao</span>
+            <span class="text-atc-orange">/</span>
+            <span>Airport search</span>
+          </div>
+          <button
+            type="button"
+            class="theme-chip inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[12px] tracking-[0.2px] text-atc-dim transition hover:border-atc-orange/45 hover:text-atc-text"
+            :title="themeTitle"
+            @click="cycleTheme"
+          >
+            <ThemeModeIcon class="h-3.5 w-3.5" :theme="themePreference" />
+            <span>{{ themePreference }}</span>
+          </button>
         </div>
 
         <label
-          class="input flex h-auto w-full items-center gap-3 rounded-[26px] border-white/20 bg-[linear-gradient(145deg,rgba(38,40,46,0.9),rgba(17,18,22,0.84))] px-4 py-4 text-atc-text shadow-[0_26px_90px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] transition-[border-color,box-shadow] duration-150 sm:gap-3.5 sm:px-5 sm:py-5"
+          class="search-input input flex h-auto w-full items-center gap-3 px-4 py-4 text-atc-text transition-[border-color,box-shadow] duration-150 sm:gap-3.5 sm:px-5 sm:py-5"
           :class="{ 'border-atc-orange/70 shadow-[0_30px_100px_rgba(0,0,0,0.42),0_0_0_1px_rgba(255,90,31,0.18)_inset]': focused }"
         >
           <svg class="shrink-0 text-atc-orange" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -25,13 +36,13 @@
             class="min-w-0 flex-1 border-0 bg-transparent p-0 text-2xl font-extrabold tracking-normal text-atc-text outline-none placeholder:text-atc-dim sm:text-3xl"
             placeholder="Search by ICAO, IATA, city, or airport name"
           />
-          <kbd class="kbd hidden shrink-0 border-white/10 bg-transparent font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
+          <kbd class="search-kbd kbd hidden shrink-0 font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
             {{ searchLoading ? '...' : 'enter' }}
           </kbd>
         </label>
 
         <div v-if="q.trim()" class="mt-5">
-          <div class="flex items-center justify-between border-b border-white/10 pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
+          <div class="flex items-center justify-between border-b border-atc-line pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
             <span>Search results</span>
             <span>{{ resultCountLabel }}</span>
           </div>
@@ -43,7 +54,7 @@
             <button
               v-for="airport in searchRows"
               :key="airport.icao || airport.code || airport.name"
-              class="btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 rounded-[18px] border-white/15 bg-white/[0.06] px-4 py-3.5 text-left font-sans normal-case text-atc-text hover:-translate-y-px hover:border-atc-orange/40 hover:bg-white/[0.09] sm:grid-cols-[86px_minmax(0,1fr)_auto]"
+              class="search-row btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 px-4 py-3.5 text-left font-sans normal-case text-atc-text hover:-translate-y-px hover:border-atc-orange/40 sm:grid-cols-[86px_minmax(0,1fr)_auto]"
               @click="openAirport(airport)"
             >
               <span class="font-display text-[32px] italic leading-[0.8] text-atc-orange sm:text-[38px]">{{ airport.iata || airport.icao || airport.code }}</span>
@@ -57,7 +68,7 @@
         </div>
 
         <div v-else class="mt-5">
-          <div class="flex items-center justify-between border-b border-white/10 pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
+          <div class="flex items-center justify-between border-b border-atc-line pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
             <span>Featured airports</span>
             <span>{{ featuredAirports.length }}</span>
           </div>
@@ -66,7 +77,7 @@
             <button
               v-for="airport in featuredAirports"
               :key="airport.icao"
-              class="btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 rounded-[18px] border-white/15 bg-white/[0.06] px-4 py-3.5 text-left font-sans normal-case text-atc-text first:bg-[linear-gradient(100deg,rgba(255,90,31,0.16),rgba(255,255,255,0.065))] hover:-translate-y-px hover:border-atc-orange/40 hover:bg-white/[0.09] sm:grid-cols-[86px_minmax(0,1fr)_auto]"
+              class="search-row search-row--featured btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 px-4 py-3.5 text-left font-sans normal-case text-atc-text hover:-translate-y-px hover:border-atc-orange/40 sm:grid-cols-[86px_minmax(0,1fr)_auto]"
               @click="openAirport(airport)"
             >
               <span class="font-display text-[32px] italic leading-[0.8] text-atc-orange sm:text-[38px]">{{ airport.iata }}</span>
@@ -84,10 +95,20 @@
 </template>
 
 <script setup>
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
 import { airportDirectoryClient } from '../../services/airportDirectory.js'
 import { HOME_AIRPORT_COUNTRY } from '../../config/homeAirportDirectory.js'
 import { airportSubtitle } from '../../utils/airport.js'
+import ThemeModeIcon from '../ui/icons/ThemeModeIcon.vue'
+import {
+  THEME_DARK,
+  THEME_LIGHT,
+  THEME_SYSTEM,
+  applyThemePreference,
+  initThemePreference,
+  nextTheme,
+  writeStoredTheme,
+} from '../../utils/theme.js'
 
 const emit = defineEmits(['open-airport'])
 
@@ -168,6 +189,22 @@ const featuredAirports = [
 
 let searchTimer = null
 let activeRequestId = 0
+const themePreference = ref(THEME_SYSTEM)
+let mediaQueryList = null
+let mediaQueryListener = null
+
+const themeTitle = computed(() => {
+  if (themePreference.value === THEME_LIGHT) return 'Theme: Light (click to switch)'
+  if (themePreference.value === THEME_DARK) return 'Theme: Dark (click to switch)'
+  return 'Theme: System (click to switch)'
+})
+
+const cycleTheme = () => {
+  const next = nextTheme(themePreference.value)
+  themePreference.value = next
+  writeStoredTheme(next)
+  applyThemePreference({ theme: next, mediaQueryList })
+}
 
 const searchRows = computed(() => {
   const query = q.value.trim().toUpperCase()
@@ -275,7 +312,104 @@ watch(q, (value) => {
   }, value.trim() ? 220 : 0)
 })
 
+onMounted(() => {
+  mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)')
+  themePreference.value = initThemePreference({ mediaQueryList }).preference
+  mediaQueryListener = () => {
+    if (themePreference.value === THEME_SYSTEM) {
+      applyThemePreference({ theme: THEME_SYSTEM, mediaQueryList })
+    }
+  }
+  mediaQueryList.addEventListener('change', mediaQueryListener)
+})
+
+onBeforeUnmount(() => {
+  if (mediaQueryList && mediaQueryListener) {
+    mediaQueryList.removeEventListener('change', mediaQueryListener)
+  }
+})
+
 onUnmounted(() => {
   clearTimeout(searchTimer)
 })
 </script>
+
+<style scoped>
+.search-screen {
+  background:
+    radial-gradient(
+      circle at 22% 12%,
+      color-mix(in oklab, var(--atc-orange) 22%, transparent),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 78% 80%,
+      color-mix(in oklab, var(--atc-line) 50%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--atc-orange) 8%, transparent),
+      transparent 38%
+    ),
+    var(--atc-bg);
+}
+
+.search-screen :deep(.text-atc-text) {
+  color: var(--atc-text) !important;
+}
+
+.search-screen :deep(.text-atc-dim) {
+  color: var(--atc-dim) !important;
+}
+
+.search-screen :deep(.text-atc-faint) {
+  color: var(--atc-faint) !important;
+}
+
+.search-screen :deep(input::placeholder) {
+  color: var(--atc-dim) !important;
+}
+
+.theme-chip {
+  background: color-mix(in oklab, var(--atc-card) 72%, transparent);
+  border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
+  font-family: var(--font-sans);
+}
+
+.search-input {
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--atc-card) 84%, transparent),
+    color-mix(in oklab, var(--atc-elev) 88%, transparent)
+  );
+  border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
+  border-radius: 26px;
+  box-shadow:
+    0 26px 90px color-mix(in oklab, var(--atc-bg) 62%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--atc-line-strong) 58%, transparent);
+}
+
+.search-kbd {
+  background: transparent;
+  border: 1px solid var(--atc-line-strong);
+}
+
+.search-row {
+  background: color-mix(in oklab, var(--atc-card) 62%, transparent);
+  border: 1px solid color-mix(in oklab, var(--atc-line-strong) 78%, transparent);
+  border-radius: 18px;
+}
+
+.search-row:hover {
+  background: color-mix(in oklab, var(--atc-card) 76%, transparent);
+}
+
+.search-row--featured:first-child {
+  background: linear-gradient(
+    100deg,
+    color-mix(in oklab, var(--atc-orange) 16%, transparent),
+    color-mix(in oklab, var(--atc-card) 72%, transparent)
+  );
+}
+</style>
