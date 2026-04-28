@@ -69,7 +69,7 @@
                 :class="
                     error
                         ? 'border-atc-red/40 bg-[#251011]/75'
-                        : 'border-white/10'
+                        : 'border-atc-line-strong/70 bg-atc-card/60'
                 "
             >
                 <div
@@ -498,7 +498,11 @@ const formatObsTime = (value) => {
 }
 
 .mobile-map-dim {
-    background: linear-gradient(180deg, rgba(5, 5, 7, 0.1), rgba(5, 5, 7, 0.9));
+    background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--atc-bg) 12%, transparent),
+        color-mix(in oklab, var(--atc-bg) 88%, transparent)
+    );
     display: none;
     inset: 0;
     opacity: var(--mobile-map-dim);
@@ -511,9 +515,9 @@ const formatObsTime = (value) => {
 .mobile-top-mask {
     background: linear-gradient(
         180deg,
-        rgba(5, 5, 7, 0.96) 0%,
-        rgba(5, 5, 7, 0.78) 38%,
-        rgba(5, 5, 7, 0) 100%
+        color-mix(in oklab, var(--atc-bg) 96%, transparent) 0%,
+        color-mix(in oklab, var(--atc-bg) 78%, transparent) 38%,
+        color-mix(in oklab, var(--atc-bg) 0%, transparent) 100%
     );
     display: none;
     height: 178px;
@@ -616,8 +620,8 @@ const formatObsTime = (value) => {
 .airport-title-stack::before {
     background: linear-gradient(
         90deg,
-        rgba(255, 90, 31, 0.62),
-        rgba(255, 255, 255, 0.04)
+        color-mix(in oklab, var(--atc-orange) 62%, transparent),
+        color-mix(in oklab, var(--atc-line) 42%, transparent)
     );
     content: "";
     height: 1px;
@@ -676,15 +680,15 @@ const formatObsTime = (value) => {
 .glass-panel {
     background: linear-gradient(
         145deg,
-        rgba(38, 40, 46, 0.2),
-        rgba(14, 16, 20, 0.34)
+        color-mix(in oklab, var(--atc-card) 78%, transparent),
+        color-mix(in oklab, var(--atc-elev) 86%, transparent)
     );
-    border: 1px solid rgba(255, 255, 255, 0.13);
+    border: 1px solid var(--atc-line-strong);
     border-radius: 24px;
     box-shadow:
         0 8px 24px rgba(0, 0, 0, 0.18),
         0 24px 64px rgba(0, 0, 0, 0.22),
-        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+        inset 0 1px 0 color-mix(in oklab, var(--atc-line-strong) 90%, transparent);
     max-height: 250px;
     min-width: 0;
     overflow: hidden;
@@ -697,8 +701,8 @@ const formatObsTime = (value) => {
 .glass-panel::before {
     background: linear-gradient(
         120deg,
-        rgba(255, 255, 255, 0.1) 0%,
-        rgba(255, 255, 255, 0.03) 45%,
+        color-mix(in oklab, var(--atc-line-strong) 84%, transparent) 0%,
+        color-mix(in oklab, var(--atc-line) 64%, transparent) 45%,
         transparent 60%
     );
     content: "";
@@ -732,7 +736,7 @@ const formatObsTime = (value) => {
 
 .panel-pill,
 .panel-link {
-    border: 1px solid rgba(255, 255, 255, 0.11);
+    border: 1px solid var(--atc-line-strong);
     border-radius: 999px;
     color: var(--atc-dim);
     flex-shrink: 0;
@@ -783,7 +787,7 @@ const formatObsTime = (value) => {
 }
 
 .weather-readout div {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid var(--atc-line);
     padding-top: 8px;
 }
 
@@ -817,7 +821,7 @@ const formatObsTime = (value) => {
 
 .weather-view-dots button {
     appearance: none;
-    background: rgba(245, 245, 247, 0.3);
+    background: color-mix(in oklab, var(--atc-dim) 48%, transparent);
     border: 0;
     border-radius: 999px;
     cursor: pointer;
@@ -844,7 +848,7 @@ const formatObsTime = (value) => {
 }
 
 .traffic-counts > div {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid var(--atc-line);
     padding-top: 10px;
 }
 
@@ -856,7 +860,7 @@ const formatObsTime = (value) => {
 }
 
 .wiki-copy {
-    color: rgba(245, 245, 247, 0.82);
+    color: color-mix(in oklab, var(--atc-text) 86%, transparent);
     font-size: 14px;
     line-height: 1.55;
     margin: 14px 0 0;
@@ -866,7 +870,7 @@ const formatObsTime = (value) => {
 }
 
 .wiki-source {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid var(--atc-line);
     color: var(--atc-faint);
     font-size: 10px;
     letter-spacing: 1px;
@@ -967,7 +971,7 @@ const formatObsTime = (value) => {
     }
 
     .mobile-compact-name {
-        color: rgb(245, 245, 247);
+        color: var(--atc-text);
         display: block;
         font-size: 18px;
         font-weight: 800;
@@ -975,7 +979,7 @@ const formatObsTime = (value) => {
         max-width: min(300px, calc(100vw - 72px));
         position: relative;
         text-align: center;
-        text-shadow: 0 2px 18px rgba(0, 0, 0, 0.92);
+        text-shadow: 0 2px 18px color-mix(in oklab, var(--atc-bg) 95%, transparent);
         z-index: 1;
     }
 
