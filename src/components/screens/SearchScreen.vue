@@ -355,6 +355,22 @@ onUnmounted(() => {
     var(--atc-bg);
 }
 
+.search-screen :deep(.text-atc-text) {
+  color: var(--atc-text) !important;
+}
+
+.search-screen :deep(.text-atc-dim) {
+  color: var(--atc-dim) !important;
+}
+
+.search-screen :deep(.text-atc-faint) {
+  color: var(--atc-faint) !important;
+}
+
+.search-screen :deep(input::placeholder) {
+  color: var(--atc-dim) !important;
+}
+
 .theme-chip {
   background: color-mix(in oklab, var(--atc-card) 72%, transparent);
   border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
