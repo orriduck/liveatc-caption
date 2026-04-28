@@ -1,8 +1,103 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: false;
+  include: button, input, kbd, badge, dropdown, menu;
+  logs: false;
+}
+@plugin "daisyui/theme" {
+  name: "adsbao";
+  default: true;
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: #0a0a0b;
+  --color-base-200: #151518;
+  --color-base-300: #27272e;
+  --color-base-content: #f5f5f7;
+  --color-primary: #FF5A1F;
+  --color-primary-content: #0a0a0b;
+  --color-secondary: #34d399;
+  --color-secondary-content: #0a0a0b;
+  --color-accent: #34d399;
+  --color-accent-content: #0a0a0b;
+  --color-neutral: #1d1d22;
+  --color-neutral-content: #f5f5f7;
+  --color-info: #60a5fa;
+  --color-info-content: #0a0a0b;
+  --color-success: #34d399;
+  --color-success-content: #0a0a0b;
+  --color-warning: #f59e0b;
+  --color-warning-content: #0a0a0b;
+  --color-error: #ff3b30;
+  --color-error-content: #f5f5f7;
+
+  --radius-selector: 999px;
+  --radius-field: 1rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@theme {
+  --color-atc-bg: #0a0a0b;
+  --color-atc-card: #151518;
+  --color-atc-elev: #1d1d22;
+  --color-atc-high: #27272e;
+  --color-atc-orange: #FF5A1F;
+  --color-atc-orange-soft: rgba(255,90,31,0.12);
+  --color-atc-mint: #34d399;
+  --color-atc-red: #ff3b30;
+  --color-atc-text: #f5f5f7;
+  --color-atc-dim: rgba(245,245,247,0.62);
+  --color-atc-faint: rgba(245,245,247,0.38);
+  --color-atc-line: rgba(255,255,255,0.08);
+  --color-atc-line-strong: rgba(255,255,255,0.16);
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Instrument Serif", "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
+
+  --animate-pulse-dot: pulseDot 1.6s ease-in-out infinite;
+  --animate-cap-in: capIn 0.4s cubic-bezier(0.2,0.6,0.2,1);
+  --animate-caret: caretBlink 0.9s steps(1) infinite;
+  --animate-eq-bar: eqBar 0.6s ease-in-out infinite alternate;
+  --animate-wv: wv 0.5s ease-in-out infinite alternate;
+  --animate-flash-dot: flashDot 1.2s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.85); }
+}
+
+@keyframes flashDot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px #34d399; }
+  50% { opacity: 0.2; box-shadow: 0 0 2px #34d399; }
+}
+
+@keyframes capIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes caretBlink {
+  50% { opacity: 0; }
+}
+
+@keyframes eqBar {
+  from { transform: scaleY(0.35); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes wv {
+  from { transform: scaleY(0.4); }
+  to { transform: scaleY(1); }
+}
 
 :root {
   font-family: 'Inter', system-ui, sans-serif;

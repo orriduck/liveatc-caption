@@ -1,15 +1,18 @@
 <template>
-  <div class="home-shell">
-    <main class="home-main">
-      <section class="search-console">
-        <div class="home-mark">
-          <span class="home-brand">ADSBao</span>
-          <span class="home-divider">/</span>
+  <div class="min-h-screen bg-atc-bg bg-[radial-gradient(circle_at_22%_12%,rgba(255,90,31,0.22),transparent_32%),radial-gradient(circle_at_78%_80%,rgba(255,255,255,0.045),transparent_34%),linear-gradient(135deg,rgba(255,90,31,0.08),transparent_38%)] text-atc-text">
+    <main class="grid min-h-screen place-items-start px-5 py-6 sm:place-items-center sm:p-10 lg:p-14">
+      <section class="w-full max-w-[860px]">
+        <div class="mb-4 flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[1.4px] text-atc-dim">
+          <span class="text-atc-text">ADSBao</span>
+          <span class="text-atc-orange">/</span>
           <span>Airport search</span>
         </div>
 
-        <label class="search-box" :class="{ 'search-box-active': focused }">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <label
+          class="input flex h-auto w-full items-center gap-3 rounded-[26px] border-white/20 bg-[linear-gradient(145deg,rgba(38,40,46,0.9),rgba(17,18,22,0.84))] px-4 py-4 text-atc-text shadow-[0_26px_90px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] transition-[border-color,box-shadow] duration-150 sm:gap-3.5 sm:px-5 sm:py-5"
+          :class="{ 'border-atc-orange/70 shadow-[0_30px_100px_rgba(0,0,0,0.42),0_0_0_1px_rgba(255,90,31,0.18)_inset]': focused }"
+        >
+          <svg class="shrink-0 text-atc-orange" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -19,56 +22,59 @@
             @focus="focused = true"
             @blur="focused = false"
             @keydown.enter="doSearch"
+            class="min-w-0 flex-1 border-0 bg-transparent p-0 text-2xl font-extrabold tracking-normal text-atc-text outline-none placeholder:text-atc-dim sm:text-3xl"
             placeholder="Search by ICAO, IATA, city, or airport name"
           />
-          <span class="search-key">{{ searchLoading ? '...' : 'enter' }}</span>
+          <kbd class="kbd hidden shrink-0 border-white/10 bg-transparent font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
+            {{ searchLoading ? '...' : 'enter' }}
+          </kbd>
         </label>
 
-        <div v-if="q.trim()" class="results-panel">
-          <div class="section-label">
+        <div v-if="q.trim()" class="mt-5">
+          <div class="flex items-center justify-between border-b border-white/10 pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
             <span>Search results</span>
             <span>{{ resultCountLabel }}</span>
           </div>
 
-          <div v-if="searchLoading && !searchRows.length" class="empty-state">Searching airports...</div>
-          <div v-else-if="searchError" class="empty-state">{{ searchError }}</div>
-          <div v-else-if="!searchRows.length" class="empty-state">No airport matched "{{ q.trim() }}".</div>
-          <div v-else class="airport-list">
+          <div v-if="searchLoading && !searchRows.length" class="py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">Searching airports...</div>
+          <div v-else-if="searchError" class="py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">{{ searchError }}</div>
+          <div v-else-if="!searchRows.length" class="py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">No airport matched "{{ q.trim() }}".</div>
+          <div v-else class="mt-2.5 grid gap-2">
             <button
               v-for="airport in searchRows"
               :key="airport.icao || airport.code || airport.name"
-              class="airport-row"
+              class="btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 rounded-[18px] border-white/15 bg-white/[0.06] px-4 py-3.5 text-left font-sans normal-case text-atc-text hover:-translate-y-px hover:border-atc-orange/40 hover:bg-white/[0.09] sm:grid-cols-[86px_minmax(0,1fr)_auto]"
               @click="openAirport(airport)"
             >
-              <span class="airport-row-code">{{ airport.iata || airport.icao || airport.code }}</span>
-              <span class="airport-row-main">
-                <strong>{{ airport.name }}</strong>
-                <small>{{ airportSubtitle(airport) }}</small>
+              <span class="font-display text-[32px] italic leading-[0.8] text-atc-orange sm:text-[38px]">{{ airport.iata || airport.icao || airport.code }}</span>
+              <span class="min-w-0">
+                <strong class="block truncate text-[17px] font-extrabold tracking-normal text-atc-text">{{ airport.name }}</strong>
+                <small class="mt-0.5 block truncate text-[13px] text-atc-dim">{{ airportSubtitle(airport) }}</small>
               </span>
-              <span class="airport-row-meta">{{ airport.icao || airport.code || '—' }}</span>
+              <span class="badge hidden border-0 bg-transparent font-mono text-[11px] uppercase tracking-[1.2px] text-atc-dim sm:inline-flex">{{ airport.icao || airport.code || '—' }}</span>
             </button>
           </div>
         </div>
 
-        <div v-else class="featured-panel">
-          <div class="section-label">
+        <div v-else class="mt-5">
+          <div class="flex items-center justify-between border-b border-white/10 pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
             <span>Featured airports</span>
             <span>{{ featuredAirports.length }}</span>
           </div>
 
-          <div class="airport-list">
+          <div class="mt-2.5 grid gap-2">
             <button
               v-for="airport in featuredAirports"
               :key="airport.icao"
-              class="airport-row featured-row"
+              class="btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 rounded-[18px] border-white/15 bg-white/[0.06] px-4 py-3.5 text-left font-sans normal-case text-atc-text first:bg-[linear-gradient(100deg,rgba(255,90,31,0.16),rgba(255,255,255,0.065))] hover:-translate-y-px hover:border-atc-orange/40 hover:bg-white/[0.09] sm:grid-cols-[86px_minmax(0,1fr)_auto]"
               @click="openAirport(airport)"
             >
-              <span class="airport-row-code">{{ airport.iata }}</span>
-              <span class="airport-row-main">
-                <strong>{{ airport.name }}</strong>
-                <small>{{ airport.city }} · {{ airport.country }}</small>
+              <span class="font-display text-[32px] italic leading-[0.8] text-atc-orange sm:text-[38px]">{{ airport.iata }}</span>
+              <span class="min-w-0">
+                <strong class="block truncate text-[17px] font-extrabold tracking-normal text-atc-text">{{ airport.name }}</strong>
+                <small class="mt-0.5 block truncate text-[13px] text-atc-dim">{{ airport.city }} · {{ airport.country }}</small>
               </span>
-              <span class="airport-row-meta">{{ airport.icao }}</span>
+              <span class="badge hidden border-0 bg-transparent font-mono text-[11px] uppercase tracking-[1.2px] text-atc-dim sm:inline-flex">{{ airport.icao }}</span>
             </button>
           </div>
         </div>
@@ -273,220 +279,3 @@ onUnmounted(() => {
   clearTimeout(searchTimer)
 })
 </script>
-
-<style scoped>
-.home-shell {
-  background:
-    radial-gradient(circle at 22% 12%, rgba(255, 90, 31, 0.22), transparent 32%),
-    radial-gradient(circle at 78% 80%, rgba(255, 255, 255, 0.045), transparent 34%),
-    linear-gradient(135deg, rgba(255, 90, 31, 0.08), transparent 38%),
-    var(--atc-bg);
-  color: var(--atc-text);
-  min-height: 100vh;
-}
-
-.home-main {
-  display: grid;
-  min-height: 100vh;
-  padding: clamp(22px, 4vw, 58px);
-  place-items: center;
-}
-
-.search-console {
-  max-width: 860px;
-  width: min(100%, 860px);
-}
-
-.home-mark,
-.section-label,
-.search-key,
-.airport-row-meta {
-  font-family: 'JetBrains Mono', monospace;
-  text-transform: uppercase;
-}
-
-.home-mark {
-  align-items: center;
-  color: var(--atc-dim);
-  display: flex;
-  font-size: 11px;
-  gap: 10px;
-  letter-spacing: 1.4px;
-  margin-bottom: 18px;
-}
-
-.home-brand {
-  color: var(--atc-text);
-}
-
-.home-divider {
-  color: var(--atc-orange);
-}
-
-.search-box {
-  align-items: center;
-  background: linear-gradient(145deg, rgba(38, 40, 46, 0.9), rgba(17, 18, 22, 0.84));
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 26px;
-  box-shadow: 0 26px 90px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  display: flex;
-  gap: 14px;
-  padding: clamp(16px, 2.4vw, 23px);
-  transition: border-color 0.16s ease, box-shadow 0.16s ease;
-}
-
-.search-box-active {
-  border-color: rgba(255, 90, 31, 0.7);
-  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 90, 31, 0.18) inset;
-}
-
-.search-box svg {
-  color: var(--atc-orange);
-  flex-shrink: 0;
-}
-
-.search-box input {
-  background: transparent;
-  border: 0;
-  color: var(--atc-text);
-  flex: 1;
-  font: inherit;
-  font-size: clamp(20px, 3vw, 34px);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  min-width: 0;
-  outline: none;
-}
-
-.search-box input::placeholder {
-  color: var(--atc-dim);
-}
-
-.search-key {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  color: var(--atc-dim);
-  flex-shrink: 0;
-  font-size: 10px;
-  letter-spacing: 1px;
-  padding: 6px 10px;
-}
-
-.featured-panel,
-.results-panel {
-  margin-top: 22px;
-}
-
-.section-label {
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--atc-dim);
-  display: flex;
-  font-size: 10px;
-  justify-content: space-between;
-  letter-spacing: 1.5px;
-  padding-bottom: 10px;
-}
-
-.airport-list {
-  display: grid;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.airport-row {
-  align-items: center;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 18px;
-  color: inherit;
-  cursor: pointer;
-  display: grid;
-  gap: 16px;
-  grid-template-columns: 86px minmax(0, 1fr) auto;
-  padding: 14px 16px;
-  text-align: left;
-  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
-}
-
-.airport-row:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 90, 31, 0.42);
-  transform: translateY(-1px);
-}
-
-.featured-row:first-child {
-  background: linear-gradient(100deg, rgba(255, 90, 31, 0.16), rgba(255, 255, 255, 0.065));
-}
-
-.airport-row-code {
-  color: var(--atc-orange);
-  font-family: 'Instrument Serif', serif;
-  font-size: 38px;
-  font-style: italic;
-  line-height: 0.8;
-}
-
-.airport-row-main {
-  min-width: 0;
-}
-
-.airport-row-main strong,
-.airport-row-main small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.airport-row-main strong {
-  color: var(--atc-text);
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.airport-row-main small {
-  color: var(--atc-dim);
-  font-size: 13px;
-  margin-top: 2px;
-}
-
-.airport-row-meta {
-  color: var(--atc-dim);
-  font-size: 11px;
-  letter-spacing: 1.2px;
-}
-
-.empty-state {
-  color: var(--atc-dim);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  letter-spacing: 0.6px;
-  padding: 28px 0;
-  text-align: center;
-}
-
-@media (max-width: 620px) {
-  .home-main {
-    align-items: start;
-    padding: 22px;
-  }
-
-  .search-key {
-    display: none;
-  }
-
-  .airport-row {
-    grid-template-columns: 62px minmax(0, 1fr);
-  }
-
-  .airport-row-meta {
-    display: none;
-  }
-
-  .airport-row-code {
-    font-size: 32px;
-  }
-}
-</style>
