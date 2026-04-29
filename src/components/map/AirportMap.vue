@@ -76,9 +76,11 @@ import {
     SLOW_AIRCRAFT_THRESHOLD_KT,
 } from "../../utils/aircraftMotion";
 import {
+    ZOOM_APPROACH,
     shouldShowAirportArea,
 } from "../../utils/airportMapDisplay.js";
 import { AIRCRAFT_COLORS, BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft";
+import { DEFAULT_AIRCRAFT_DIST_NM } from "../../services/aviationData.js";
 
 const props = defineProps({
     icao: { type: String, default: "" },
@@ -87,6 +89,7 @@ const props = defineProps({
     zoom: { type: Number, default: 13 },
     accent: { type: String, default: "#FF5A1F" },
     aircraft: { type: Array, default: () => [] },
+    airport: { type: Object, default: null },
 });
 
 const mapEl = ref(null);
@@ -95,6 +98,9 @@ const currentTheme = ref("dark");
 let map = null;
 let sizeObs = null;
 let airportAreaLayer = null;
+let queryRangeLayer = null;
+let airportInfoMarker = null;
+let airportGroundCountMarker = null;
 let baseTileLayer = null;
 let labelTileLayer = null;
 let themeObs = null;
@@ -199,6 +205,7 @@ const initMap = () => {
     updateTileLayers();
 
     updateAirportArea();
+    updateAirportContextOverlays();
 
     latStr.value = props.lat
         ? `${Math.abs(props.lat).toFixed(2)}°${props.lat >= 0 ? "N" : "S"}`
@@ -296,7 +303,13 @@ const updateAirportArea = () => {
     if (!map) return;
 
     airportAreaLayer?.removeFrom(map);
+    queryRangeLayer?.removeFrom(map);
+    airportInfoMarker?.removeFrom(map);
+    airportGroundCountMarker?.removeFrom(map);
     airportAreaLayer = null;
+    queryRangeLayer = null;
+    airportInfoMarker = null;
+    airportGroundCountMarker = null;
 
     if (!props.lat || !props.lon || !shouldShowAirportArea(props.zoom)) return;
 
@@ -309,15 +322,9 @@ const updateAirportArea = () => {
             ? "rgba(18,21,26,0.045)"
             : "rgba(255,255,255,0.02)";
 
-    const d = 0.032;
-    const bounds = [
-        [props.lat + d, props.lon - d],
-        [props.lat + d, props.lon + d],
-        [props.lat - d, props.lon + d],
-        [props.lat - d, props.lon - d],
-    ];
     airportAreaLayer = L.layerGroup([
-        L.polygon(bounds, {
+        L.circle([props.lat, props.lon], {
+            radius: 2.2 * NM_TO_METERS,
             color: borderColor,
             weight: 1,
             dashArray: "4 4",
@@ -327,6 +334,71 @@ const updateAirportArea = () => {
     ]).addTo(map);
 };
 
+
+const QUERY_RANGE_NM = DEFAULT_AIRCRAFT_DIST_NM;
+const NM_TO_METERS = 1852;
+
+const buildAirportOverlayDetails = () => {
+    const details = [];
+    const runways = props.airport?.runways;
+    if (Array.isArray(runways) && runways.length) details.push(`RWY ${runways.length}`);
+
+    const approachCount = Number(props.airport?.approachCount);
+    if (Number.isFinite(approachCount) && approachCount > 0) details.push(`APP ${approachCount}`);
+
+    return details;
+};
+
+const updateAirportContextOverlays = () => {
+    if (!map || !props.lat || !props.lon) return;
+
+    queryRangeLayer?.removeFrom(map);
+    airportInfoMarker?.removeFrom(map);
+    airportGroundCountMarker?.removeFrom(map);
+    queryRangeLayer = null;
+    airportInfoMarker = null;
+    airportGroundCountMarker = null;
+
+    const stroke = currentTheme.value === "light" ? "rgba(18,21,26,0.22)" : "rgba(255,255,255,0.28)";
+    const fill = currentTheme.value === "light" ? "rgba(18,21,26,0.06)" : "rgba(255,255,255,0.05)";
+
+    queryRangeLayer = L.circle([props.lat, props.lon], {
+        radius: QUERY_RANGE_NM * NM_TO_METERS,
+        color: stroke,
+        weight: 1,
+        dashArray: "6 6",
+        fillColor: fill,
+        fillOpacity: 1,
+    }).addTo(map);
+
+    const airportCode = escapeHtml((props.airport?.iata || props.icao || "").trim());
+    const detailLines = buildAirportOverlayDetails()
+        .map((line) => `<span>${escapeHtml(line)}</span>`)
+        .join("");
+
+    airportInfoMarker = L.marker([props.lat, props.lon], {
+        interactive: false,
+        icon: L.divIcon({
+            className: "",
+            html: `<div class="airport-overlay-label">${airportCode}${detailLines}</div>`,
+            iconSize: [120, 34],
+            iconAnchor: [0, -8],
+        }),
+    }).addTo(map);
+
+    if (Number(props.zoom) === ZOOM_APPROACH) {
+        const groundCount = props.aircraft.filter((item) => item?.onGround).length;
+        airportGroundCountMarker = L.marker([props.lat, props.lon], {
+            interactive: false,
+            icon: L.divIcon({
+                className: "",
+                html: `<div class="airport-ground-count">GROUND ${groundCount}</div>`,
+                iconSize: [92, 18],
+                iconAnchor: [46, 24],
+            }),
+        }).addTo(map);
+    }
+};
 const makeAcIcon = (
     color,
     label,
@@ -397,7 +469,13 @@ const updateAircraft = () => {
 
     const now = Date.now();
     const seen = new Set();
+    const onlyMovingAtApproach = Number(props.zoom) === ZOOM_APPROACH;
     props.aircraft.forEach((ac) => {
+        const speedKt = Number(ac.velocity ?? 0);
+        const isMoving = speedKt >= SLOW_AIRCRAFT_THRESHOLD_KT;
+        const nearAirport = Number(ac.distanceNm ?? Number.POSITIVE_INFINITY) <= 1.5;
+        const lowAltitude = Number(ac.altitude ?? 0) < 2500;
+        if (onlyMovingAtApproach && (ac.onGround || !isMoving || (nearAirport && lowAltitude))) return;
         if (!ac.lat || !ac.lon) return;
         seen.add(ac.icao24);
         const vel = ac.velocity ?? 0;
@@ -496,6 +574,7 @@ const updateAircraft = () => {
     }
 
     updateAirportArea();
+    updateAirportContextOverlays();
 };
 
 watch(() => props.aircraft, updateAircraft, { deep: true });
@@ -504,6 +583,7 @@ watch(
     () => {
         updateTileLayers();
         updateAirportArea();
+        updateAirportContextOverlays();
     },
 );
 
@@ -515,6 +595,7 @@ watch(
             latStr.value = `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"}`;
             lonStr.value = `${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`;
             updateAirportArea();
+            updateAirportContextOverlays();
         }
     },
 );
@@ -524,6 +605,8 @@ watch(
         if (map) {
             map.setZoom(zoom);
             updateAirportArea();
+            updateAirportContextOverlays();
+            updateAircraft();
         }
     },
 );
@@ -547,7 +630,13 @@ onUnmounted(() => {
         unmountAircraftTelemetry(entry.marker);
     acMarkersMap.clear();
     airportAreaLayer?.removeFrom(map);
+    queryRangeLayer?.removeFrom(map);
+    airportInfoMarker?.removeFrom(map);
+    airportGroundCountMarker?.removeFrom(map);
     airportAreaLayer = null;
+    queryRangeLayer = null;
+    airportInfoMarker = null;
+    airportGroundCountMarker = null;
     themeObs?.disconnect();
     themeObs = null;
     baseTileLayer = null;
@@ -694,6 +783,38 @@ onUnmounted(() => {
 .aircraft-telemetry-separator {
     color: rgba(255, 90, 31, 0.72);
     font-size: 0.9em;
+}
+
+
+.airport-overlay-label {
+    color: var(--atc-text);
+    display: flex;
+    flex-direction: column;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    font-weight: 700;
+    gap: 1px;
+    letter-spacing: 0.6px;
+    text-shadow: 0 0 6px var(--map-label-glow);
+}
+
+.airport-overlay-label > span {
+    color: var(--atc-dim);
+    font-size: 8px;
+    font-weight: 600;
+}
+
+.airport-ground-count {
+    background: color-mix(in oklab, var(--atc-card) 78%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 88%, transparent);
+    border-radius: 999px;
+    color: var(--atc-text);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 1px 6px;
+    text-shadow: 0 0 6px var(--map-label-glow);
 }
 
 @media (prefers-reduced-motion: reduce) {
