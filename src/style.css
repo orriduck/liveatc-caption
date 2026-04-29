@@ -61,7 +61,7 @@
 
   --radius-selector: 999px;
   --radius-field: 1rem;
-  --radius-box: 0.75rem;
+  --radius-box: 1rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
@@ -153,6 +153,10 @@
   --glass-card-border: rgba(0,0,0,0.12);
   --glass-card-inset: rgba(255,255,255,0.3);
   --traffic-level-color: #64748b;
+
+  --atc-radius-pill: 999px;
+  --atc-radius-panel: 20px;
+  --atc-radius-control: 12px;
 }
 
 :root[data-theme='dark'] {
@@ -176,6 +180,10 @@
   --glass-card-border: rgba(255,255,255,0.13);
   --glass-card-inset: rgba(255,255,255,0.14);
   --traffic-level-color: #94a3b8;
+
+  --atc-radius-pill: 999px;
+  --atc-radius-panel: 20px;
+  --atc-radius-control: 12px;
 }
 
 body {

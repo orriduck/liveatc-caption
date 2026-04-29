@@ -196,7 +196,7 @@ const toggleAudio = () => {
     backdrop-filter: blur(6px) saturate(120%);
     -webkit-backdrop-filter: blur(6px) saturate(120%);
     border: 1px solid var(--atc-line-strong);
-    border-radius: 20px;
+    border-radius: var(--atc-radius-panel);
     bottom: 18px;
     box-shadow:
         0 8px 24px rgba(0, 0, 0, 0.18),
@@ -234,7 +234,7 @@ const toggleAudio = () => {
     align-items: center;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 10px;
+    border-radius: var(--atc-radius-control);
     color: var(--atc-faint);
     cursor: pointer;
     display: flex;
@@ -268,7 +268,7 @@ const toggleAudio = () => {
 
 .ctrl-sep {
     background: var(--atc-line-strong);
-    border-radius: 1px;
+    border-radius: var(--atc-radius-control);
     height: 1px;
     margin: 2px 6px;
     width: calc(100% - 12px);
