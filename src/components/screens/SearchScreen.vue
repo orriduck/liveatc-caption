@@ -384,7 +384,7 @@ onUnmounted(() => {
     color-mix(in oklab, var(--atc-elev) 88%, transparent)
   );
   border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
-  border-radius: 26px;
+  border-radius: var(--atc-radius-panel);
   box-shadow:
     0 26px 90px color-mix(in oklab, var(--atc-bg) 62%, transparent),
     inset 0 1px 0 color-mix(in oklab, var(--atc-line-strong) 58%, transparent);
@@ -398,7 +398,7 @@ onUnmounted(() => {
 .search-row {
   background: color-mix(in oklab, var(--atc-card) 62%, transparent);
   border: 1px solid color-mix(in oklab, var(--atc-line-strong) 78%, transparent);
-  border-radius: 18px;
+  border-radius: var(--atc-radius-panel);
 }
 
 .search-row:hover {

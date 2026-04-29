@@ -684,7 +684,7 @@ const formatObsTime = (value) => {
         var(--glass-card-bottom)
     );
     border: 1px solid var(--glass-card-border);
-    border-radius: 24px;
+    border-radius: var(--atc-radius-panel);
     box-shadow:
         0 8px 24px rgba(0, 0, 0, 0.18),
         0 24px 64px rgba(0, 0, 0, 0.22),
@@ -737,7 +737,7 @@ const formatObsTime = (value) => {
 .panel-pill,
 .panel-link {
     border: 1px solid var(--atc-line-strong);
-    border-radius: 999px;
+    border-radius: var(--atc-radius-pill);
     color: var(--atc-dim);
     flex-shrink: 0;
     font-size: 10px;
@@ -823,7 +823,7 @@ const formatObsTime = (value) => {
     appearance: none;
     background: color-mix(in oklab, var(--atc-dim) 48%, transparent);
     border: 0;
-    border-radius: 999px;
+    border-radius: var(--atc-radius-pill);
     cursor: pointer;
     height: 7px;
     padding: 0;
@@ -1071,7 +1071,7 @@ const formatObsTime = (value) => {
     }
 
     .glass-panel {
-        border-radius: 24px;
+        border-radius: var(--atc-radius-panel);
         padding: 16px;
     }
 
