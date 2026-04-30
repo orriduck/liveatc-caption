@@ -3,9 +3,8 @@ import { computed, onUnmounted, shallowRef, watch } from "vue";
 import { flightRouteClient } from "../services/aviationData.js";
 
 const HIT_CACHE_MS = 6 * 60 * 60 * 1000;
-const MISS_CACHE_MS = 2 * 60 * 60 * 1000; // 2h — was 30min; longer cache for unknowns avoids repeat 429s
+const MISS_CACHE_MS = 2 * 60 * 60 * 1000;
 const MAX_LOOKUPS_PER_PASS = 6;
-const RATE_LIMITED_GRACE_MS = 60_000; // skip lookups for 1min after any 429 error
 
 const routeCache = new Map();
 const inFlight = new Set();
@@ -43,15 +42,13 @@ export function useFlightRoutes(aircraftRef) {
     loadingCount.value = inFlight.size;
     try {
       const route = await flightRouteClient.fetchFlightRoute(callsign);
-      routeCache.set(callsign, {
-        route,
-        time: Date.now(),
-      });
+      routeCache.set(callsign, { route, time: Date.now() });
     } catch (error) {
       console.warn(
         `Flight route lookup failed for ${callsign}:`,
         error.message,
       );
+      routeCache.set(callsign, { route: null, time: Date.now() });
     } finally {
       inFlight.delete(callsign);
       loadingCount.value = inFlight.size;
@@ -78,7 +75,17 @@ export function useFlightRoutes(aircraftRef) {
         )
         .slice(0, MAX_LOOKUPS_PER_PASS);
 
-      pending.forEach(lookup);
+      // Stagger lookups across animation frames to prevent rate-limit bursts.
+      let frame = 0;
+      for (const cs of pending) {
+        const delay = frame;
+        frame++;
+        if (delay === 0) {
+          lookup(cs);
+        } else {
+          requestAnimationFrame(() => lookup(cs));
+        }
+      }
       bump();
     },
     { immediate: true },

@@ -12,7 +12,7 @@
     },
     {
       "source": "/api/proxy/flight-routes/callsign/:callsign",
-      "destination": "https://api.adsbdb.com/v0/callsign/:callsign"
+      "destination": "/api/proxy/flight-routes/callsign/[callsign]"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
