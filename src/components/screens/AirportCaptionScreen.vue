@@ -101,23 +101,50 @@
 
             <main class="airport-dashboard" :class="`is-${dashboardMode}`">
                 <div class="dashboard-drag-handle" aria-hidden="true" />
+                <div class="mobile-panel-nav" role="tablist" aria-label="Card selector">
+                    <button
+                        v-for="item in mobilePanelTabs"
+                        :key="item.key"
+                        type="button"
+                        class="mobile-panel-tab"
+                        :class="{ 'is-active': activeMobilePanel === item.key }"
+                        :aria-selected="activeMobilePanel === item.key"
+                        role="tab"
+                        @click="activeMobilePanel = item.key"
+                    >
+                        {{ item.label }}
+                    </button>
+                    <button
+                        type="button"
+                        class="mobile-hide-tab"
+                        @click="dashboardMode = 'hidden'"
+                    >
+                        Hide
+                    </button>
+                </div>
+                <div class="panel-slot weather-panel" :class="{ 'is-active': activeMobilePanel === 'weather' }">
                 <WeatherPanel
                     :metar="metar"
                     :metar-raw="metarRaw"
                     :metar-loading="metarLoading"
                     :metar-error="metarError"
                 />
+                </div>
 
+                <div class="panel-slot traffic-panel" :class="{ 'is-active': activeMobilePanel === 'traffic' }">
                 <TrafficPanel
                     :aircraft="aircraft"
                     :traffic-counts="trafficCounts"
                 />
+                </div>
 
+                <div class="panel-slot wiki-panel" :class="{ 'is-active': activeMobilePanel === 'wiki' }">
                 <WikiPanel
                     :wiki-summary="wikiSummary"
                     :wiki-loading="wikiLoading"
                     :airport-name="airportName"
                 />
+                </div>
             </main>
         </div>
 
@@ -175,6 +202,12 @@ const dragState = ref(null); // { startY, lastY, lastTime, offsetStart }
 const dragOffset = ref(0); // current px offset from the natural peek position
 const isDragging = ref(false);
 const isAnimating = ref(false);
+const activeMobilePanel = ref("weather");
+const mobilePanelTabs = [
+    { key: "weather", label: "Weather" },
+    { key: "traffic", label: "Traffic" },
+    { key: "wiki", label: "Wiki" },
+];
 
 const onMobileTouchStart = (event) => {
     const touch = event.touches?.[0];
@@ -582,10 +615,10 @@ const fmtUpdated = (date) => {
 .glass-panel {
     background: linear-gradient(
         145deg,
-        var(--glass-card-top),
-        var(--glass-card-bottom)
+        color-mix(in oklab, var(--glass-card-top) 82%, transparent),
+        color-mix(in oklab, var(--glass-card-bottom) 82%, transparent)
     );
-    border: 1px solid var(--glass-card-border);
+    border: 1px solid color-mix(in oklab, var(--glass-card-border) 88%, transparent);
     border-radius: var(--atc-radius-panel);
     box-shadow:
         0 8px 24px rgba(0, 0, 0, 0.18),
@@ -781,7 +814,54 @@ const fmtUpdated = (date) => {
     text-transform: uppercase;
 }
 
+
+.mobile-panel-nav {
+    display: none;
+}
+
+.panel-slot {
+    display: contents;
+}
 @media (max-width: 1180px) {
+    .mobile-panel-nav {
+        align-items: center;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin: 0 auto 2px;
+        width: 100%;
+    }
+
+    .mobile-panel-tab,
+    .mobile-hide-tab {
+        background: color-mix(in oklab, var(--atc-card) 74%, transparent);
+        border: 1px solid var(--atc-line);
+        border-radius: var(--atc-radius-pill);
+        color: var(--atc-dim);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 1px;
+        padding: 6px 10px;
+        text-transform: uppercase;
+    }
+
+    .mobile-panel-tab.is-active {
+        border-color: var(--atc-orange);
+        color: var(--atc-text);
+    }
+
+    .mobile-hide-tab {
+        color: var(--atc-faint);
+    }
+
+    .panel-slot {
+        display: none;
+    }
+
+    .panel-slot.is-active {
+        display: block;
+    }
+
     .airport-dashboard {
         grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr));
         width: min(75vw, 960px);
@@ -988,16 +1068,6 @@ const fmtUpdated = (date) => {
 
     .weather-instrument-panel {
         grid-column: auto;
-    }
-
-    .wiki-panel,
-    .traffic-panel {
-        display: none;
-    }
-
-    .airport-dashboard.is-expanded .wiki-panel,
-    .airport-dashboard.is-expanded .traffic-panel {
-        display: block;
     }
 
     .traffic-panel,
