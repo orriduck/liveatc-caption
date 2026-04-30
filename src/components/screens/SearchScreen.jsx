@@ -346,7 +346,7 @@ function AirportRow({ airport, onOpen, featured = false }) {
         </strong>
         <small className="mt-0.5 block truncate text-[13px] text-atc-dim">
           {featured
-            ? `${airport.city} / ${airport.country}`
+            ? `${airport.city} · ${airport.country}`
             : airportSubtitle(airport)}
         </small>
       </span>

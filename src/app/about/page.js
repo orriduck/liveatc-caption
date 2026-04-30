@@ -31,7 +31,7 @@ export default function AboutPage() {
               <span className="mb-1 block text-[10px] uppercase text-atc-faint">
                 Focus
               </span>
-              <span className="text-sm">Maps / Weather / Traffic</span>
+              <span className="text-sm">Maps · Weather · Traffic</span>
             </div>
           </div>
 

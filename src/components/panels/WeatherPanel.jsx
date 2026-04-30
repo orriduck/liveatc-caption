@@ -14,7 +14,7 @@ export default function WeatherPanel({
     if (!metar) return "Weather report pending";
     const category = metar.flightCategory || "Observed";
     const wind = metar.wind && metar.wind !== "-" ? metar.wind : "wind unavailable";
-    return `${category} / ${wind}`;
+    return `${category} · ${wind}`;
   }, [metar]);
   const visInfo = useMemo(() => {
     const match = metar?.vis?.match(/^(\d+(?:\.\d+)?)(\+)?\s*SM$/);
