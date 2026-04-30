@@ -1,30 +1,31 @@
 <template>
     <div ref="playerEl" class="yt-sink" />
-    <div class="map-ctrl-zone">
+    <div ref="controlZone" class="map-ctrl-zone">
+        <div
+            id="map-action-drawer"
+            class="map-action-drawer"
+            :class="{ open: drawerOpen }"
+            :aria-hidden="!drawerOpen"
+        >
+            <button
+                v-for="option in zoomOptions"
+                :key="option.value"
+                class="ctrl-btn drawer-btn"
+                :class="{ active: activeZoom === option.value }"
+                :title="option.title"
+                @click="selectZoom(option.value)"
+            >
+                <component :is="option.icon" />
+            </button>
+        </div>
+
         <div class="map-ctrl-bar">
             <button
-                class="ctrl-btn"
-                :class="{ active: activeZoom === ZOOM_APPROACH }"
-                title="Approaching view"
-                @click="$emit('zoom', ZOOM_APPROACH)"
+                class="ctrl-btn ctrl-view active"
+                :title="`${currentZoomOption.title} (click to cycle)`"
+                @click="cycleZoom"
             >
-                <ApproachViewIcon />
-            </button>
-            <button
-                class="ctrl-btn"
-                :class="{ active: activeZoom === ZOOM_AIRPORT }"
-                title="Airport view"
-                @click="$emit('zoom', ZOOM_AIRPORT)"
-            >
-                <AirportViewIcon />
-            </button>
-            <button
-                class="ctrl-btn"
-                :class="{ active: activeZoom === ZOOM_DETAIL }"
-                title="Detail view"
-                @click="$emit('zoom', ZOOM_DETAIL)"
-            >
-                <DetailViewIcon />
+                <component :is="currentZoomOption.icon" />
             </button>
 
             <div class="ctrl-sep" />
@@ -39,8 +40,23 @@
                 <FocusWaveIcon />
             </button>
 
-            <button class="ctrl-btn ctrl-theme" :title="themeTitle" @click="cycleTheme">
+            <button
+                class="ctrl-btn ctrl-theme"
+                :title="themeTitle"
+                @click="cycleTheme"
+            >
                 <ThemeModeIcon :theme="currentTheme" />
+            </button>
+
+            <button
+                class="ctrl-btn ctrl-more"
+                :class="{ active: drawerOpen }"
+                :aria-expanded="drawerOpen"
+                aria-controls="map-action-drawer"
+                title="Map controls"
+                @click="toggleDrawer"
+            >
+                <SlidersHorizontal />
             </button>
         </div>
     </div>
@@ -48,6 +64,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { SlidersHorizontal } from "lucide-vue-next";
 import {
     ZOOM_AIRPORT,
     ZOOM_APPROACH,
@@ -70,23 +87,51 @@ import ThemeModeIcon from "./icons/ThemeModeIcon.vue";
 
 const VIDEO_ID = "JDQiaRYmTGk";
 
-defineProps({
+const props = defineProps({
     activeZoom: { type: Number, default: ZOOM_AIRPORT },
 });
 
-defineEmits(["zoom"]);
+const emit = defineEmits(["zoom"]);
 
+const controlZone = ref(null);
 const playerEl = ref(null);
 const playing = ref(false);
 const audioReady = ref(false);
 const currentTheme = ref(THEME_SYSTEM);
+const drawerOpen = ref(false);
 let player = null;
 let mediaQueryList = null;
 let mediaQueryListener = null;
 
+const zoomOptions = [
+    {
+        value: ZOOM_APPROACH,
+        title: "Approaching view",
+        icon: ApproachViewIcon,
+    },
+    {
+        value: ZOOM_AIRPORT,
+        title: "Airport view",
+        icon: AirportViewIcon,
+    },
+    {
+        value: ZOOM_DETAIL,
+        title: "Detail view",
+        icon: DetailViewIcon,
+    },
+];
+
+const currentZoomOption = computed(
+    () =>
+        zoomOptions.find((option) => option.value === props.activeZoom) ||
+        zoomOptions[1],
+);
+
 const themeTitle = computed(() => {
-    if (currentTheme.value === THEME_LIGHT) return "Theme: Light (click to switch)";
-    if (currentTheme.value === THEME_DARK) return "Theme: Dark (click to switch)";
+    if (currentTheme.value === THEME_LIGHT)
+        return "Theme: Light (click to switch)";
+    if (currentTheme.value === THEME_DARK)
+        return "Theme: Dark (click to switch)";
     return "Theme: System (click to switch)";
 });
 
@@ -95,6 +140,36 @@ const cycleTheme = () => {
     currentTheme.value = next;
     writeStoredTheme(next);
     applyThemePreference({ theme: next, mediaQueryList });
+};
+
+const selectZoom = (zoom) => {
+    emit("zoom", zoom);
+    drawerOpen.value = false;
+};
+
+const cycleZoom = () => {
+    const currentIndex = zoomOptions.findIndex(
+        (option) => option.value === props.activeZoom,
+    );
+    const nextIndex = (currentIndex + 1) % zoomOptions.length;
+    emit("zoom", zoomOptions[nextIndex].value);
+};
+
+const toggleDrawer = () => {
+    drawerOpen.value = !drawerOpen.value;
+};
+
+const closeDrawer = () => {
+    drawerOpen.value = false;
+};
+
+const handleDocumentPointerDown = (event) => {
+    if (!drawerOpen.value || controlZone.value?.contains(event.target)) return;
+    closeDrawer();
+};
+
+const handleKeydown = (event) => {
+    if (event.key === "Escape") closeDrawer();
 };
 
 const loadApi = () =>
@@ -116,6 +191,9 @@ const loadApi = () =>
     });
 
 onMounted(async () => {
+    window.addEventListener("pointerdown", handleDocumentPointerDown);
+    window.addEventListener("keydown", handleKeydown);
+
     mediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
     currentTheme.value = initThemePreference({ mediaQueryList }).preference;
     mediaQueryListener = () => {
@@ -150,6 +228,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    window.removeEventListener("pointerdown", handleDocumentPointerDown);
+    window.removeEventListener("keydown", handleKeydown);
     if (mediaQueryList && mediaQueryListener) {
         mediaQueryList.removeEventListener("change", mediaQueryListener);
     }
@@ -179,10 +259,10 @@ const toggleAudio = () => {
 
 .map-ctrl-zone {
     bottom: 0;
-    height: 300px;
+    height: 260px;
     position: fixed;
     right: 0;
-    width: 80px;
+    width: 112px;
     z-index: 50;
 }
 
@@ -208,13 +288,12 @@ const toggleAudio = () => {
     overflow: hidden;
     padding: 6px;
     position: absolute;
-    right: 0;
-    transform: translateX(calc(100% - 14px));
-    transition: transform 0.28s cubic-bezier(0.34, 1.1, 0.64, 1);
-}
-
-.map-ctrl-zone:hover .map-ctrl-bar {
-    transform: translateX(-18px);
+    right: 14px;
+    transform: translateY(0);
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease;
 }
 
 .map-ctrl-bar::before {
@@ -228,6 +307,49 @@ const toggleAudio = () => {
     inset: 0;
     pointer-events: none;
     position: absolute;
+}
+
+.map-ctrl-bar:hover,
+.map-ctrl-zone:focus-within .map-ctrl-bar {
+    border-color: color-mix(in oklab, var(--atc-line-strong) 70%, #ff5a1f);
+    transform: translateY(-2px);
+}
+
+.map-action-drawer {
+    align-items: center;
+    background: linear-gradient(
+        145deg,
+        color-mix(in oklab, var(--atc-card) 70%, transparent),
+        color-mix(in oklab, var(--atc-elev) 82%, transparent)
+    );
+    backdrop-filter: blur(8px) saturate(125%);
+    -webkit-backdrop-filter: blur(8px) saturate(125%);
+    border: 1px solid var(--atc-line-strong);
+    border-radius: var(--atc-radius-panel);
+    bottom: 18px;
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.18),
+        0 18px 52px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 color-mix(in oklab, var(--atc-line-strong) 80%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    opacity: 0;
+    padding: 6px;
+    pointer-events: none;
+    position: absolute;
+    right: 66px;
+    transform: translateX(8px) scale(0.96);
+    transform-origin: right bottom;
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease;
+}
+
+.map-action-drawer.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0) scale(1);
 }
 
 .ctrl-btn {
@@ -247,6 +369,11 @@ const toggleAudio = () => {
         border-color 0.15s ease,
         color 0.15s ease;
     width: 36px;
+}
+
+.ctrl-btn:focus-visible {
+    outline: 2px solid rgba(255, 90, 31, 0.55);
+    outline-offset: 2px;
 }
 
 .ctrl-btn :deep(svg) {
@@ -345,5 +472,44 @@ const toggleAudio = () => {
 
 .ctrl-theme {
     color: var(--atc-dim);
+}
+
+.ctrl-view {
+    box-shadow: inset 0 0 0 1px rgba(255, 90, 31, 0.08);
+}
+
+.ctrl-more :deep(svg) {
+    height: 17px;
+    width: 17px;
+}
+
+.drawer-btn {
+    color: var(--atc-dim);
+}
+
+@media (max-width: 640px) {
+    .map-ctrl-zone {
+        bottom: 74px;
+        height: 220px;
+        width: 102px;
+    }
+
+    .map-ctrl-bar {
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .map-action-drawer {
+        bottom: 10px;
+        right: 62px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .map-ctrl-bar,
+    .map-action-drawer,
+    .ctrl-btn {
+        transition: none;
+    }
 }
 </style>

@@ -14,11 +14,11 @@ assert.deepEqual(config.rewrites?.slice(0, 3), [
   },
   {
     source: '/api/proxy/flight-routes/callsign/:callsign',
-    destination: 'https://api.adsbdb.com/v0/callsign/:callsign',
+    destination: '/api/proxy/flight-routes/callsign/[callsign]',
   },
 ])
 
 assert.equal(config.rewrites?.at(-1)?.destination, '/index.html')
 assert.equal(existsSync(new URL('../../api/proxy/metar/[icao].js', import.meta.url)), false)
 assert.equal(existsSync(new URL('../../api/proxy/aircraft/positions/[...params].js', import.meta.url)), false)
-assert.equal(existsSync(new URL('../../api/proxy/flight-routes/callsign/[callsign].js', import.meta.url)), false)
+assert.equal(existsSync(new URL('../../api/proxy/flight-routes/callsign/[callsign].js', import.meta.url)), true)
