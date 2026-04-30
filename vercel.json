@@ -1,6 +1,5 @@
 {
   "buildCommand": "pnpm build",
-  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/proxy/metar/:icao",
@@ -12,8 +11,7 @@
     },
     {
       "source": "/api/proxy/flight-routes/callsign/:callsign",
-      "destination": "/api/proxy/flight-routes/callsign/[callsign]"
-    },
-    { "source": "/(.*)", "destination": "/index.html" }
+      "destination": "/api/proxy/flight-routes/callsign/:callsign"
+    }
   ]
 }

@@ -1,0 +1,19 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/api/proxy/metar/:icao",
+        destination:
+          "https://aviationweather.gov/api/data/metar?ids=:icao&format=json",
+      },
+      {
+        source: "/api/proxy/aircraft/positions/:lat/:lon/:dist",
+        destination:
+          "https://api.adsb.lol/v2/lat/:lat/lon/:lon/dist/:dist",
+      },
+    ];
+  },
+};
+
+export default nextConfig;

@@ -1,11 +1,12 @@
 {
   "name": "adsbao",
   "private": true,
-  "version": "0.7.1",
+  "version": "0.8.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint .",
     "test:home-airport-directory": "node src/config/homeAirportDirectory.test.js",
     "test:airport-directory": "node src/services/airportDirectory.test.js",
     "test:aviation-data": "node src/services/aviationData.test.js",
@@ -13,28 +14,29 @@
     "test:airport-wiki": "node src/services/airportWiki.test.js",
     "test:flight-route-display": "node src/utils/flightRouteDisplay.test.js",
     "test:airport-map-display": "node src/utils/airportMapDisplay.test.js",
-    "test:metar": "node src/composables/useMetar.test.js",
+    "test:metar": "node src/hooks/useMetar.test.js",
     "test:aircraft-motion": "node src/utils/aircraftMotion.test.js",
     "test:aircraft-traffic-intent": "node src/utils/aircraftTrafficIntent.test.js",
-    "preview": "vite preview"
+    "start": "next start"
   },
   "dependencies": {
-    "@number-flow/vue": "^0.5.0",
+    "@number-flow/react": "^0.5.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "clsx": "^2.1.1",
     "daisyui": "^5.5.14",
     "leaflet": "^1.9.4",
-    "lucide-vue-next": "^0.562.0",
-    "tailwind-merge": "^3.4.0",
-    "vue": "^3.5.24",
-    "vue-router": "^4.6.4"
+    "lucide-react": "^0.562.0",
+    "next": "^16.0.10",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.2.4",
-    "@vitejs/plugin-vue": "^6.0.1",
+    "@tailwindcss/postcss": "^4.2.4",
     "tailwindcss": "^4.2.4",
-    "vite": "^7.2.4"
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.0.10"
   },
   "license": "GPL-3.0-or-later"
 }

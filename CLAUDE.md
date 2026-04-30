@@ -8,13 +8,13 @@ Start the frontend:
 pnpm run dev
 ```
 
-Frontend runs on `http://localhost:5173`.
+Frontend runs on `http://localhost:3000` by default.
 
 ## Stack
 
-- **Frontend**: Vue 3 + Vite + Tailwind + DaisyUI, managed by `pnpm`.
+- **Frontend**: React + Next.js App Router + Tailwind CSS v4 + DaisyUI, managed by `pnpm`.
 - **Airport data**: Airport directory and route lookup are fetched live from public aviation sources with frontend caching where appropriate.
-- **Weather/traffic data**: Web deployment uses Vercel data paths under `/api/proxy/*` because AviationWeather, adsb.lol, and route lookups need same-origin handling for production browser use. Local Vite dev uses equivalent proxy rules where possible.
+- **Weather/traffic data**: Web deployment uses Vercel data paths under `/api/proxy/*` because AviationWeather, adsb.lol, and route lookups need same-origin handling for production browser use. Local Next.js dev uses equivalent rewrites where possible.
 - **Removed scope**: Live audio/transcription, desktop packaging, Homebrew cask publishing, and Python backend runtime config are no longer part of this repository.
 
 ## Key paths
@@ -24,12 +24,14 @@ Frontend runs on `http://localhost:5173`.
 | `CHANGELOG.md` | Product version history and legacy release split |
 | `docs/architecture.md` | Current Vercel web architecture and data-path notes |
 | `package.json` | App metadata, scripts, dependencies, and current product version |
-| `vercel.json` | Vercel build/output config and production rewrites |
-| `vite.config.js` | Local dev proxy rules matching the Vercel data paths |
-| `api/proxy/flight-routes/callsign/[callsign].js` | Vercel serverless function for callsign route lookup |
-| `src/views/HomeView.vue` | Search-to-airport route flow |
-| `src/components/screens/SearchScreen.vue` | Airport directory UI backed by airportsapi.com + frontend cache |
-| `src/components/screens/AirportCaptionScreen.vue` | Airport explorer map + METAR screen |
+| `next.config.mjs` | Next.js config and local proxy rewrites |
+| `vercel.json` | Vercel build command and production rewrites |
+| `src/app/page.js` | Search route entry |
+| `src/app/[icao]/page.js` | Airport route entry |
+| `src/app/api/proxy/flight-routes/callsign/[callsign]/route.js` | Next.js Route Handler for callsign route lookup |
+| `src/components/screens/SearchScreen.jsx` | Airport directory UI backed by airportsapi.com + frontend cache |
+| `src/components/screens/AirportCaptionScreen.jsx` | Airport explorer map + METAR screen |
+| `src/hooks/*.js` | React hooks for METAR, ADS-B positions, route lookups, wiki summaries, and scroll parallax |
 | `src/services/aviationData.js` | Frontend-owned METAR and ADS-B data access clients |
 | `src/constants/aircraft.js` | Shared aircraft color and threshold constants |
 | `src/utils/math.js` | Shared numeric helpers (`toFiniteNumber`) |
@@ -65,6 +67,7 @@ Use the current ADSBao web release line:
 | `v0.6.0` | Vercel observability and production routing |
 | `v0.7.0` | Flight route and traffic context |
 | `v0.7.1` | Map and mobile polish |
+| `v0.8.0` | Next.js Vercel refactor |
 
 `v0.3.x` and earlier are legacy desktop-app history. Do not use those releases as the current ADSBao web product line.
 
@@ -76,8 +79,8 @@ When preparing a new product release:
    - No version bump: docs-only, screenshot-only, refactor-only, or routine dependency cleanup with no product-visible impact.
 2. Update all visible version strings together:
    - `package.json`
-   - `src/views/AboutView.vue`
-   - `api/proxy/flight-routes/callsign/[callsign].js` User-Agent, if still present
+   - `src/app/about/page.js`
+   - `src/app/api/proxy/flight-routes/callsign/[callsign]/route.js` User-Agent, if still present
    - `CHANGELOG.md`
    - `README.md`, only if it states the current version
 3. Run `pnpm build` and the test command above before tagging.
