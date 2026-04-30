@@ -1,25 +1,32 @@
 <template>
     <section
+        ref="barRef"
         class="mobile-status-bar"
         role="status"
         aria-live="polite"
         :style="barStyle"
     >
         <!-- Both slots always mounted; one hidden, one visible per phase -->
-        <div ref="metarSlot" class="status-slot" :style="slotStyle('metar')">
+        <div
+            ref="metarSlot"
+            :class="slotClass('metar')"
+            :style="slotStyle('metar')"
+            :aria-hidden="activeView !== 'metar'"
+        >
             <div class="status-kicker">METAR</div>
             <div class="status-main">
-                <span>{{ metar.flightCategory || "Observed" }}</span>
+                <span>{{ metar?.flightCategory || "Observed" }}</span>
                 <span>·</span>
-                <span>{{ metar.wind || "Wind —" }}</span>
+                <span>{{ metar?.wind || "Wind —" }}</span>
                 <span>·</span>
-                <span>{{ metar.vis || "Vis —" }}</span>
+                <span>{{ metar?.vis || "Vis —" }}</span>
             </div>
         </div>
         <div
             ref="trafficSlot"
-            class="status-slot"
+            :class="slotClass('traffic')"
             :style="slotStyle('traffic')"
+            :aria-hidden="activeView !== 'traffic'"
         >
             <div class="status-kicker">Traffic</div>
             <div class="status-main">
@@ -47,6 +54,7 @@ const props = defineProps({
 // idle → fade-out → resize → fade-in → idle
 const phase = ref("idle");
 const activeView = ref("metar");
+const barRef = ref(null);
 const metarSlot = ref(null);
 const trafficSlot = ref(null);
 
@@ -63,78 +71,99 @@ const barStyle = computed(() =>
 
 function slotStyle(view) {
     const isActive = view === activeView.value;
-    if (phase.value === "idle" || phase.value === "resize") {
+    if (phase.value === "idle" || phase.value === "fade-in") {
         return {
             opacity: isActive ? 1 : 0,
             pointerEvents: isActive ? "auto" : "none",
         };
     }
-    // Both hidden during fade-out
-    if (phase.value === "fade-out") {
-        return { opacity: 0, pointerEvents: "none" };
-    }
-    // fade-in: new slot fades up
-    if (phase.value === "fade-in") {
-        return {
-            opacity: isActive ? 1 : 0,
-            pointerEvents: isActive ? "auto" : "none",
-        };
-    }
-    return {};
+
+    // Keep the active slot in flow during fade-out/resize for measuring, but
+    // hide all content until the final fade-in phase.
+    return { opacity: 0, pointerEvents: "none" };
+}
+
+function slotClass(view) {
+    return {
+        "status-slot": true,
+        "status-slot--layered": view !== activeView.value,
+    };
 }
 
 // ── Rotation ─────────────────────────────────────────────
+let rotating = false;
+let mounted = false;
 async function rotate() {
+    if (rotating) return;
     if (!hasMetar.value && activeView.value === "traffic") return;
     if (!hasMetar.value) {
         activeView.value = "traffic";
         return;
     }
 
+    rotating = true;
     const nextView = activeView.value === "metar" ? "traffic" : "metar";
     const incomingEl =
         nextView === "metar" ? metarSlot.value : trafficSlot.value;
-    const barEl = document.querySelector(".mobile-status-bar");
-    const fromW = barEl ? barEl.offsetWidth : 300;
+    const barEl = barRef.value;
+    const fromW = barEl ? barEl.getBoundingClientRect().width : 300;
 
     // 1. Fade out current content
     phase.value = "fade-out";
     await sleep(DURATIONS.fadeOut);
+    if (!mounted) return;
 
-    // 2. Switch active view, briefly reveal incoming to measure its natural width
+    // 2. Lock current width, then switch active slot while hidden.
+    lockWidth.value = fromW;
+    await nextTick();
     activeView.value = nextView;
     await nextTick();
-    incomingEl.style.opacity = "1";
-    await nextTick();
-    const toW = incomingEl.offsetWidth;
-    incomingEl.style.opacity = "";
+    const toW = measureBarWidth(barEl, incomingEl);
 
-    // 3. Animate card width from → to
-    lockWidth.value = fromW;
+    // 3. Animate card width from -> to
     void barEl?.offsetHeight; // force layout
     phase.value = "resize";
     lockWidth.value = toW;
     await sleep(DURATIONS.resize);
+    if (!mounted) return;
 
     // 4. Fade in new content, release width lock
-    lockWidth.value = null;
     phase.value = "fade-in";
     await sleep(DURATIONS.fadeIn);
+    if (!mounted) return;
 
     // Done
+    lockWidth.value = null;
     phase.value = "idle";
+    rotating = false;
 }
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function measureBarWidth(barEl, slotEl) {
+    if (!barEl || !slotEl) return 300;
+
+    const styles = window.getComputedStyle(barEl);
+    const chromeWidth = [
+        styles.paddingLeft,
+        styles.paddingRight,
+        styles.borderLeftWidth,
+        styles.borderRightWidth,
+    ].reduce((sum, value) => sum + (Number.parseFloat(value) || 0), 0);
+
+    return Math.ceil(slotEl.scrollWidth + chromeWidth);
+}
+
 // ── Lifecycle ────────────────────────────────────────────
 let timer = null;
 onMounted(() => {
+    mounted = true;
     timer = window.setInterval(rotate, INTERVAL_MS);
 });
 onBeforeUnmount(() => {
+    mounted = false;
     if (timer) window.clearInterval(timer);
 });
 </script>
@@ -155,6 +184,7 @@ onBeforeUnmount(() => {
     box-shadow:
         0 12px 34px rgba(0, 0, 0, 0.24),
         inset 0 1px 0 var(--glass-card-inset);
+    box-sizing: border-box;
     display: none;
     left: 50%;
     min-height: 52px;
@@ -172,7 +202,17 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    max-width: calc(min(92vw, 420px) - 30px);
+    min-width: 0;
+    transition: opacity 0.2s ease;
     white-space: nowrap;
+    width: max-content;
+}
+
+.status-slot--layered {
+    left: 14px;
+    position: absolute;
+    top: 10px;
 }
 
 .status-kicker {
@@ -190,6 +230,8 @@ onBeforeUnmount(() => {
     font-weight: 700;
     gap: 10px;
     line-height: 1.2;
+    min-width: 0;
+    overflow: hidden;
 }
 
 @media (max-width: 1080px) {
