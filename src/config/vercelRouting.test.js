@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 
 const config = JSON.parse(readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8'))
 
+assert.equal(config.framework, 'nextjs')
 assert.deepEqual(config.rewrites?.slice(0, 3), [
   {
     source: '/api/proxy/metar/:icao',
