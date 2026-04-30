@@ -1,7 +1,8 @@
 import { onUnmounted, ref, watch } from "vue";
 import {
   aircraftPositionClient,
-  DEFAULT_AIRCRAFT_DIST_NM,
+  DEFAULT_CLOSE_RANGE_NM,
+  DEFAULT_WIDE_RANGE_NM,
   DEFAULT_AIRCRAFT_POLL_MS,
 } from "../services/aviationData.js";
 import { parseAdsbPositionTime } from "../utils/aircraftMotion.js";
@@ -23,29 +24,51 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
 
     loading.value = true;
     try {
-      const json = await aircraftPositionClient.fetchNearbyAircraft({
-        lat,
-        lon,
-        distNm: DEFAULT_AIRCRAFT_DIST_NM,
-      });
+      // Fetch two ranges in parallel:
+      //   Wide  (20 nm) — everything in the area
+      //   Close ( 3 nm) — airport immediate vicinity, catches ground/taxi aircraft
+      const [wideJson, closeJson] = await Promise.all([
+        aircraftPositionClient.fetchNearbyAircraft({
+          lat,
+          lon,
+          distNm: DEFAULT_WIDE_RANGE_NM,
+        }),
+        aircraftPositionClient.fetchNearbyAircraft({
+          lat,
+          lon,
+          distNm: DEFAULT_CLOSE_RANGE_NM,
+        }),
+      ]);
       const receiveTime = Date.now();
 
-      // adsb.lol response: { ac: [{ hex, flight, lat, lon, alt_baro, gs, track, gnd, ... }] }
-      const snapshots = (json.ac || [])
-        .filter((a) => a.lat != null && a.lon != null)
-        .map((a) => ({
-          icao24: a.hex || "",
-          callsign: (a.flight || a.r || "").trim(),
-          lat: a.lat,
-          lon: a.lon,
-          altitude: a.alt_baro ?? a.alt_geom ?? null,
-          baroRate: a.baro_rate ?? null,
-          onGround: a.gnd ?? false,
-          velocity: a.gs ?? null,
-          track: a.track ?? 0,
-          positionTime: parseAdsbPositionTime(a, json.now, receiveTime),
-          receiveTime,
-        }));
+      const parseAircraft = (a) => ({
+        icao24: a.hex || "",
+        callsign: (a.flight || a.r || "").trim(),
+        lat: a.lat,
+        lon: a.lon,
+        altitude: a.alt_baro ?? a.alt_geom ?? null,
+        baroRate: a.baro_rate ?? null,
+        onGround: a.gnd ?? false,
+        velocity: a.gs ?? null,
+        track: a.track ?? 0,
+        positionTime: parseAdsbPositionTime(a, wideJson.now, receiveTime),
+        receiveTime,
+      });
+
+      // Merge by icao24 — prefer the close-range snapshot when both exist
+      const seen = new Map();
+      const addSnapshots = (list) => {
+        for (const a of list || []) {
+          if (a.lat == null || a.lon == null) continue;
+          const key = a.hex || "";
+          if (key) seen.set(key, parseAircraft(a));
+        }
+      };
+      // Add close-range first so they take priority on key collision
+      addSnapshots(closeJson.ac);
+      addSnapshots(wideJson.ac);
+
+      const snapshots = [...seen.values()];
       aircraft.value = intentTracker.update(
         snapshots,
         { lat, lon },
