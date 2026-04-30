@@ -20,7 +20,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="rounded-2xl border p-4">
             <span class="mb-1 block text-[10px] uppercase opacity-50">Version</span>
-            <span class="text-sm">0.4.0 (Breaking)</span>
+            <span class="text-sm">0.7.1 - Vercel Web</span>
           </div>
           <div class="rounded-2xl border p-4">
             <span class="mb-1 block text-[10px] uppercase opacity-50">Focus</span>
