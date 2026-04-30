@@ -80,8 +80,11 @@ import {
     isGroundLikeAircraft as isGroundLikeAircraftForDisplay,
     shouldShowAirportArea,
 } from "../../utils/airportMapDisplay.js";
-import { AIRCRAFT_COLORS, BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft";
-import { DEFAULT_AIRCRAFT_DIST_NM } from "../../services/aviationData.js";
+import {
+    AIRCRAFT_COLORS,
+    BARO_RATE_THRESHOLD_FPM,
+} from "../../constants/aircraft";
+import { DEFAULT_WIDE_RANGE_NM } from "../../services/aviationData.js";
 
 const props = defineProps({
     icao: { type: String, default: "" },
@@ -126,14 +129,12 @@ const mapAttributionColor = computed(() =>
 const TILE_VARIANTS = {
     light: {
         base: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}@2x.png",
-        labels:
-            "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}@2x.png",
+        labels: "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}@2x.png",
         labelOpacity: 0.66,
     },
     dark: {
         base: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}@2x.png",
-        labels:
-            "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}@2x.png",
+        labels: "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}@2x.png",
         labelOpacity: 0.55,
     },
 };
@@ -239,7 +240,6 @@ const escapeHtml = (value) =>
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
 
-
 const isGroundLikeAircraft = (ac) => {
     return isGroundLikeAircraftForDisplay(ac, {
         airportAreaRadiusNm: AIRPORT_AREA_RADIUS_NM,
@@ -343,18 +343,19 @@ const updateAirportArea = () => {
     ]).addTo(map);
 };
 
-
-const QUERY_RANGE_NM = DEFAULT_AIRCRAFT_DIST_NM;
+const QUERY_RANGE_NM = DEFAULT_WIDE_RANGE_NM;
 const AIRPORT_AREA_RADIUS_NM = 2.2;
 const NM_TO_METERS = 1852;
 
 const buildAirportOverlayDetails = () => {
     const details = [];
     const runways = props.airport?.runways;
-    if (Array.isArray(runways) && runways.length) details.push(`RWY ${runways.length}`);
+    if (Array.isArray(runways) && runways.length)
+        details.push(`RWY ${runways.length}`);
 
     const approachCount = Number(props.airport?.approachCount);
-    if (Number.isFinite(approachCount) && approachCount > 0) details.push(`APP ${approachCount}`);
+    if (Number.isFinite(approachCount) && approachCount > 0)
+        details.push(`APP ${approachCount}`);
 
     return details;
 };
@@ -369,8 +370,14 @@ const updateAirportContextOverlays = () => {
     airportInfoMarker = null;
     airportGroundCountMarker = null;
 
-    const stroke = currentTheme.value === "light" ? "rgba(18,21,26,0.22)" : "rgba(255,255,255,0.28)";
-    const fill = currentTheme.value === "light" ? "rgba(18,21,26,0.06)" : "rgba(255,255,255,0.05)";
+    const stroke =
+        currentTheme.value === "light"
+            ? "rgba(18,21,26,0.22)"
+            : "rgba(255,255,255,0.28)";
+    const fill =
+        currentTheme.value === "light"
+            ? "rgba(18,21,26,0.06)"
+            : "rgba(255,255,255,0.05)";
 
     queryRangeLayer = L.circle([props.lat, props.lon], {
         radius: QUERY_RANGE_NM * NM_TO_METERS,
@@ -381,7 +388,9 @@ const updateAirportContextOverlays = () => {
         fillOpacity: 1,
     }).addTo(map);
 
-    const airportCode = escapeHtml((props.airport?.iata || props.icao || "").trim());
+    const airportCode = escapeHtml(
+        (props.airport?.iata || props.icao || "").trim(),
+    );
     const detailLines = buildAirportOverlayDetails()
         .map((line) => `<span>${escapeHtml(line)}</span>`)
         .join("");
@@ -397,7 +406,9 @@ const updateAirportContextOverlays = () => {
     }).addTo(map);
 
     if (Number(props.zoom) === ZOOM_APPROACH) {
-        const groundCount = props.aircraft.filter((item) => isGroundLikeAircraft(item)).length;
+        const groundCount = props.aircraft.filter((item) =>
+            isGroundLikeAircraft(item),
+        ).length;
         airportGroundCountMarker = L.marker([props.lat, props.lon], {
             interactive: false,
             icon: L.divIcon({
@@ -465,7 +476,9 @@ const makeAcIcon = (
 const getAircraftColor = (ac, showArrow) => {
     if (ac.onGround) return AIRCRAFT_COLORS.ground;
     if (!showArrow || ac.baroRate == null) {
-        return currentTheme.value === "light" ? "#475569" : AIRCRAFT_COLORS.level;
+        return currentTheme.value === "light"
+            ? "#475569"
+            : AIRCRAFT_COLORS.level;
     }
     if (ac.baroRate >= BARO_RATE_THRESHOLD_FPM)
         return AIRCRAFT_COLORS.ascending;
@@ -679,7 +692,8 @@ onUnmounted(() => {
 .map-traffic-legend {
     backdrop-filter: blur(10px);
     background: color-mix(in oklab, var(--atc-card) 72%, transparent);
-    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 90%, transparent);
+    border: 1px solid
+        color-mix(in oklab, var(--atc-line-strong) 90%, transparent);
     color: var(--atc-dim);
     text-shadow: 0 0 6px var(--map-label-glow);
 }
@@ -794,7 +808,6 @@ onUnmounted(() => {
     font-size: 0.9em;
 }
 
-
 .airport-overlay-label {
     color: var(--atc-text);
     display: flex;
@@ -815,7 +828,8 @@ onUnmounted(() => {
 
 .airport-ground-count {
     background: color-mix(in oklab, var(--atc-card) 78%, transparent);
-    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 88%, transparent);
+    border: 1px solid
+        color-mix(in oklab, var(--atc-line-strong) 88%, transparent);
     border-radius: 999px;
     color: var(--atc-text);
     font-family: "JetBrains Mono", monospace;

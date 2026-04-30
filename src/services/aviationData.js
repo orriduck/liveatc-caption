@@ -64,7 +64,8 @@ export const createRateLimiter = ({ maxTokens = 3, refillMs = 1000 } = {}) => {
 };
 
 export const DEFAULT_AIRCRAFT_POLL_MS = 3_000;
-export const DEFAULT_AIRCRAFT_DIST_NM = 20;
+export const DEFAULT_WIDE_RANGE_NM = 20;
+export const DEFAULT_CLOSE_RANGE_NM = 3;
 
 const DEFAULT_METAR_BASE = "/api/proxy/metar";
 const DEFAULT_AIRCRAFT_POSITIONS_BASE = "/api/proxy/aircraft/positions";
@@ -141,7 +142,7 @@ export const createAircraftPositionClient = ({
   });
 
   return {
-    fetchNearbyAircraft({ lat, lon, distNm = DEFAULT_AIRCRAFT_DIST_NM }) {
+    fetchNearbyAircraft({ lat, lon, distNm = DEFAULT_WIDE_RANGE_NM }) {
       const encodedLat = encodeURIComponent(String(lat));
       const encodedLon = encodeURIComponent(String(lon));
       const encodedDist = encodeURIComponent(String(distNm));
