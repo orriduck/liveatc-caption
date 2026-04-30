@@ -140,7 +140,7 @@ defineProps({
 
 @media (max-width: 980px) {
     .traffic-panel {
-        grid-column: 1;
+        grid-column: auto;
         min-height: 220px;
     }
 

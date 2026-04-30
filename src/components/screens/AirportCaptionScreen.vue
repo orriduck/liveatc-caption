@@ -2,8 +2,9 @@
     <div
         ref="screenRef"
         class="airport-screen relative min-h-screen bg-atc-bg font-sans text-atc-text"
+        @touchstart.passive="onMobileTouchStart"
+        @touchend.passive="onMobileTouchEnd"
         :style="{
-            '--mobile-map-dim': parallax.mapDim.value,
             '--mobile-breadcrumb-opacity': parallax.breadcrumbOpacity.value,
             '--mobile-title-opacity': parallax.titleOpacity.value,
             '--mobile-compact-title-opacity':
@@ -93,7 +94,10 @@
                 Updated {{ fmtUpdated(lastUpdated) }}
             </div>
 
-            <main class="airport-dashboard">
+            <main
+                class="airport-dashboard"
+                :class="`is-${dashboardMode}`"
+            >
                 <WeatherPanel
                     :metar="metar"
                     :metar-raw="metarRaw"
@@ -113,11 +117,22 @@
                 />
             </main>
         </div>
+
+        <button
+            class="dashboard-scroll-cue"
+            :class="{ 'is-visible': dashboardMode === 'hidden' }"
+            type="button"
+            aria-label="Scroll up to show airport cards"
+            @click="dashboardMode = 'peek'"
+        >
+            <ChevronUp aria-hidden="true" :size="24" :stroke-width="2.2" />
+        </button>
     </div>
 </template>
 
 <script setup>
 import { computed, ref } from "vue";
+import { ChevronUp } from "lucide-vue-next";
 import MapControlBar from "../ui/MapControlBar.vue";
 import AirportMap from "../map/AirportMap.vue";
 import WeatherPanel from "../panels/WeatherPanel.vue";
@@ -145,8 +160,33 @@ defineEmits(["back"]);
 
 const mapZoom = ref(ZOOM_APPROACH);
 const screenRef = ref(null);
+const dashboardMode = ref("peek");
+const touchStartY = ref(null);
 
 const parallax = useScrollParallax(screenRef);
+
+const onMobileTouchStart = (event) => {
+    touchStartY.value = event.changedTouches?.[0]?.clientY ?? null;
+};
+
+const onMobileTouchEnd = (event) => {
+    if (touchStartY.value == null) return;
+    const endY = event.changedTouches?.[0]?.clientY;
+    if (endY == null) return;
+
+    const deltaY = endY - touchStartY.value;
+    touchStartY.value = null;
+    if (Math.abs(deltaY) < 44) return;
+
+    if (deltaY < 0) {
+        if (dashboardMode.value === "hidden") dashboardMode.value = "peek";
+        else dashboardMode.value = "expanded";
+        return;
+    }
+
+    if (dashboardMode.value === "expanded") dashboardMode.value = "peek";
+    else dashboardMode.value = "hidden";
+};
 
 const airportFallback = computed(
     () => AIRPORT_FALLBACKS[props.icao?.toUpperCase()] || null,
@@ -437,6 +477,34 @@ const fmtUpdated = (date) => {
     text-transform: uppercase;
 }
 
+.dashboard-scroll-cue {
+    align-items: center;
+    background: color-mix(in oklab, var(--atc-bg) 74%, transparent);
+    border: 1px solid var(--atc-line-strong);
+    border-radius: var(--atc-radius-pill);
+    bottom: 18px;
+    box-shadow:
+        0 12px 36px rgba(0, 0, 0, 0.34),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    color: var(--atc-text);
+    cursor: pointer;
+    display: none;
+    height: 44px;
+    justify-content: center;
+    left: 50%;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    transform: translate(-50%, 10px);
+    transition:
+        opacity 0.16s ease,
+        transform 0.16s ease;
+    width: 44px;
+    z-index: 44;
+    backdrop-filter: blur(10px) saturate(130%);
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
+}
+
 .airport-dashboard {
     align-items: stretch;
     display: grid;
@@ -656,13 +724,14 @@ const fmtUpdated = (date) => {
     }
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1080px) {
     .airport-screen {
         height: 100dvh;
         overflow-x: hidden;
-        overflow-y: auto;
+        overflow-y: hidden;
         overscroll-behavior-y: contain;
         scroll-padding-bottom: 18px;
+        touch-action: pan-y;
     }
 
     .airport-map-layer,
@@ -673,7 +742,7 @@ const fmtUpdated = (date) => {
     }
 
     .mobile-map-dim {
-        display: block;
+        display: none;
     }
 
     .mobile-top-mask {
@@ -786,9 +855,35 @@ const fmtUpdated = (date) => {
     }
 
     .airport-dashboard {
+        bottom: 18px;
+        display: grid;
         gap: 14px;
         grid-template-columns: minmax(0, 1fr);
-        width: 75vw;
+        left: 50%;
+        margin-inline: 0;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        padding: 0 2px 16px;
+        position: fixed;
+        transform: translateX(-50%) translateY(44%);
+        transition:
+            max-height 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+            width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        width: min(82vw, 560px);
+        z-index: 35;
+    }
+
+    .airport-dashboard.is-expanded {
+        max-height: calc(100dvh - 132px);
+        overflow-y: auto;
+        transform: translateX(-50%) translateY(0);
+        width: min(92vw, 620px);
+    }
+
+    .airport-dashboard.is-hidden {
+        pointer-events: none;
+        transform: translateX(-50%) translateY(calc(100% + 34px));
     }
 
     .glass-panel {
@@ -796,23 +891,40 @@ const fmtUpdated = (date) => {
     }
 
     .weather-instrument-panel {
-        grid-column: 1;
+        grid-column: auto;
     }
 
     .wiki-panel,
     .traffic-panel {
-        grid-column: 1;
+        display: none;
+    }
+
+    .airport-dashboard.is-expanded .wiki-panel,
+    .airport-dashboard.is-expanded .traffic-panel {
+        display: block;
     }
 
     .traffic-panel,
     .wiki-panel {
         min-height: 220px;
     }
+
+    .dashboard-scroll-cue {
+        display: flex;
+        opacity: 0;
+        transform: translate(-50%, 10px);
+    }
+
+    .dashboard-scroll-cue.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translate(-50%, 0);
+    }
 }
 
 @media (max-width: 720px) {
     .airport-dashboard {
-        grid-template-columns: minmax(0, 1fr);
+        width: min(84vw, 460px);
     }
 }
 
@@ -831,14 +943,14 @@ const fmtUpdated = (date) => {
     }
 
     .airport-dashboard {
-        grid-template-columns: 1fr;
-        margin-top: calc(100dvh - 178px);
+        bottom: 14px;
+        margin-top: 0;
         padding-bottom: 18px;
         width: min(92vw, 430px);
     }
 
     .wiki-panel {
-        grid-column: 1;
+        grid-column: auto;
     }
 
     .glass-panel {
