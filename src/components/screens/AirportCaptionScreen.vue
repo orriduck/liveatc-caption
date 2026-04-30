@@ -3,11 +3,12 @@
         ref="screenRef"
         class="airport-screen relative min-h-screen bg-atc-bg font-sans text-atc-text"
         :style="{
-            '--mobile-map-dim': mobileMapDim,
-            '--mobile-breadcrumb-opacity': mobileBreadcrumbOpacity,
-            '--mobile-title-opacity': mobileTitleOpacity,
-            '--mobile-compact-title-opacity': mobileCompactTitleOpacity,
-            '--mobile-top-mask-opacity': mobileTopMaskOpacity,
+            '--mobile-map-dim': parallax.mapDim.value,
+            '--mobile-breadcrumb-opacity': parallax.breadcrumbOpacity.value,
+            '--mobile-title-opacity': parallax.titleOpacity.value,
+            '--mobile-compact-title-opacity':
+                parallax.compactTitleOpacity.value,
+            '--mobile-top-mask-opacity': parallax.topMaskOpacity.value,
         }"
     >
         <div class="airport-map-layer absolute inset-0 z-0">
@@ -93,194 +94,41 @@
             </div>
 
             <main class="airport-dashboard">
-                <section class="glass-panel weather-instrument-panel">
-                    <div class="panel-heading">
-                        <div>
-                            <div class="panel-kicker">METAR / Weather</div>
-                            <h2>
-                                {{
-                                    activeWeatherView === "parsed"
-                                        ? weatherSummary
-                                        : "Observation string"
-                                }}
-                            </h2>
-                        </div>
-                        <span class="panel-pill">{{
-                            formatObsTime(metar?.obsTime)
-                        }}</span>
-                    </div>
+                <WeatherPanel
+                    :metar="metar"
+                    :metar-raw="metarRaw"
+                    :metar-loading="metarLoading"
+                    :metar-error="metarError"
+                />
 
-                    <div class="weather-view-frame">
-                        <dl
-                            v-if="activeWeatherView === 'parsed'"
-                            class="weather-readout"
-                        >
-                            <div>
-                                <dt>Wind</dt>
-                                <dd>{{ metar?.wind || "—" }}</dd>
-                            </div>
-                            <div>
-                                <dt>Visibility</dt>
-                                <dd>
-                                    <template v-if="visInfo">
-                                        <NumberFlow
-                                            :value="visInfo.value"
-                                            :suffix="
-                                                visInfo.plus ? '+ SM' : ' SM'
-                                            "
-                                        />
-                                    </template>
-                                    <template v-else>{{
-                                        metar?.vis || "—"
-                                    }}</template>
-                                </dd>
-                            </div>
-                            <div>
-                                <dt>Ceiling</dt>
-                                <dd>{{ metar?.ceiling || "—" }}</dd>
-                            </div>
-                            <div>
-                                <dt>Temp / Dew</dt>
-                                <dd>
-                                    {{
-                                        metar
-                                            ? `${metar.temp} / ${metar.dew}`
-                                            : "—"
-                                    }}
-                                </dd>
-                            </div>
-                            <div>
-                                <dt>Altimeter</dt>
-                                <dd>{{ metar?.altim || "—" }}</dd>
-                            </div>
-                            <div>
-                                <dt>Weather</dt>
-                                <dd>
-                                    {{ metar?.wxString || "None reported" }}
-                                </dd>
-                            </div>
-                        </dl>
+                <TrafficPanel
+                    :aircraft="aircraft"
+                    :traffic-counts="trafficCounts"
+                />
 
-                        <div v-else class="metar-code">
-                            <span v-if="metarRaw">{{ metarRaw }}</span>
-                            <span v-else-if="metarLoading"
-                                >Loading METAR...</span
-                            >
-                            <span v-else>No METAR available.</span>
-                        </div>
-                    </div>
-
-                    <div v-if="metarError" class="panel-error">
-                        {{ metarError }}
-                    </div>
-
-                    <div
-                        class="weather-view-dots"
-                        role="tablist"
-                        aria-label="Weather card view"
-                    >
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-label="Parsed weather"
-                            :aria-selected="activeWeatherView === 'parsed'"
-                            :class="{ active: activeWeatherView === 'parsed' }"
-                            @click="activeWeatherView = 'parsed'"
-                        />
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-label="Raw METAR"
-                            :aria-selected="activeWeatherView === 'raw'"
-                            :class="{ active: activeWeatherView === 'raw' }"
-                            @click="activeWeatherView = 'raw'"
-                        />
-                    </div>
-                </section>
-
-                <section class="glass-panel traffic-panel">
-                    <div class="panel-heading">
-                        <div>
-                            <div class="panel-kicker">Airport traffic</div>
-                            <h2>Nearby aircraft</h2>
-                        </div>
-                    </div>
-
-                    <div class="traffic-counts">
-                        <div>
-                            <span>Total</span>
-                            <strong style="color: var(--atc-text)"
-                                ><NumberFlow :value="aircraft.length"
-                            /></strong>
-                        </div>
-                        <div>
-                            <span>Ascending</span>
-                            <strong :style="{ color: AIRCRAFT_COLORS.ascending }"
-                                ><NumberFlow :value="trafficCounts.ascending"
-                            /></strong>
-                        </div>
-                        <div>
-                            <span>Descending</span>
-                            <strong :style="{ color: AIRCRAFT_COLORS.descending }"
-                                ><NumberFlow :value="trafficCounts.descending"
-                            /></strong>
-                        </div>
-                        <div>
-                            <span>Level</span>
-                            <strong :style="{ color: 'var(--traffic-level-color)' }"
-                                ><NumberFlow :value="trafficCounts.level"
-                            /></strong>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="glass-panel wiki-panel">
-                    <div class="panel-heading">
-                        <div>
-                            <div class="panel-kicker">Airport wiki</div>
-                            <h2>{{ wikiSummary?.title || airportName }}</h2>
-                        </div>
-                        <a
-                            v-if="wikiSummary?.url"
-                            class="panel-link"
-                            :href="wikiSummary.url"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Wikipedia
-                        </a>
-                    </div>
-
-                    <p class="wiki-copy">
-                        <span v-if="wikiSummary?.extract">{{
-                            wikiSummary.extract
-                        }}</span>
-                        <span v-else-if="wikiLoading"
-                            >Loading airport introduction...</span
-                        >
-                        <span v-else>
-                            No Wikipedia summary was found for this airport. The
-                            rest of the dashboard remains live.
-                        </span>
-                    </p>
-
-                    <div class="wiki-source">Source: Wikipedia summary API</div>
-                </section>
+                <WikiPanel
+                    :wiki-summary="wikiSummary"
+                    :wiki-loading="wikiLoading"
+                    :airport-name="airportName"
+                />
             </main>
         </div>
     </div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import NumberFlow from "@number-flow/vue";
+import { computed, ref } from "vue";
 import MapControlBar from "../ui/MapControlBar.vue";
 import AirportMap from "../map/AirportMap.vue";
+import WeatherPanel from "../panels/WeatherPanel.vue";
+import TrafficPanel from "../panels/TrafficPanel.vue";
+import WikiPanel from "../panels/WikiPanel.vue";
 import { useAircraftPositions } from "../../composables/useAircraftPositions.js";
 import { useAirportWiki } from "../../composables/useAirportWiki.js";
 import { useFlightRoutes } from "../../composables/useFlightRoutes.js";
 import { useMetar } from "../../composables/useMetar.js";
-import { AIRCRAFT_COLORS, BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft.js";
+import { useScrollParallax } from "../../composables/useScrollParallax.js";
+import { BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft.js";
 import { SLOW_AIRCRAFT_THRESHOLD_KT } from "../../utils/aircraftMotion.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 import { formatLocalFlightRouteLabel } from "../../utils/flightRouteDisplay.js";
@@ -296,58 +144,9 @@ const props = defineProps({
 defineEmits(["back"]);
 
 const mapZoom = ref(ZOOM_APPROACH);
-const activeWeatherView = ref("parsed");
-const mobileMapDim = ref(0);
-const mobileBreadcrumbOpacity = ref(1);
-const mobileTitleOpacity = ref(1);
-const mobileCompactTitleOpacity = ref(0);
-const mobileTopMaskOpacity = ref(0);
 const screenRef = ref(null);
 
-const syncMobileMapDim = () => {
-    const el = screenRef.value;
-    if (!el) return;
-
-    const progress = Math.min(
-        el.scrollTop / Math.max(window.innerHeight * 0.32, 1),
-        1,
-    );
-    const titleProgress = Math.min(
-        el.scrollTop / Math.max(window.innerHeight * 0.14, 1),
-        1,
-    );
-    const compactProgress = Math.max(
-        0,
-        Math.min((titleProgress - 0.08) / 0.34, 1),
-    );
-    mobileMapDim.value = Number((progress * 0.78).toFixed(3));
-    mobileBreadcrumbOpacity.value = Number(
-        Math.max(1 - compactProgress, 0).toFixed(3),
-    );
-    mobileTitleOpacity.value = Number(
-        Math.max(1 - titleProgress, 0).toFixed(3),
-    );
-    mobileCompactTitleOpacity.value = Number(compactProgress.toFixed(3));
-    mobileTopMaskOpacity.value = Number(
-        Math.min(0.22 + progress * 0.78, 1).toFixed(3),
-    );
-};
-
-onMounted(() => {
-    const el = screenRef.value;
-    if (!el) return;
-
-    syncMobileMapDim();
-    el.addEventListener("scroll", syncMobileMapDim, { passive: true });
-    window.addEventListener("resize", syncMobileMapDim);
-});
-
-onBeforeUnmount(() => {
-    const el = screenRef.value;
-    el?.removeEventListener("scroll", syncMobileMapDim);
-    window.removeEventListener("resize", syncMobileMapDim);
-});
-
+const parallax = useScrollParallax(screenRef);
 
 const airportFallback = computed(
     () => AIRPORT_FALLBACKS[props.icao?.toUpperCase()] || null,
@@ -390,7 +189,10 @@ const { aircraft, lastUpdated } = useAircraftPositions(icaoRef, latRef, lonRef);
 const { routesByCallsign } = useFlightRoutes(aircraft);
 
 const normalizeCallsign = (callsign) =>
-    String(callsign || "").trim().toUpperCase().replace(/\s+/g, "");
+    String(callsign || "")
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, "");
 
 const aircraftWithRoutes = computed(() =>
     aircraft.value.map((item) => {
@@ -430,7 +232,8 @@ const coordinatesLabel = computed(() => {
 const trafficCounts = computed(() =>
     aircraft.value.reduce(
         (counts, item) => {
-            const showArrow = (item.velocity ?? 0) >= SLOW_AIRCRAFT_THRESHOLD_KT;
+            const showArrow =
+                (item.velocity ?? 0) >= SLOW_AIRCRAFT_THRESHOLD_KT;
             if (!item.onGround && showArrow && item.baroRate != null) {
                 if (item.baroRate > BARO_RATE_THRESHOLD_FPM) {
                     counts.ascending += 1;
@@ -448,27 +251,6 @@ const trafficCounts = computed(() =>
     ),
 );
 
-const weatherSummary = computed(() => {
-    if (!metar.value) return "Weather report pending";
-    const category = metar.value.flightCategory || "Observed";
-    const wind =
-        metar.value.wind && metar.value.wind !== "—"
-            ? metar.value.wind
-            : "wind unavailable";
-    return `${category} · ${wind}`;
-});
-
-const visInfo = computed(() => {
-    const raw = metar.value?.vis;
-    const match = raw?.match(/^(\d+(?:\.\d+)?)(\+)?\s*SM$/);
-    if (!match) return null;
-
-    return {
-        value: Number(match[1]),
-        plus: Boolean(match[2]),
-    };
-});
-
 const fmtUpdated = (date) => {
     if (!date) return "—";
     return date.toLocaleTimeString([], {
@@ -476,19 +258,6 @@ const fmtUpdated = (date) => {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
-    });
-};
-
-const formatObsTime = (value) => {
-    if (!value) return "latest";
-    const date = new Date(
-        Number(value) < 10_000_000_000 ? Number(value) * 1000 : value,
-    );
-    if (Number.isNaN(date.getTime())) return "latest";
-    return date.toLocaleTimeString([], {
-        hour12: false,
-        hour: "2-digit",
-        minute: "2-digit",
     });
 };
 </script>
@@ -980,7 +749,8 @@ const formatObsTime = (value) => {
         max-width: min(300px, calc(100vw - 72px));
         position: relative;
         text-align: center;
-        text-shadow: 0 2px 18px color-mix(in oklab, var(--atc-bg) 95%, transparent);
+        text-shadow: 0 2px 18px
+            color-mix(in oklab, var(--atc-bg) 95%, transparent);
         z-index: 1;
     }
 
