@@ -77,6 +77,7 @@ import {
 } from "../../utils/aircraftMotion";
 import {
     ZOOM_APPROACH,
+    isGroundLikeAircraft as isGroundLikeAircraftForDisplay,
     shouldShowAirportArea,
 } from "../../utils/airportMapDisplay.js";
 import { AIRCRAFT_COLORS, BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft";
@@ -240,15 +241,10 @@ const escapeHtml = (value) =>
 
 
 const isGroundLikeAircraft = (ac) => {
-    const speedKt = Number(ac?.velocity ?? 0);
-    const altitudeFt = Number(ac?.altitude ?? 0);
-    const distanceNm = Number(ac?.distanceNm ?? Number.POSITIVE_INFINITY);
-    const apiGrounded = Boolean(ac?.onGround);
-
-    if (apiGrounded) return true;
-    if (!Number.isFinite(distanceNm)) return false;
-
-    return distanceNm <= AIRPORT_AREA_RADIUS_NM && altitudeFt < 3000 && speedKt < 140;
+    return isGroundLikeAircraftForDisplay(ac, {
+        airportAreaRadiusNm: AIRPORT_AREA_RADIUS_NM,
+        slowAircraftThresholdKt: SLOW_AIRCRAFT_THRESHOLD_KT,
+    });
 };
 
 const formatTelemetryValue = (value) => {
