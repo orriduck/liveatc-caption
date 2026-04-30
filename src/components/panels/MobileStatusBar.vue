@@ -58,7 +58,7 @@ const barRef = ref(null);
 const metarSlot = ref(null);
 const trafficSlot = ref(null);
 
-const DURATIONS = { fadeOut: 160, resize: 260, fadeIn: 200 };
+const DURATIONS = { fadeOut: 160, resize: 260, fadeIn: 200, expandReveal: 170 };
 const INTERVAL_MS = 4200;
 
 const hasMetar = computed(() => Boolean(props.metar));
@@ -107,6 +107,8 @@ async function rotate() {
         nextView === "metar" ? metarSlot.value : trafficSlot.value;
     const barEl = barRef.value;
     const fromW = barEl ? barEl.getBoundingClientRect().width : 300;
+    const toW = measureBarWidth(barEl, incomingEl);
+    const isExpanding = toW > fromW;
 
     // 1. Fade out current content
     phase.value = "fade-out";
@@ -118,7 +120,30 @@ async function rotate() {
     await nextTick();
     activeView.value = nextView;
     await nextTick();
-    const toW = measureBarWidth(barEl, incomingEl);
+
+    if (isExpanding) {
+        // On expansion, start revealing late enough that the incoming text
+        // is not readable while the card is still too narrow for it.
+        void barEl?.offsetHeight; // force layout
+        phase.value = "resize";
+        lockWidth.value = toW;
+        await sleep(DURATIONS.expandReveal);
+        if (!mounted) return;
+
+        phase.value = "fade-in";
+        await sleep(
+            Math.max(
+                DURATIONS.resize - DURATIONS.expandReveal,
+                DURATIONS.fadeIn,
+            ),
+        );
+        if (!mounted) return;
+
+        lockWidth.value = null;
+        phase.value = "idle";
+        rotating = false;
+        return;
+    }
 
     // 3. Animate card width from -> to
     void barEl?.offsetHeight; // force layout
