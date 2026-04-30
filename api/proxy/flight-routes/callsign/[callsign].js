@@ -17,7 +17,7 @@
 const FLIGHTAWARE_BASE = "https://www.flightaware.com/live/flight";
 
 const USER_AGENT =
-  "ADSBao/0.4 (+https://github.com/orriduck/ADSBao) FlightAware-scraper/1.0";
+  "ADSBao/0.7.1 (+https://github.com/orriduck/ADSBao) FlightAware-scraper/1.0";
 
 // Regex to extract ad-targeting key/value pairs from the FlightAware HTML.
 // The page includes calls like:
