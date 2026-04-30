@@ -1,31 +1,28 @@
 <template>
-    <transition name="status-fade" mode="out-in">
-        <section
-            :key="activeView"
-            class="mobile-status-bar"
-            role="status"
-            aria-live="polite"
-        >
-            <template v-if="activeView === 'metar'">
-                <div class="status-kicker">METAR</div>
-                <div class="status-main">
-                    <span>{{ metar.flightCategory || 'Observed' }}</span>
-                    <span>·</span>
-                    <span>{{ metar.wind || 'Wind —' }}</span>
-                    <span>·</span>
-                    <span>{{ metar.vis || 'Vis —' }}</span>
-                </div>
-            </template>
-            <template v-else>
-                <div class="status-kicker">Traffic</div>
-                <div class="status-main">
-                    <span>↑ {{ trafficCounts.ascending }}</span>
-                    <span>↓ {{ trafficCounts.descending }}</span>
-                    <span>→ {{ trafficCounts.level }}</span>
-                </div>
-            </template>
-        </section>
-    </transition>
+    <section class="mobile-status-bar" role="status" aria-live="polite">
+        <transition name="status-fade" mode="out-in">
+            <div :key="activeView" class="status-content">
+                <template v-if="activeView === 'metar'">
+                    <div class="status-kicker">METAR</div>
+                    <div class="status-main">
+                        <span>{{ metar.flightCategory || 'Observed' }}</span>
+                        <span>·</span>
+                        <span>{{ metar.wind || 'Wind —' }}</span>
+                        <span>·</span>
+                        <span>{{ metar.vis || 'Vis —' }}</span>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class="status-kicker">Traffic</div>
+                    <div class="status-main">
+                        <span>↑ {{ trafficCounts.ascending }}</span>
+                        <span>↓ {{ trafficCounts.descending }}</span>
+                        <span>→ {{ trafficCounts.level }}</span>
+                    </div>
+                </template>
+            </div>
+        </transition>
+    </section>
 </template>
 
 <script setup>
@@ -84,6 +81,10 @@ onBeforeUnmount(() => {
     transform: translateX(-50%);
     width: min(92vw, 420px);
     z-index: 45;
+}
+
+.status-content {
+    width: 100%;
 }
 
 .status-kicker {
