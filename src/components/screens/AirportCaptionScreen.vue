@@ -19,6 +19,8 @@
                 accent="#FF5A1F"
                 :aircraft="aircraftWithRoutes"
                 :airport="airport"
+                :show-map-labels="showMapLabels"
+                :show-telemetry="showTelemetry"
             />
         </div>
 
@@ -32,7 +34,14 @@
             <span class="mobile-compact-name">{{ airportName }}</span>
         </div>
 
-        <MapControlBar :active-zoom="mapZoom" @zoom="mapZoom = $event" />
+        <MapControlBar
+            :active-zoom="mapZoom"
+            :show-map-labels="showMapLabels"
+            :show-telemetry="showTelemetry"
+            @zoom="mapZoom = $event"
+            @toggle-map-labels="showMapLabels = !showMapLabels"
+            @toggle-telemetry="showTelemetry = !showTelemetry"
+        />
 
         <div
             class="airport-content relative z-20 flex min-h-screen flex-col px-5 py-5 md:px-8 lg:px-10"
@@ -151,6 +160,8 @@ const props = defineProps({
 defineEmits(["back"]);
 
 const mapZoom = ref(ZOOM_APPROACH);
+const showMapLabels = ref(true);
+const showTelemetry = ref(true);
 const screenRef = ref(null);
 
 const parallax = useScrollParallax(screenRef);

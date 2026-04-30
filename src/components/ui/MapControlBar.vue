@@ -49,6 +49,26 @@
             </button>
 
             <button
+                class="ctrl-btn"
+                :class="{ active: showMapLabels }"
+                :aria-pressed="showMapLabels"
+                :title="showMapLabels ? 'Hide map labels' : 'Show map labels'"
+                @click="emit('toggle-map-labels')"
+            >
+                <Type />
+            </button>
+
+            <button
+                class="ctrl-btn"
+                :class="{ active: showTelemetry }"
+                :aria-pressed="showTelemetry"
+                :title="showTelemetry ? 'Hide speed/altitude' : 'Show speed/altitude'"
+                @click="emit('toggle-telemetry')"
+            >
+                <Gauge />
+            </button>
+
+            <button
                 class="ctrl-btn ctrl-more"
                 :class="{ active: drawerOpen }"
                 :aria-expanded="drawerOpen"
@@ -64,7 +84,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { SlidersHorizontal } from "lucide-vue-next";
+import { Gauge, SlidersHorizontal, Type } from "lucide-vue-next";
 import {
     ZOOM_AIRPORT,
     ZOOM_APPROACH,
@@ -89,9 +109,11 @@ const VIDEO_ID = "JDQiaRYmTGk";
 
 const props = defineProps({
     activeZoom: { type: Number, default: ZOOM_AIRPORT },
+    showMapLabels: { type: Boolean, default: true },
+    showTelemetry: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["zoom"]);
+const emit = defineEmits(["zoom", "toggle-map-labels", "toggle-telemetry"]);
 
 const controlZone = ref(null);
 const playerEl = ref(null);

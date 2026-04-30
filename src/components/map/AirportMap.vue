@@ -94,6 +94,8 @@ const props = defineProps({
     accent: { type: String, default: "#FF5A1F" },
     aircraft: { type: Array, default: () => [] },
     airport: { type: Object, default: null },
+    showMapLabels: { type: Boolean, default: true },
+    showTelemetry: { type: Boolean, default: true },
 });
 
 const mapEl = ref(null);
@@ -155,11 +157,13 @@ const updateTileLayers = () => {
         subdomains: "abcd",
         maxZoom: 20,
     }).addTo(map);
-    labelTileLayer = L.tileLayer(variant.labels, {
-        subdomains: "abcd",
-        maxZoom: 20,
-        opacity: variant.labelOpacity,
-    }).addTo(map);
+    if (props.showMapLabels) {
+        labelTileLayer = L.tileLayer(variant.labels, {
+            subdomains: "abcd",
+            maxZoom: 20,
+            opacity: variant.labelOpacity,
+        }).addTo(map);
+    }
 };
 
 const trafficLegend = [
@@ -439,7 +443,7 @@ const makeAcIcon = (
     const safeRouteLabel = escapeHtml(routeLabel);
     const labelTop = showArrow && hasTelemetry ? "-4px" : "2px";
     const telemetryLine =
-        showArrow && hasTelemetry
+        showArrow && hasTelemetry && props.showTelemetry
             ? `<div class="aircraft-telemetry">
         <span data-aircraft-flow="speed"></span>
         <span class="aircraft-telemetry-separator">|</span>
@@ -600,6 +604,18 @@ const updateAircraft = () => {
 };
 
 watch(() => props.aircraft, updateAircraft, { deep: true });
+watch(
+    () => props.showMapLabels,
+    () => {
+        updateTileLayers();
+    },
+);
+watch(
+    () => props.showTelemetry,
+    () => {
+        updateAircraft();
+    },
+);
 watch(
     () => currentTheme.value,
     () => {
