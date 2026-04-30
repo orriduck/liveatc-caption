@@ -18,6 +18,7 @@
                 :zoom="mapZoom"
                 accent="#FF5A1F"
                 :aircraft="aircraftWithRoutes"
+                :airport="airport"
             />
         </div>
 
