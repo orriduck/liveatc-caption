@@ -30,9 +30,15 @@
         >
             <div class="status-kicker">Traffic</div>
             <div class="status-main">
-                <span>↑ <NumberFlow :value="trafficCounts.ascending" /></span>
-                <span>↓ <NumberFlow :value="trafficCounts.descending" /></span>
-                <span>→ <NumberFlow :value="trafficCounts.level" /></span>
+                <span :style="{ color: AIRCRAFT_COLORS.ascending }"
+                    >↑ <NumberFlow :value="trafficCounts.ascending"
+                /></span>
+                <span :style="{ color: AIRCRAFT_COLORS.descending }"
+                    >↓ <NumberFlow :value="trafficCounts.descending"
+                /></span>
+                <span :style="{ color: AIRCRAFT_COLORS.level }"
+                    >→ <NumberFlow :value="trafficCounts.level"
+                /></span>
             </div>
         </div>
     </section>
@@ -41,6 +47,7 @@
 <script setup>
 import NumberFlow from "@number-flow/vue";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 
 const props = defineProps({
     metar: { type: Object, default: null },
