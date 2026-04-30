@@ -1,4 +1,4 @@
-import { ref, watch, onUnmounted } from "vue";
+import { onUnmounted, ref, watch } from "vue";
 import {
   aircraftPositionClient,
   DEFAULT_AIRCRAFT_DIST_NM,
@@ -6,6 +6,8 @@ import {
 } from "../services/aviationData.js";
 import { parseAdsbPositionTime } from "../utils/aircraftMotion.js";
 import { createAircraftIntentTracker } from "../utils/aircraftTrafficIntent.js";
+
+const HIDDEN_POLL_GRACE_MS = 5_000;
 
 export function useAircraftPositions(icaoRef, latRef, lonRef) {
   const aircraft = ref([]);
@@ -74,6 +76,32 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
   };
 
   let wasActive = false;
+  let hiddenSince = 0;
+
+  const handleVisibility = () => {
+    if (document.hidden) {
+      hiddenSince = Date.now();
+      stop();
+      return;
+    }
+
+    // Tab just became visible again.
+    // If we were hidden for more than the grace period, force an
+    // immediate full reload to avoid stale extrapolated positions.
+    const hiddenDuration = Date.now() - hiddenSince;
+    hiddenSince = 0;
+
+    if (wasActive && hiddenDuration > HIDDEN_POLL_GRACE_MS) {
+      // Hard restart: clear all state and re-poll immediately
+      aircraft.value = [];
+      intentTracker.clear();
+      start();
+    } else if (wasActive) {
+      // Brief hide — just resume polling gently
+      poll();
+      timer = setInterval(poll, DEFAULT_AIRCRAFT_POLL_MS);
+    }
+  };
 
   watch(
     [icaoRef, latRef, lonRef],
@@ -90,7 +118,12 @@ export function useAircraftPositions(icaoRef, latRef, lonRef) {
     },
     { immediate: true },
   );
-  onUnmounted(stop);
+
+  document.addEventListener("visibilitychange", handleVisibility);
+  onUnmounted(() => {
+    document.removeEventListener("visibilitychange", handleVisibility);
+    stop();
+  });
 
   return { aircraft, loading, lastUpdated };
 }
