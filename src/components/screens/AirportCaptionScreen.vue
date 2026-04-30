@@ -3,6 +3,7 @@
         ref="screenRef"
         class="airport-screen relative min-h-screen bg-atc-bg font-sans text-atc-text"
         @touchstart.passive="onMobileTouchStart"
+        @touchmove.passive="onMobileTouchMove"
         @touchend.passive="onMobileTouchEnd"
         :style="{
             '--mobile-breadcrumb-opacity': parallax.breadcrumbOpacity.value,
@@ -10,6 +11,10 @@
             '--mobile-compact-title-opacity':
                 parallax.compactTitleOpacity.value,
             '--mobile-top-mask-opacity': parallax.topMaskOpacity.value,
+            '--drag-offset': dragOffset + 'px',
+            '--drag-transition': isDragging
+                ? 'none'
+                : 'transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), max-height 0.38s cubic-bezier(0.22, 1, 0.36, 1), width 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1)',
         }"
     >
         <div class="airport-map-layer absolute inset-0 z-0">
@@ -94,10 +99,8 @@
                 Updated {{ fmtUpdated(lastUpdated) }}
             </div>
 
-            <main
-                class="airport-dashboard"
-                :class="`is-${dashboardMode}`"
-            >
+            <main class="airport-dashboard" :class="`is-${dashboardMode}`">
+                <div class="dashboard-drag-handle" aria-hidden="true" />
                 <WeatherPanel
                     :metar="metar"
                     :metar-raw="metarRaw"
@@ -161,31 +164,92 @@ defineEmits(["back"]);
 const mapZoom = ref(ZOOM_APPROACH);
 const screenRef = ref(null);
 const dashboardMode = ref("peek");
-const touchStartY = ref(null);
 
 const parallax = useScrollParallax(screenRef);
 
+// ── Mobile drag-to-dismiss / drag-to-expand ──
+const DRAG_THRESHOLD = 80; // px to commit a state change
+const VELOCITY_THRESHOLD = 0.4; // px/ms to commit on flick
+
+const dragState = ref(null); // { startY, lastY, lastTime, offsetStart }
+const dragOffset = ref(0); // current px offset from the natural peek position
+const isDragging = ref(false);
+const isAnimating = ref(false);
+
 const onMobileTouchStart = (event) => {
-    touchStartY.value = event.changedTouches?.[0]?.clientY ?? null;
+    const touch = event.touches?.[0];
+    if (!touch) return;
+
+    // Only capture drags that start on the dashboard or scroll-cue button.
+    // Touch targets inside the map or header should not start a dashboard drag.
+    const target = touch.target;
+    const dashboard =
+        (target && target.closest && target.closest(".airport-dashboard")) ||
+        (target && target.closest && target.closest(".dashboard-scroll-cue"));
+    if (!dashboard) return;
+
+    isAnimating.value = false;
+    dragState.value = {
+        startY: touch.clientY,
+        lastY: touch.clientY,
+        lastTime: performance.now(),
+        offsetStart: dragOffset.value,
+    };
+    isDragging.value = true;
+};
+
+const onMobileTouchMove = (event) => {
+    if (!isDragging.value || !dragState.value) return;
+    const touch = event.touches?.[0];
+    if (!touch) return;
+    const now = performance.now();
+    const deltaY = touch.clientY - dragState.value.lastY;
+    dragState.value.lastY = touch.clientY;
+    dragState.value.lastTime = now;
+    dragOffset.value =
+        dragState.value.offsetStart + (touch.clientY - dragState.value.startY);
 };
 
 const onMobileTouchEnd = (event) => {
-    if (touchStartY.value == null) return;
-    const endY = event.changedTouches?.[0]?.clientY;
-    if (endY == null) return;
+    if (!isDragging.value || !dragState.value) return;
+    isDragging.value = false;
+    isAnimating.value = true;
 
-    const deltaY = endY - touchStartY.value;
-    touchStartY.value = null;
-    if (Math.abs(deltaY) < 44) return;
+    const touch = event.changedTouches?.[0];
+    const endY = touch?.clientY ?? dragState.value.lastY;
+    const endTime = performance.now();
+    const totalDelta = endY - dragState.value.startY;
+    const dt = Math.max(endTime - dragState.value.lastTime, 1);
+    const lastDelta = endY - dragState.value.lastY;
+    const velocity = Math.abs(lastDelta) / dt; // px/ms
 
-    if (deltaY < 0) {
+    const velocitySign = lastDelta > 0 ? 1 : lastDelta < 0 ? -1 : 0;
+    const fastFlick = velocity > VELOCITY_THRESHOLD;
+
+    dragState.value = null;
+
+    // Determine target based on velocity + distance
+    if (fastFlick && velocitySign > 0) {
+        // Fast swipe down → hide
+        dashboardMode.value = "hidden";
+    } else if (fastFlick && velocitySign < 0) {
+        // Fast swipe up → expand
+        dashboardMode.value = "expanded";
+    } else if (totalDelta > DRAG_THRESHOLD) {
+        // Slow drag down far enough → hide from peek, or peek from expanded
+        if (dashboardMode.value === "expanded") dashboardMode.value = "peek";
+        else dashboardMode.value = "hidden";
+    } else if (totalDelta < -DRAG_THRESHOLD) {
+        // Slow drag up far enough → peek from hidden, or expand from peek
         if (dashboardMode.value === "hidden") dashboardMode.value = "peek";
         else dashboardMode.value = "expanded";
-        return;
     }
+    // else: snap back to current mode
 
-    if (dashboardMode.value === "expanded") dashboardMode.value = "peek";
-    else dashboardMode.value = "hidden";
+    dragOffset.value = 0;
+    setTimeout(() => {
+        isAnimating.value = false;
+    }, 400);
 };
 
 const airportFallback = computed(
@@ -861,29 +925,61 @@ const fmtUpdated = (date) => {
         grid-template-columns: minmax(0, 1fr);
         left: 50%;
         margin-inline: 0;
+        opacity: 1;
         overflow-x: hidden;
-        overflow-y: hidden;
-        padding: 0 2px 16px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 6px 2px 16px;
         position: fixed;
-        transform: translateX(-50%) translateY(44%);
-        transition:
-            max-height 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-            transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-            width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        transform: translateX(-50%)
+            translateY(calc(44% + var(--drag-offset, 0px)));
+        transition: var(
+            --drag-transition,
+            transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+            max-height 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+            width 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+            opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1)
+        );
         width: min(82vw, 560px);
+        will-change: transform, opacity;
         z-index: 35;
+    }
+
+    .airport-dashboard::before {
+        display: none;
+    }
+
+    .dashboard-drag-handle {
+        background: color-mix(in oklab, var(--atc-dim) 28%, transparent);
+        border-radius: var(--atc-radius-pill);
+        flex-shrink: 0;
+        height: 5px;
+        margin: 0 auto 10px;
+        opacity: 1;
+        transition: opacity 0.2s ease;
+        width: 36px;
     }
 
     .airport-dashboard.is-expanded {
         max-height: calc(100dvh - 132px);
-        overflow-y: auto;
-        transform: translateX(-50%) translateY(0);
+        transform: translateX(-50%)
+            translateY(calc(0px + var(--drag-offset, 0px)));
         width: min(92vw, 620px);
     }
 
+    .airport-dashboard.is-expanded .dashboard-drag-handle {
+        opacity: 0.5;
+    }
+
     .airport-dashboard.is-hidden {
+        opacity: 0;
         pointer-events: none;
-        transform: translateX(-50%) translateY(calc(100% + 34px));
+        transform: translateX(-50%)
+            translateY(calc(100% + 34px + var(--drag-offset, 0px)));
+    }
+
+    .airport-dashboard.is-hidden .dashboard-drag-handle {
+        opacity: 0;
     }
 
     .glass-panel {
