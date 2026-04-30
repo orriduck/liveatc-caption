@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs'
 const config = JSON.parse(readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8'))
 
 assert.equal(config.framework, 'nextjs')
+assert.equal(config.outputDirectory, '.next')
 assert.deepEqual(config.rewrites?.slice(0, 3), [
   {
     source: '/api/proxy/metar/:icao',
@@ -19,7 +20,6 @@ assert.deepEqual(config.rewrites?.slice(0, 3), [
   },
 ])
 
-assert.equal(config.outputDirectory, undefined)
 assert.equal(existsSync(new URL('../../api/proxy/metar/[icao].js', import.meta.url)), false)
 assert.equal(existsSync(new URL('../../api/proxy/aircraft/positions/[...params].js', import.meta.url)), false)
 assert.equal(existsSync(new URL('../app/api/proxy/flight-routes/callsign/[callsign]/route.js', import.meta.url)), true)
