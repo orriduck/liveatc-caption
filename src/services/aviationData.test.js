@@ -42,13 +42,13 @@ try {
   const limiter = createRateLimiter({ maxTokens: 2, refillMs: 10 });
 
   const start = Date.now();
-  // First two acquires should be instant
+  // First two acquires should be instant (maxTokens=2)
   await limiter.acquire();
   await limiter.acquire();
-  // Third acquire should wait (0 tokens available)
+  // Third acquire should wait for refill (proportional: ~5ms for 1 token at 2/10ms)
   await limiter.acquire();
   const elapsed = Date.now() - start;
-  assert.ok(elapsed >= 8, `expected >=8ms, got ${elapsed}ms`);
+  assert.ok(elapsed >= 3, `expected >=3ms, got ${elapsed}ms`);
 
   // release puts a token back
   limiter.release();
@@ -61,6 +61,49 @@ try {
   limiter.onRateLimited(30);
   await limiter.acquire();
   assert.ok(Date.now() - t2 >= 28, `expected >=28ms, got ${Date.now() - t2}ms`);
+
+  console.log("[test] ✓ createRateLimiter basic functions");
+
+  // P1 fix: cooldown set while waiter is sleeping should be honoured
+  const lim2 = createRateLimiter({ maxTokens: 2, refillMs: 10 });
+  await lim2.acquire();
+  await lim2.acquire();
+  // Start a waiter that will sleep waiting for refill
+  const waiterPromise = lim2.acquire();
+  // While it sleeps, inject a 429 cooldown
+  await new Promise((r) => setTimeout(r, 2));
+  lim2.onRateLimited(30);
+  const t3 = Date.now();
+  await waiterPromise;
+  const afterCooldown = Date.now() - t3;
+  // Waiter should have waited at least the cooldown period,
+  // NOT just the refill interval
+  assert.ok(
+    afterCooldown >= 26,
+    `P1 fix: expected >=26ms after cooldown injection, got ${afterCooldown}ms`,
+  );
+  console.log("[test] ✓ P1 fix: cooldown injected while waiter sleeping");
+
+  // P2 fix: proportional refill — after waiting, multiple tokens should refill
+  const lim3 = createRateLimiter({ maxTokens: 4, refillMs: 10 });
+  // Drain all tokens
+  await lim3.acquire();
+  await lim3.acquire();
+  await lim3.acquire();
+  await lim3.acquire();
+  // Wait enough time for full refill
+  await new Promise((r) => setTimeout(r, 12));
+  const t4 = Date.now();
+  // Should be able to grab 3+ tokens near-instantly (refilled proportionally)
+  await lim3.acquire();
+  await lim3.acquire();
+  await lim3.acquire();
+  const elapsed2 = Date.now() - t4;
+  assert.ok(
+    elapsed2 < 15,
+    `P2 fix: expected <15ms for 3 proportional refills, got ${elapsed2}ms`,
+  );
+  console.log("[test] ✓ P2 fix: proportional token refill");
 
   console.log("[test] ✓ createRateLimiter works correctly");
 } catch (err) {

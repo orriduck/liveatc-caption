@@ -8,23 +8,45 @@ const env = import.meta.env ?? {};
 
 export const createRateLimiter = ({ maxTokens = 3, refillMs = 1000 } = {}) => {
   let available = maxTokens;
+  let lastRefill = Date.now();
   let cooldownUntil = 0;
 
-  /** Wait until a token is available.  Resolves immediately if a token is free. */
-  const acquire = async (now = Date.now) => {
-    if (cooldownUntil > 0) {
-      const remaining = cooldownUntil - now();
-      if (remaining > 0) {
-        await new Promise((resolve) => setTimeout(resolve, remaining));
-      }
-      cooldownUntil = 0;
-    }
+  const refill = (nowMs) => {
+    const elapsed = nowMs - lastRefill;
+    if (elapsed <= 0) return;
+    // Restore tokens proportionally to elapsed time
+    const newTokens = (elapsed / refillMs) * maxTokens;
+    available = Math.min(available + newTokens, maxTokens);
+    lastRefill = nowMs;
+  };
 
-    while (available <= 0) {
+  /** Wait until a token is available.  Resolves immediately if a token is free. */
+  const acquire = async () => {
+    while (true) {
+      const nowMs = Date.now();
+
+      // P1 fix: check cooldown inside the loop so waiters honour a
+      // cooldown that was set while they were already sleeping.
+      if (cooldownUntil > 0) {
+        const remaining = cooldownUntil - nowMs;
+        if (remaining > 0) {
+          await new Promise((resolve) => setTimeout(resolve, remaining));
+        }
+        cooldownUntil = 0;
+        lastRefill = Date.now();
+        continue;
+      }
+
+      refill(nowMs);
+
+      if (available >= 1) {
+        available -= 1;
+        return;
+      }
+
+      // Wait one refill window, then re-check cooldown & refill
       await new Promise((resolve) => setTimeout(resolve, refillMs));
-      available = Math.min(available + 1, maxTokens);
     }
-    available -= 1;
   };
 
   /** Notify the limiter that a 429 was received — apply exponential backoff. */
