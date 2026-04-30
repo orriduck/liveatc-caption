@@ -142,7 +142,7 @@ defineProps({
 
 @media (max-width: 980px) {
     .wiki-panel {
-        grid-column: 1;
+        grid-column: auto;
         min-height: 220px;
     }
 
@@ -153,7 +153,7 @@ defineProps({
 
 @media (max-width: 620px) {
     .wiki-panel {
-        grid-column: 1;
+        grid-column: auto;
     }
 
     .glass-panel {

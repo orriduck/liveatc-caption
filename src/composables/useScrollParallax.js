@@ -7,7 +7,6 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
  * CSS custom property refs used by the mobile header animations.
  */
 export function useScrollParallax(screenRef) {
-  const mapDim = ref(0);
   const breadcrumbOpacity = ref(1);
   const titleOpacity = ref(1);
   const compactTitleOpacity = ref(0);
@@ -35,7 +34,6 @@ export function useScrollParallax(screenRef) {
         Math.min((titleProgress - 0.08) / 0.34, 1),
       );
 
-      mapDim.value = Math.round(progress * 0.78 * 1000) / 1000;
       breadcrumbOpacity.value =
         Math.round(Math.max(1 - compactProgress, 0) * 1000) / 1000;
       titleOpacity.value =
@@ -62,7 +60,6 @@ export function useScrollParallax(screenRef) {
   });
 
   return {
-    mapDim,
     breadcrumbOpacity,
     titleOpacity,
     compactTitleOpacity,

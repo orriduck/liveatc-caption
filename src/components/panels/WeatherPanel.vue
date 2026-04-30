@@ -330,7 +330,7 @@ const formatObsTime = (value) => {
     }
 
     .weather-instrument-panel {
-        grid-column: 1;
+        grid-column: auto;
     }
 }
 

@@ -413,9 +413,9 @@ const updateAirportContextOverlays = () => {
             interactive: false,
             icon: L.divIcon({
                 className: "",
-                html: `<div class="airport-ground-count">GROUND ${groundCount}</div>`,
-                iconSize: [92, 18],
-                iconAnchor: [46, 24],
+                html: `<div class="airport-ground-count">GND ${groundCount}</div>`,
+                iconSize: [58, 18],
+                iconAnchor: [29, 24],
             }),
         }).addTo(map);
     }
@@ -827,17 +827,24 @@ onUnmounted(() => {
 }
 
 .airport-ground-count {
+    align-items: center;
     background: color-mix(in oklab, var(--atc-card) 78%, transparent);
     border: 1px solid
         color-mix(in oklab, var(--atc-line-strong) 88%, transparent);
     border-radius: 999px;
     color: var(--atc-text);
+    display: inline-flex;
     font-family: "JetBrains Mono", monospace;
     font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.8px;
-    padding: 1px 6px;
+    gap: 3px;
+    justify-content: center;
+    letter-spacing: 0.55px;
+    line-height: 1;
+    min-width: 46px;
+    padding: 3px 5px;
     text-shadow: 0 0 6px var(--map-label-glow);
+    white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
