@@ -2,6 +2,7 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
+import { Toaster } from "sonner";
 import "leaflet/dist/leaflet.css";
 import {
   SITE_DESCRIPTION,
@@ -59,7 +60,11 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
           rel="stylesheet"
@@ -68,6 +73,16 @@ export default function RootLayout({ children }) {
       <body>
         <ThemeBootScript />
         <div className="min-h-screen bg-atc-bg text-atc-text">{children}</div>
+        <Toaster
+          theme="system"
+          position="top-center"
+          toastOptions={{
+            style: {
+              fontFamily: "'Inter', system-ui, sans-serif",
+              fontSize: "14px",
+            },
+          }}
+        />
         <Analytics />
         <SpeedInsights />
       </body>

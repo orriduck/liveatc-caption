@@ -30,8 +30,6 @@ const AirportMap = dynamic(() => import("../map/AirportMap"), {
 export default function AirportCaptionScreen({
   icao = "",
   airport = null,
-  loading = false,
-  error = null,
   onBack,
 }) {
   const [mapZoom, setMapZoom] = useState(ZOOM_APPROACH);
@@ -42,13 +40,19 @@ export default function AirportCaptionScreen({
 
   const normalizedIcao = String(airport?.icao || icao || "").toUpperCase();
   const airportFallback = AIRPORT_FALLBACKS[normalizedIcao] || null;
-  const airportCodeLabel = airport?.iata || airportFallback?.iata || normalizedIcao;
-  const airportName = airport?.name || airportFallback?.name || normalizedIcao || "Airport";
+  const airportCodeLabel =
+    airport?.iata || airportFallback?.iata || normalizedIcao;
+  const airportName =
+    airport?.name || airportFallback?.name || normalizedIcao || "Airport";
   const airportLat = COORDS[normalizedIcao]?.[0] || airport?.lat || 0;
   const airportLon = COORDS[normalizedIcao]?.[1] || airport?.lon || 0;
 
-  const { raw: metarRaw, parsed: metar, loading: metarLoading, error: metarError } =
-    useMetar(normalizedIcao);
+  const {
+    raw: metarRaw,
+    parsed: metar,
+    loading: metarLoading,
+    error: metarError,
+  } = useMetar(normalizedIcao);
   const { aircraft, lastUpdated } = useAircraftPositions(
     normalizedIcao,
     airportLat,
@@ -86,7 +90,8 @@ export default function AirportCaptionScreen({
     }),
     [airportName, normalizedIcao, airportCodeLabel],
   );
-  const { summary: wikiSummary, loading: wikiLoading } = useAirportWiki(wikiAirport);
+  const { summary: wikiSummary, loading: wikiLoading } =
+    useAirportWiki(wikiAirport);
 
   const coordinatesLabel = useMemo(() => {
     if (!airportLat || !airportLon) return "Coordinates pending";
@@ -183,24 +188,9 @@ export default function AirportCaptionScreen({
           </div>
         </header>
 
-        {loading || error ? (
-          <div
-            className={`glass-panel mt-4 border px-4 py-3 ${
-              error
-                ? "border-atc-red/40 bg-[#251011]/75"
-                : "border-atc-line-strong/70 bg-atc-card/60"
-            }`}
-          >
-            <div className={`panel-kicker ${error ? "text-atc-red" : "text-atc-faint"}`}>
-              {error ? "Airport lookup error" : "Refreshing airport data"}
-            </div>
-            <div className="mt-1 text-[13px] font-semibold text-atc-text">
-              {error || "Loading airport context..."}
-            </div>
-          </div>
-        ) : null}
-
-        <div className="dashboard-updated">Updated {fmtUpdated(lastUpdated)}</div>
+        <div className="dashboard-updated">
+          Updated {fmtUpdated(lastUpdated)}
+        </div>
 
         <main className="airport-dashboard">
           <WeatherPanel
@@ -224,7 +214,10 @@ export default function AirportCaptionScreen({
 }
 
 const normalizeCallsign = (callsign) =>
-  String(callsign || "").trim().toUpperCase().replace(/\s+/g, "");
+  String(callsign || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "");
 
 const fmtUpdated = (date) => {
   if (!date) return "-";
