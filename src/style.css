@@ -451,6 +451,22 @@ body {
   .glass-panel {
     backdrop-filter: blur(6px) saturate(120%);
   }
+
+  .map-traffic-legend {
+    backdrop-filter: blur(10px);
+  }
+
+  .map-ctrl-bar {
+    backdrop-filter: blur(6px) saturate(120%);
+  }
+
+  .map-action-drawer {
+    backdrop-filter: blur(8px) saturate(125%);
+  }
+
+  .mobile-status-bar {
+    backdrop-filter: blur(10px) saturate(125%);
+  }
 }
 
 .panel-heading {

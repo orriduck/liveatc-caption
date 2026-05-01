@@ -2,6 +2,7 @@
 
 import NumberFlow from "@number-flow/react";
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 
 const DURATIONS = { fadeOut: 160, resize: 260, fadeIn: 200, expandReveal: 170 };
@@ -37,24 +38,26 @@ export default function MobileStatusBar({
       const toW = measureBarWidth(barEl, incomingEl);
       const isExpanding = toW > fromW;
 
-      setPhase("fade-out");
+      flushSync(() => setPhase("fade-out"));
       await sleep(DURATIONS.fadeOut);
       if (!mountedRef.current) return;
-      setLockWidth(fromW);
-      setActiveView(nextView);
-      await sleep(0);
+      flushSync(() => setLockWidth(fromW));
+      void barEl?.offsetHeight;
+      flushSync(() => setActiveView(nextView));
+      await nextFrame();
+      if (!mountedRef.current) return;
 
-      setPhase("resize");
+      flushSync(() => setPhase("resize"));
       setLockWidth(toW);
       if (isExpanding) {
         await sleep(DURATIONS.expandReveal);
         if (!mountedRef.current) return;
-        setPhase("fade-in");
+        flushSync(() => setPhase("fade-in"));
         await sleep(Math.max(DURATIONS.resize - DURATIONS.expandReveal, DURATIONS.fadeIn));
       } else {
         await sleep(DURATIONS.resize);
         if (!mountedRef.current) return;
-        setPhase("fade-in");
+        flushSync(() => setPhase("fade-in"));
         await sleep(DURATIONS.fadeIn);
       }
       if (!mountedRef.current) return;
@@ -94,10 +97,10 @@ export default function MobileStatusBar({
         <div className="status-kicker">METAR</div>
         <div className="status-main">
           <span>{metar?.flightCategory || "Observed"}</span>
-          <span>/</span>
-          <span>{metar?.wind || "Wind -"}</span>
-          <span>/</span>
-          <span>{metar?.vis || "Vis -"}</span>
+          <span>·</span>
+          <span>{metar?.wind || "Wind —"}</span>
+          <span>·</span>
+          <span>{metar?.vis || "Vis —"}</span>
         </div>
       </div>
       <div
@@ -109,13 +112,13 @@ export default function MobileStatusBar({
         <div className="status-kicker">Traffic</div>
         <div className="status-main">
           <span style={{ color: AIRCRAFT_COLORS.ascending }}>
-            up <NumberFlow value={trafficCounts.ascending} />
+            ↑ <NumberFlow value={trafficCounts.ascending} />
           </span>
           <span style={{ color: AIRCRAFT_COLORS.descending }}>
-            down <NumberFlow value={trafficCounts.descending} />
+            ↓ <NumberFlow value={trafficCounts.descending} />
           </span>
           <span style={{ color: AIRCRAFT_COLORS.level }}>
-            level <NumberFlow value={trafficCounts.level} />
+            → <NumberFlow value={trafficCounts.level} />
           </span>
         </div>
       </div>
@@ -125,6 +128,10 @@ export default function MobileStatusBar({
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function nextFrame() {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }
 
 function measureBarWidth(barEl, slotEl) {
