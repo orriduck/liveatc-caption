@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
-
 @import "tailwindcss";
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark;
@@ -69,20 +67,20 @@
   --noise: 0;
 }
 
-@theme {
-  --color-atc-bg: #0a0a0b;
-  --color-atc-card: #151518;
-  --color-atc-elev: #1d1d22;
-  --color-atc-high: #27272e;
-  --color-atc-orange: #FF5A1F;
-  --color-atc-orange-soft: rgba(255,90,31,0.12);
-  --color-atc-mint: #34d399;
-  --color-atc-red: #ff3b30;
-  --color-atc-text: #f5f5f7;
-  --color-atc-dim: rgba(245,245,247,0.62);
-  --color-atc-faint: rgba(245,245,247,0.38);
-  --color-atc-line: rgba(255,255,255,0.08);
-  --color-atc-line-strong: rgba(255,255,255,0.16);
+@theme inline {
+  --color-atc-bg: var(--atc-bg);
+  --color-atc-card: var(--atc-card);
+  --color-atc-elev: var(--atc-elev);
+  --color-atc-high: var(--atc-high);
+  --color-atc-orange: var(--atc-orange);
+  --color-atc-orange-soft: var(--atc-orange-soft);
+  --color-atc-mint: var(--atc-mint);
+  --color-atc-red: var(--atc-red);
+  --color-atc-text: var(--atc-text);
+  --color-atc-dim: var(--atc-dim);
+  --color-atc-faint: var(--atc-faint);
+  --color-atc-line: var(--atc-line);
+  --color-atc-line-strong: var(--atc-line-strong);
 
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Instrument Serif", "Playfair Display", Georgia, serif;
@@ -382,7 +380,7 @@ body {
   color: var(--atc-text);
   font-size: clamp(34px, 4.7vw, 66px);
   font-weight: 800;
-  letter-spacing: 0;
+  letter-spacing: -0.055em;
   line-height: 0.92;
   margin: 0;
   max-width: 1120px;
