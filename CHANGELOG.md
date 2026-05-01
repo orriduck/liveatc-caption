@@ -2,6 +2,18 @@
 
 ADSBao uses product releases for user-visible milestones. Vercel deployments happen on every push to `main`, but a deployment is not automatically a product release.
 
+## v0.8.0 — Next.js Vercel refactor
+
+### Changed
+- Rebuilt the web app from Vue 3/Vite to React on Next.js App Router.
+- Kept Tailwind CSS v4 and DaisyUI as the styling foundation.
+- Switched Vercel Analytics and Speed Insights to their Next.js integrations.
+- Replaced VueBits-derived UI code with React component equivalents.
+
+### Moved
+- Moved the FlightAware route lookup from a root Vercel function to a Next.js Route Handler under `src/app/api`.
+- Moved Vue composables to React hooks while preserving the existing data clients and pure utility tests.
+
 ## v0.7.1 — Map and mobile polish
 
 ### Fixed

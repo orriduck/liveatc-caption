@@ -7,10 +7,12 @@ A modern airport-monitoring HUD with dynamic airport search, METAR context, and 
 ## Overview
 ADSBao provides a search-first airport operations view with weather context and aircraft position overlays. Airport search is backed by public airport directory data.
 
-Current web app version: **0.7.1**. See `CHANGELOG.md` for product version history and the legacy desktop release split.
+Current web app version: **0.8.0**. See `CHANGELOG.md` for product version history and the legacy desktop release split.
 
 ## Tech Stack
-- **Frontend**: Vue 3 (Vite), Tailwind CSS, DaisyUI, Lucide Icons.
+- **Frontend**: React on Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide Icons.
+- **Vercel UX integrations**: Vercel Web Analytics and Speed Insights use their Next.js packages.
+- **Component migration**: Former VueBits-style effects are implemented as React components.
 - **Data access**: Browser-managed airport directory requests to airportsapi.com, with conservative client caching.
 - **Vercel routing**: Same-origin Vercel rewrites for AviationWeather METAR and adsb.lol aircraft positions, plus a Vercel serverless function for callsign route lookup.
 - **Typography**: Google Sans Flex & Google Sans Code.
@@ -26,7 +28,7 @@ pnpm install
 pnpm run dev
 ```
 
-The dev server starts on `http://localhost:5173`.
+The dev server starts on `http://localhost:3000` unless that port is already in use.
 
 ### Vercel Web Deployment
 The repo includes `vercel.json` for Git-triggered Vercel builds with same-origin data paths for browser-blocked upstream data.
@@ -35,7 +37,7 @@ The repo includes `vercel.json` for Git-triggered Vercel builds with same-origin
 vercel
 ```
 
-The deployment path intentionally keeps upstream ownership visible: airport search goes to airportsapi.com from the browser, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the local Vercel function.
+The deployment path intentionally keeps upstream ownership visible: airport search goes to airportsapi.com from the browser, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler.
 
 ---
 
@@ -58,20 +60,20 @@ cd ADSBao
 **2. Start the frontend**
 ```bash
 pnpm install                     # install Node dependencies
-pnpm run dev                     # Vite dev server with HMR
+pnpm run dev                     # Next.js dev server with HMR
 ```
-Frontend available at `http://localhost:5173`.
+Frontend available at `http://localhost:3000` by default.
 
 ### Project structure
 ```
 ADSBao/
-├── api/              # Vercel serverless functions
 ├── docs/             # Architecture and release notes
 ├── src/
+│   ├── app/          # Next.js App Router pages and route handlers
 │   ├── components/
-│   ├── views/
+│   ├── hooks/
 │   ├── constants/
-│   └── router/
+│   └── services/
 ├── package.json
 └── vercel.json       # Vercel deployment config
 ```

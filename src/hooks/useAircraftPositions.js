@@ -1,0 +1,130 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import {
+  aircraftPositionClient,
+  DEFAULT_AIRCRAFT_POLL_MS,
+  DEFAULT_CLOSE_RANGE_NM,
+  DEFAULT_WIDE_RANGE_NM,
+} from "../services/aviationData.js";
+import { parseAdsbPositionTime } from "../utils/aircraftMotion.js";
+import { createAircraftIntentTracker } from "../utils/aircraftTrafficIntent.js";
+
+const HIDDEN_POLL_GRACE_MS = 5_000;
+
+export function useAircraftPositions(icao, lat, lon) {
+  const [aircraft, setAircraft] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const trackerRef = useRef(createAircraftIntentTracker());
+  const timerRef = useRef(null);
+  const wasActiveRef = useRef(false);
+  const hiddenSinceRef = useRef(0);
+
+  useEffect(() => {
+    let disposed = false;
+
+    const stop = () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      trackerRef.current.clear();
+      if (!disposed) setAircraft([]);
+    };
+
+    const poll = async () => {
+      if (!lat || !lon) return;
+      setLoading(true);
+      try {
+        const [wideJson, closeJson] = await Promise.all([
+          aircraftPositionClient.fetchNearbyAircraft({
+            lat,
+            lon,
+            distNm: DEFAULT_WIDE_RANGE_NM,
+          }),
+          aircraftPositionClient.fetchNearbyAircraft({
+            lat,
+            lon,
+            distNm: DEFAULT_CLOSE_RANGE_NM,
+          }),
+        ]);
+        if (disposed) return;
+        const receiveTime = Date.now();
+        const seen = new Map();
+        const parseAircraft = (a) => ({
+          icao24: a.hex || "",
+          callsign: (a.flight || a.r || "").trim(),
+          lat: a.lat,
+          lon: a.lon,
+          altitude: a.alt_baro ?? a.alt_geom ?? null,
+          baroRate: a.baro_rate ?? null,
+          onGround: a.gnd ?? false,
+          velocity: a.gs ?? null,
+          track: a.track ?? 0,
+          positionTime: parseAdsbPositionTime(a, wideJson.now, receiveTime),
+          receiveTime,
+        });
+        const addSnapshots = (list) => {
+          for (const a of list || []) {
+            if (a.lat == null || a.lon == null) continue;
+            const key = a.hex || "";
+            if (key) seen.set(key, parseAircraft(a));
+          }
+        };
+        addSnapshots(closeJson.ac);
+        addSnapshots(wideJson.ac);
+        setAircraft(
+          trackerRef.current.update([...seen.values()], { lat, lon }, receiveTime),
+        );
+        setLastUpdated(new Date());
+      } catch (e) {
+        console.warn("ADS-B fetch failed:", e.message);
+      } finally {
+        if (!disposed) setLoading(false);
+      }
+    };
+
+    const start = () => {
+      stop();
+      trackerRef.current.clear();
+      poll();
+      timerRef.current = setInterval(poll, DEFAULT_AIRCRAFT_POLL_MS);
+    };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        hiddenSinceRef.current = Date.now();
+        stop();
+        return;
+      }
+      const hiddenDuration = Date.now() - hiddenSinceRef.current;
+      hiddenSinceRef.current = 0;
+      if (wasActiveRef.current && hiddenDuration > HIDDEN_POLL_GRACE_MS) {
+        setAircraft([]);
+        trackerRef.current.clear();
+        start();
+      } else if (wasActiveRef.current) {
+        poll();
+        timerRef.current = setInterval(poll, DEFAULT_AIRCRAFT_POLL_MS);
+      }
+    };
+
+    if (icao && lat && lon) {
+      wasActiveRef.current = true;
+      start();
+    } else {
+      wasActiveRef.current = false;
+      stop();
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      disposed = true;
+      document.removeEventListener("visibilitychange", handleVisibility);
+      stop();
+    };
+  }, [icao, lat, lon]);
+
+  return { aircraft, loading, lastUpdated };
+}

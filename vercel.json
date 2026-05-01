@@ -1,6 +1,8 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
   "buildCommand": "pnpm build",
-  "outputDirectory": "dist",
+  "outputDirectory": ".next",
   "rewrites": [
     {
       "source": "/api/proxy/metar/:icao",
@@ -12,8 +14,7 @@
     },
     {
       "source": "/api/proxy/flight-routes/callsign/:callsign",
-      "destination": "/api/proxy/flight-routes/callsign/[callsign]"
-    },
-    { "source": "/(.*)", "destination": "/index.html" }
+      "destination": "/api/proxy/flight-routes/callsign/:callsign"
+    }
   ]
 }

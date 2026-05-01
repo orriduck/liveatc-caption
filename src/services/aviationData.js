@@ -1,6 +1,6 @@
 import { withAuditLogging } from "../utils/apiLogger.js";
 
-const env = import.meta.env ?? {};
+const env = typeof process !== "undefined" ? process.env : {};
 
 // ---------------------------------------------------------------------------
 // Rate limiter — token-bucket for global request pacing
@@ -94,7 +94,7 @@ const fetchJson = async (fetchImpl, url, { timeoutMs = 14_000 } = {}) => {
 
 export const createMetarClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
-  baseUrl = env.VITE_METAR_PROXY_BASE || DEFAULT_METAR_BASE,
+  baseUrl = env.NEXT_PUBLIC_METAR_PROXY_BASE || DEFAULT_METAR_BASE,
 } = {}) => {
   if (!fetchImpl) throw new Error("METAR client requires fetch support");
 
@@ -124,7 +124,8 @@ export const createMetarClient = ({
 
 export const createAircraftPositionClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
-  baseUrl = env.VITE_AIRCRAFT_POSITIONS_BASE || DEFAULT_AIRCRAFT_POSITIONS_BASE,
+  baseUrl =
+    env.NEXT_PUBLIC_AIRCRAFT_POSITIONS_BASE || DEFAULT_AIRCRAFT_POSITIONS_BASE,
 } = {}) => {
   if (!fetchImpl)
     throw new Error("Aircraft position client requires fetch support");
@@ -220,7 +221,7 @@ const normalizeCallsign = (callsign) =>
 
 export const createFlightRouteClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
-  baseUrl = env.VITE_FLIGHT_ROUTE_BASE || DEFAULT_FLIGHT_ROUTE_BASE,
+  baseUrl = env.NEXT_PUBLIC_FLIGHT_ROUTE_BASE || DEFAULT_FLIGHT_ROUTE_BASE,
 } = {}) => {
   if (!fetchImpl) throw new Error("Flight route client requires fetch support");
 
