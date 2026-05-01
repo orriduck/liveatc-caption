@@ -14,18 +14,19 @@ export default function HomeClient({ initialIcao = "" }) {
 
   const loadAirport = async (icao) => {
     if (!icao || icao.length < 3) return;
+    const toastId = toast.loading("Loading airport context...", {
+      id: "airport-resolve",
+    });
     try {
-      const request = airportDirectoryClient.resolveAirport(icao);
-      const resolvedAirport = await toast.promise(request, {
-        id: "airport-resolve",
-        loading: "Loading airport context...",
-        success: false,
-        error: (err) => err?.message || "Airport not found or unavailable",
-      });
+      const resolvedAirport = await airportDirectoryClient.resolveAirport(icao);
+      toast.dismiss(toastId);
       setAirport(resolvedAirport);
       setCurrentIcao(String(resolvedAirport?.icao || icao).toUpperCase());
     } catch (err) {
       console.error("Failed to load airport", err);
+      toast.error(err?.message || "Airport not found or unavailable", {
+        id: toastId,
+      });
       setAirport(null);
     }
   };
