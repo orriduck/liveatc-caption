@@ -73,7 +73,18 @@ export default function RootLayout({ children }) {
       <body>
         <ThemeBootScript />
         <div className="min-h-screen bg-atc-bg text-atc-text">{children}</div>
-        <Toaster position="top-center" />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: "var(--atc-card)",
+              color: "var(--atc-text)",
+              border: "1px solid var(--atc-line-strong)",
+              fontFamily: "'Inter', system-ui, sans-serif",
+              fontSize: "14px",
+            },
+          }}
+        />
         <Analytics />
         <SpeedInsights />
       </body>

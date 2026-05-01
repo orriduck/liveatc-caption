@@ -17,6 +17,7 @@ export default function HomeClient({ initialIcao = "" }) {
     try {
       const request = airportDirectoryClient.resolveAirport(icao);
       const resolvedAirport = await toast.promise(request, {
+        id: "airport-resolve",
         loading: "Loading airport context...",
         success: false,
         error: (err) => err?.message || "Airport not found or unavailable",
