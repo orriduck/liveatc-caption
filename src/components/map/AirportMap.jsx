@@ -14,18 +14,23 @@ import {
   isGroundLikeAircraft as isGroundLikeAircraftForDisplay,
   shouldShowAirportArea,
 } from "../../utils/airportMapDisplay.js";
-import { AIRCRAFT_COLORS, BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft.js";
+import {
+  AIRCRAFT_COLORS,
+  BARO_RATE_THRESHOLD_FPM,
+} from "../../constants/aircraft.js";
 import { DEFAULT_WIDE_RANGE_NM } from "../../services/aviationData.js";
 
 const TILE_VARIANTS = {
   light: {
     base: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}@2x.png",
-    labels: "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}@2x.png",
+    labels:
+      "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}@2x.png",
     labelOpacity: 0.66,
   },
   dark: {
     base: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}@2x.png",
-    labels: "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}@2x.png",
+    labels:
+      "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}@2x.png",
     labelOpacity: 0.55,
   },
 };
@@ -63,17 +68,19 @@ export default function AirportMap({
   const acMarkersMap = useRef(new Map());
   const rafId = useRef(null);
   const [mapReady, setMapReady] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState("dark");
+  const [currentTheme, setCurrentTheme] = useState(() => resolveCurrentTheme());
 
-  const latStr = lat ? `${Math.abs(lat).toFixed(2)}${lat >= 0 ? "N" : "S"}` : "";
-  const lonStr = lon ? `${Math.abs(lon).toFixed(2)}${lon >= 0 ? "E" : "W"}` : "";
+  const latStr = lat
+    ? `${Math.abs(lat).toFixed(2)}${lat >= 0 ? "N" : "S"}`
+    : "";
+  const lonStr = lon
+    ? `${Math.abs(lon).toFixed(2)}${lon >= 0 ? "E" : "W"}`
+    : "";
   const mapBackground = currentTheme === "light" ? "#d6dde8" : "#0e0e12";
   const mapLabelShadowColor =
     currentTheme === "light" ? "rgba(248,250,252,0.95)" : "#0a0a0b";
   const mapAttributionColor =
-    currentTheme === "light"
-      ? "rgba(18,21,26,0.45)"
-      : "rgba(245,245,247,0.28)";
+    currentTheme === "light" ? "rgba(18,21,26,0.45)" : "rgba(245,245,247,0.28)";
 
   const latestProps = useRef({
     lat,
@@ -140,7 +147,8 @@ export default function AirportMap({
       const { airport: nextAirport } = latestProps.current;
       const details = [];
       const runways = nextAirport?.runways;
-      if (Array.isArray(runways) && runways.length) details.push(`RWY ${runways.length}`);
+      if (Array.isArray(runways) && runways.length)
+        details.push(`RWY ${runways.length}`);
       const approachCount = Number(nextAirport?.approachCount);
       if (Number.isFinite(approachCount) && approachCount > 0) {
         details.push(`APP ${approachCount}`);
@@ -189,7 +197,9 @@ export default function AirportMap({
         fillOpacity: 1,
       }).addTo(map);
 
-      const airportCode = escapeHtml((props.airport?.iata || props.icao || "").trim());
+      const airportCode = escapeHtml(
+        (props.airport?.iata || props.icao || "").trim(),
+      );
       const detailLines = buildAirportOverlayDetails()
         .map((line) => `<span>${escapeHtml(line)}</span>`)
         .join("");
@@ -204,7 +214,9 @@ export default function AirportMap({
       }).addTo(map);
 
       if (Number(props.zoom) === ZOOM_APPROACH) {
-        const groundCount = props.aircraft.filter((item) => isGroundLikeAircraft(item)).length;
+        const groundCount = props.aircraft.filter((item) =>
+          isGroundLikeAircraft(item),
+        ).length;
         airportGroundCountMarker.current = L.marker([props.lat, props.lon], {
           interactive: false,
           icon: L.divIcon({
@@ -217,7 +229,14 @@ export default function AirportMap({
       }
     };
 
-    const makeAcIcon = (color, label, rot = 0, showArrow = true, hasTelemetry = false, routeLabel = "") => {
+    const makeAcIcon = (
+      color,
+      label,
+      rot = 0,
+      showArrow = true,
+      hasTelemetry = false,
+      routeLabel = "",
+    ) => {
       const symbol = showArrow
         ? `<svg width="18" height="18" viewBox="0 0 24 24" style="transform:rotate(${rot}deg);filter:drop-shadow(0 0 4px ${color})"><path d="M12 2L16 20L12 17L8 20Z" fill="${color}"/></svg>`
         : `<svg width="7" height="7" viewBox="0 0 7 7" style="filter:drop-shadow(0 0 3px ${color});margin:5.5px"><circle cx="3.5" cy="3.5" r="3.5" fill="${color}"/></svg>`;
@@ -229,8 +248,12 @@ export default function AirportMap({
         showArrow && hasTelemetry && props.showTelemetry
           ? `<div class="aircraft-telemetry"><span>${formatTelemetryValue(props.currentAircraft?.velocity)}kt</span><span class="aircraft-telemetry-separator">|</span><span>${formatTelemetryValue(props.currentAircraft?.altitude)}ft</span></div>`
           : "";
-      const routeLine = safeRouteLabel ? `<div class="aircraft-route-label">${safeRouteLabel}</div>` : "";
-      const labelClass = safeRouteLabel ? "aircraft-label aircraft-label--route-cycle" : "aircraft-label";
+      const routeLine = safeRouteLabel
+        ? `<div class="aircraft-route-label">${safeRouteLabel}</div>`
+        : "";
+      const labelClass = safeRouteLabel
+        ? "aircraft-label aircraft-label--route-cycle"
+        : "aircraft-label";
       const titleLine = safeRouteLabel
         ? `<div class="aircraft-title-cycle"><div class="aircraft-label-title aircraft-callsign-state">${safeLabel}</div>${routeLine}</div>`
         : `<div class="aircraft-label-title">${safeLabel}</div>`;
@@ -247,10 +270,14 @@ export default function AirportMap({
       const props = latestProps.current;
       if (ac.onGround) return AIRCRAFT_COLORS.ground;
       if (!showArrow || ac.baroRate == null) {
-        return props.currentTheme === "light" ? "#475569" : AIRCRAFT_COLORS.level;
+        return props.currentTheme === "light"
+          ? "#475569"
+          : AIRCRAFT_COLORS.level;
       }
-      if (ac.baroRate >= BARO_RATE_THRESHOLD_FPM) return AIRCRAFT_COLORS.ascending;
-      if (ac.baroRate < -BARO_RATE_THRESHOLD_FPM) return AIRCRAFT_COLORS.descending;
+      if (ac.baroRate >= BARO_RATE_THRESHOLD_FPM)
+        return AIRCRAFT_COLORS.ascending;
+      if (ac.baroRate < -BARO_RATE_THRESHOLD_FPM)
+        return AIRCRAFT_COLORS.descending;
       return AIRCRAFT_COLORS.level;
     };
 
@@ -303,7 +330,16 @@ export default function AirportMap({
             routeLabel !== entry.routeLabel ||
             props.showTelemetry !== entry.showTelemetry
           ) {
-            entry.marker.setIcon(makeAcIcon(color, label, rot, showArrow, hasTelemetry, routeLabel));
+            entry.marker.setIcon(
+              makeAcIcon(
+                color,
+                label,
+                rot,
+                showArrow,
+                hasTelemetry,
+                routeLabel,
+              ),
+            );
             Object.assign(entry, {
               color,
               label,
@@ -316,9 +352,19 @@ export default function AirportMap({
           }
         } else {
           const motionState = beginAircraftMotionState(ac, now);
-          const visualPosition = calculateAircraftVisualPosition(motionState, now);
+          const visualPosition = calculateAircraftVisualPosition(
+            motionState,
+            now,
+          );
           const marker = L.marker([visualPosition.lat, visualPosition.lon], {
-            icon: makeAcIcon(color, label, rot, showArrow, hasTelemetry, routeLabel),
+            icon: makeAcIcon(
+              color,
+              label,
+              rot,
+              showArrow,
+              hasTelemetry,
+              routeLabel,
+            ),
           }).addTo(map);
           acMarkersMap.current.set(ac.icao24, {
             marker,
@@ -433,32 +479,42 @@ export default function AirportMap({
         style={{ background: mapBackground }}
       />
 
-      <div
-        className="pointer-events-none absolute left-3.5 top-3 font-mono text-[10px] font-semibold tracking-[2px]"
-        style={{ color: accent, textShadow: `0 0 6px ${mapLabelShadowColor}` }}
-      >
-        * {icao} / {latStr} {lonStr}
-      </div>
-      <div
-        className="pointer-events-none absolute bottom-3 right-3 whitespace-nowrap font-sans text-[9px]"
-        style={{ color: mapAttributionColor, textShadow: `0 0 6px ${mapLabelShadowColor}` }}
-      >
-        OpenStreetMap / CartoDB
-      </div>
-      <div className="map-traffic-legend pointer-events-none absolute right-3 top-[168px] flex max-w-[calc(100%-24px)] flex-wrap gap-2 rounded px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.8px]">
-        {trafficLegend.map((item) => (
-          <span key={item.id} className="inline-flex items-center gap-1.5">
-            <span
-              className="h-1.5 w-1.5 rounded-full"
-              style={{
-                background: item.color,
-                boxShadow: `0 0 6px ${item.color}`,
-              }}
-            />
-            {item.label}
-          </span>
-        ))}
-      </div>
+      {mapReady && (
+        <>
+          <div
+            className="pointer-events-none absolute left-3.5 top-3 font-mono text-[10px] font-semibold tracking-[2px]"
+            style={{
+              color: accent,
+              textShadow: `0 0 6px ${mapLabelShadowColor}`,
+            }}
+          >
+            * {icao} / {latStr} {lonStr}
+          </div>
+          <div
+            className="pointer-events-none absolute bottom-3 right-3 whitespace-nowrap font-sans text-[9px]"
+            style={{
+              color: mapAttributionColor,
+              textShadow: `0 0 6px ${mapLabelShadowColor}`,
+            }}
+          >
+            OpenStreetMap / CartoDB
+          </div>
+          <div className="map-traffic-legend pointer-events-none absolute right-3 top-[168px] flex max-w-[calc(100%-24px)] flex-wrap gap-2 rounded px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.8px]">
+            {trafficLegend.map((item) => (
+              <span key={item.id} className="inline-flex items-center gap-1.5">
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{
+                    background: item.color,
+                    boxShadow: `0 0 6px ${item.color}`,
+                  }}
+                />
+                {item.label}
+              </span>
+            ))}
+          </div>
+        </>
+      )}
 
       {!mapReady ? (
         <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-atc-card">
@@ -472,7 +528,9 @@ export default function AirportMap({
 }
 
 const resolveCurrentTheme = () =>
-  document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+  document.documentElement.getAttribute("data-theme") === "light"
+    ? "light"
+    : "dark";
 
 const escapeHtml = (value) =>
   String(value)
