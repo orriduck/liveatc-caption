@@ -435,8 +435,8 @@ body {
   overflow: hidden;
   padding: 16px;
   position: relative;
-  backdrop-filter: blur(6px) saturate(120%);
   -webkit-backdrop-filter: blur(6px) saturate(120%);
+  backdrop-filter: blur(6px) saturate(120%);
 }
 
 .glass-panel::before {
@@ -445,6 +445,12 @@ body {
   inset: 0;
   pointer-events: none;
   position: absolute;
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .glass-panel {
+    backdrop-filter: blur(6px) saturate(120%);
+  }
 }
 
 .panel-heading {
