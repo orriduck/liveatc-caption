@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Monitor, Moon, Search, Sun } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HOME_AIRPORT_COUNTRY } from "../../config/homeAirportDirectory.js";
 import { airportDirectoryClient } from "../../services/airportDirectory.js";
@@ -14,7 +14,9 @@ import {
   nextTheme,
   writeStoredTheme,
 } from "../../utils/theme.js";
-import ThemeModeIcon from "../ui/icons/ThemeModeIcon";
+import { Badge } from "../ui/badge.jsx";
+import { Button } from "../ui/button.jsx";
+import { Input } from "../ui/input.jsx";
 
 const featuredAirports = [
   {
@@ -117,6 +119,13 @@ export default function SearchScreen({ onOpenAirport }) {
     if (themePreference === THEME_DARK) return "Theme: Dark (click to switch)";
     return "Theme: System (click to switch)";
   }, [themePreference]);
+
+  const ThemeIcon =
+    themePreference === THEME_LIGHT
+      ? Sun
+      : themePreference === THEME_DARK
+        ? Moon
+        : Monitor;
 
   const cycleTheme = () => {
     const next = nextTheme(themePreference);
@@ -223,36 +232,38 @@ export default function SearchScreen({ onOpenAirport }) {
               <span className="text-atc-orange">/</span>
               <span>Airport search</span>
             </div>
-            <button
+            <Button
               type="button"
-              className="theme-chip inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[12px] tracking-[0.2px] text-atc-dim transition hover:border-atc-orange/45 hover:text-atc-text"
+              variant="atcChip"
+              size="sm"
+              className="theme-chip gap-1.5 text-[12px] tracking-[0.2px]"
               title={themeTitle}
               onClick={cycleTheme}
             >
-              <ThemeModeIcon className="h-3.5 w-3.5" theme={themePreference} />
+              <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{themePreference}</span>
-            </button>
+            </Button>
           </div>
 
           <form
             onSubmit={doSearch}
-            className={`search-input input flex h-auto w-full items-center gap-3 px-4 py-4 text-atc-text transition-[border-color,box-shadow] duration-150 sm:gap-3.5 sm:px-5 sm:py-5 ${
+            className={`search-input flex h-auto w-full items-center gap-3 px-4 py-4 text-atc-text transition-[border-color,box-shadow] duration-150 sm:gap-3.5 sm:px-5 sm:py-5 ${
               focused
                 ? "border-atc-orange/70 shadow-[0_30px_100px_rgba(0,0,0,0.42),0_0_0_1px_rgba(255,90,31,0.18)_inset]"
                 : ""
             }`}
           >
             <Search className="h-5 w-5 shrink-0 text-atc-orange" />
-            <input
+            <Input
               value={q}
               autoFocus
               onChange={(event) => setQ(event.target.value)}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
-              className="min-w-0 flex-1 border-0 bg-transparent p-0 text-2xl font-extrabold tracking-normal text-atc-text outline-none placeholder:text-atc-dim sm:text-3xl"
+              className="flex-1 p-0 text-2xl font-extrabold tracking-normal text-atc-text sm:text-3xl"
               placeholder="Search by ICAO, IATA, city, or airport name"
             />
-            <kbd className="search-kbd kbd hidden shrink-0 font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
+            <kbd className="search-kbd hidden shrink-0 items-center rounded-[var(--atc-radius-control)] px-2 py-1 font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
               {searchLoading ? "..." : "enter"}
             </kbd>
           </form>
@@ -330,9 +341,11 @@ function FeaturedAirports({ onOpen }) {
 
 function AirportRow({ airport, onOpen, featured = false }) {
   return (
-    <button
+    <Button
       type="button"
-      className={`search-row btn grid h-auto min-h-0 w-full grid-cols-[62px_minmax(0,1fr)] items-center justify-start gap-4 px-4 py-3.5 text-left font-sans normal-case text-atc-text hover:-translate-y-px hover:border-atc-orange/40 sm:grid-cols-[86px_minmax(0,1fr)_auto] ${
+      variant="atcRow"
+      size="auto"
+      className={`search-row grid w-full grid-cols-[62px_minmax(0,1fr)] gap-4 px-4 py-3.5 normal-case sm:grid-cols-[86px_minmax(0,1fr)_auto] ${
         featured ? "search-row--featured" : ""
       }`}
       onClick={() => onOpen(airport)}
@@ -350,9 +363,9 @@ function AirportRow({ airport, onOpen, featured = false }) {
             : airportSubtitle(airport)}
         </small>
       </span>
-      <span className="badge hidden border-0 bg-transparent font-mono text-[11px] uppercase tracking-[1.2px] text-atc-dim sm:inline-flex">
+      <Badge variant="atcCode" className="hidden sm:inline-flex">
         {airport.icao || airport.code || "-"}
-      </span>
-    </button>
+      </Badge>
+    </Button>
   );
 }

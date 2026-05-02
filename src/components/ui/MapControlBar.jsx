@@ -1,6 +1,17 @@
 "use client";
 
-import { Gauge, SlidersHorizontal, Type } from "lucide-react";
+import {
+  AudioLines,
+  Crosshair,
+  Gauge,
+  Monitor,
+  Moon,
+  PlaneLanding,
+  SlidersHorizontal,
+  Sun,
+  TowerControl,
+  Type,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ZOOM_AIRPORT,
@@ -16,18 +27,14 @@ import {
   nextTheme,
   writeStoredTheme,
 } from "../../utils/theme.js";
-import AirportViewIcon from "./icons/AirportViewIcon";
-import ApproachViewIcon from "./icons/ApproachViewIcon";
-import DetailViewIcon from "./icons/DetailViewIcon";
-import FocusWaveIcon from "./icons/FocusWaveIcon";
-import ThemeModeIcon from "./icons/ThemeModeIcon";
+import { Button } from "./button.jsx";
 
 const VIDEO_ID = "JDQiaRYmTGk";
 
 const zoomOptions = [
-  { value: ZOOM_APPROACH, title: "Approaching view", Icon: ApproachViewIcon },
-  { value: ZOOM_AIRPORT, title: "Airport view", Icon: AirportViewIcon },
-  { value: ZOOM_DETAIL, title: "Detail view", Icon: DetailViewIcon },
+  { value: ZOOM_APPROACH, title: "Approaching view", Icon: PlaneLanding },
+  { value: ZOOM_AIRPORT, title: "Airport view", Icon: TowerControl },
+  { value: ZOOM_DETAIL, title: "Detail view", Icon: Crosshair },
 ];
 
 export default function MapControlBar({
@@ -150,6 +157,12 @@ export default function MapControlBar({
   };
 
   const CurrentIcon = currentZoomOption.Icon;
+  const ThemeIcon =
+    currentTheme === THEME_LIGHT
+      ? Sun
+      : currentTheme === THEME_DARK
+        ? Moon
+        : Monitor;
 
   return (
     <>
@@ -161,31 +174,37 @@ export default function MapControlBar({
           aria-hidden={!drawerOpen}
         >
           {zoomOptions.map(({ value, title, Icon }) => (
-            <button
+            <Button
               key={value}
+              variant="atcIcon"
+              size="icon"
               className={`ctrl-btn drawer-btn ${activeZoom === value ? "active" : ""}`}
               title={title}
               onClick={() => selectZoom(value)}
               type="button"
             >
               <Icon />
-            </button>
+            </Button>
           ))}
         </div>
 
         <div className="map-ctrl-bar">
-          <button
+          <Button
+            variant="atcIcon"
+            size="icon"
             className="ctrl-btn ctrl-view active"
             title={`${currentZoomOption.title} (click to cycle)`}
             onClick={cycleZoom}
             type="button"
           >
             <CurrentIcon />
-          </button>
+          </Button>
 
           <div className="ctrl-sep" />
 
-          <button
+          <Button
+            variant="atcIcon"
+            size="icon"
             className={`ctrl-btn ctrl-audio ${playing ? "playing" : ""} ${
               !audioReady ? "loading" : ""
             }`}
@@ -194,14 +213,23 @@ export default function MapControlBar({
             onClick={toggleAudio}
             type="button"
           >
-            <FocusWaveIcon />
-          </button>
+            <AudioLines />
+          </Button>
 
-          <button className="ctrl-btn ctrl-theme" title={themeTitle} onClick={cycleTheme} type="button">
-            <ThemeModeIcon theme={currentTheme} />
-          </button>
+          <Button
+            variant="atcIcon"
+            size="icon"
+            className="ctrl-btn ctrl-theme"
+            title={themeTitle}
+            onClick={cycleTheme}
+            type="button"
+          >
+            <ThemeIcon />
+          </Button>
 
-          <button
+          <Button
+            variant="atcIcon"
+            size="icon"
             className={`ctrl-btn ${showMapLabels ? "active" : ""}`}
             aria-pressed={showMapLabels}
             title={showMapLabels ? "Hide map labels" : "Show map labels"}
@@ -209,9 +237,11 @@ export default function MapControlBar({
             type="button"
           >
             <Type />
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="atcIcon"
+            size="icon"
             className={`ctrl-btn ${showTelemetry ? "active" : ""}`}
             aria-pressed={showTelemetry}
             title={showTelemetry ? "Hide speed/altitude" : "Show speed/altitude"}
@@ -219,9 +249,11 @@ export default function MapControlBar({
             type="button"
           >
             <Gauge />
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="atcIcon"
+            size="icon"
             className={`ctrl-btn ctrl-more ${drawerOpen ? "active" : ""}`}
             aria-expanded={drawerOpen}
             aria-controls="map-action-drawer"
@@ -230,7 +262,7 @@ export default function MapControlBar({
             type="button"
           >
             <SlidersHorizontal />
-          </button>
+          </Button>
         </div>
       </div>
     </>
