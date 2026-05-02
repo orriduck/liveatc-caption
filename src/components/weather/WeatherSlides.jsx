@@ -88,26 +88,6 @@ export function MetarSlide({ metarRaw, metarLoading, metarError }) {
 export function FlightRulesSlide({ metar }) {
   const code = metar?.flightCategory || "VFR";
   const rules = FLIGHT_RULES[code] || FLIGHT_RULES.VFR;
-  const visibility = toNumber(metar?.rawVisib);
-  const ceilingFt = getCeilingFeet(metar);
-  const detailMeters = [
-    ceilingFt == null
-      ? null
-      : {
-          icon: <Cloud size={16} />,
-          label: "Ceiling",
-          marker: Math.min(1, ceilingFt / 3000),
-          value: `${ceilingFt.toLocaleString()} ft`,
-        },
-    visibility == null
-      ? null
-      : {
-          icon: <Eye size={16} />,
-          label: "Visibility",
-          marker: Math.min(1, visibility / 5),
-          value: `${visibility >= 10 ? "10+" : visibility} SM`,
-        },
-  ].filter(Boolean);
 
   return (
     <div className="weather-slide-stack">
@@ -125,21 +105,43 @@ export function FlightRulesSlide({ metar }) {
             />
           ))}
         </div>
-        {detailMeters.length ? (
-          <div className={`weather-two-up weather-two-up--${detailMeters.length}`}>
-            {detailMeters.map((item) => (
-              <ThresholdMeter
-                key={item.label}
-                icon={item.icon}
-                label={item.label}
-                marker={item.marker}
-                value={item.value}
-              />
-            ))}
-          </div>
-        ) : null}
       </div>
       <WeatherDescription>{rules.context}</WeatherDescription>
+    </div>
+  );
+}
+
+export function CeilingSlide({ metar }) {
+  const visibility = toNumber(metar?.rawVisib);
+  const ceilingFt = getCeilingFeet(metar);
+  const ceilingLabel = metar?.ceiling || (ceilingFt == null ? "CLR" : `${ceilingFt.toLocaleString()} ft`);
+  const ceilingPct = ceilingFt == null ? 1 : clamp(ceilingFt / 10000, 0.06, 1);
+  const visibilityPct = visibility == null ? 0 : clamp(visibility / 10, 0.06, 1);
+
+  return (
+    <div className="weather-slide-stack">
+      <div className="weather-slide-readout">
+        <div className="ceiling-instrument">
+          <div className="cloud-deck" aria-hidden="true">
+            <Cloud size={18} />
+            <i style={{ "--ceiling-pct": `${ceilingPct * 100}%` }} />
+          </div>
+          <div className="ceiling-readouts">
+            <MetricLine
+              icon={<Cloud size={16} />}
+              label="Ceiling"
+              value={ceilingLabel}
+            />
+            <ThresholdMeter
+              icon={<Eye size={16} />}
+              label="Visibility"
+              marker={visibilityPct}
+              value={visibility == null ? "-" : `${visibility >= 10 ? "10+" : visibility} SM`}
+            />
+          </div>
+        </div>
+      </div>
+      <WeatherDescription>{describeCeiling(ceilingFt, visibility)}</WeatherDescription>
     </div>
   );
 }
@@ -212,31 +214,20 @@ export function TemperatureSlide({ metar, localWeather }) {
 export function PressureSlide({ metar, localWeather }) {
   const altim = metar?.rawAltim;
   const pressure = localWeather?.pressureMslHpa;
-  const hpa = pressure ?? (altim != null ? altim * 33.8639 : null);
-  const pressurePct = hpa == null ? 0.5 : clamp((hpa - 980) / 60, 0.03, 0.97);
 
   return (
     <div className="weather-slide-stack">
       <div className="weather-slide-readout">
-        <div className="pressure-instrument">
-          <div
-            className="pressure-dial"
-            style={{ "--pressure-pct": `${pressurePct}` }}
-            aria-hidden="true"
-          >
-            <Gauge size={18} />
-          </div>
-          <div className="pressure-strip">
-            <MetricLine
-              icon={<Gauge size={16} />}
-              label="Altimeter"
-              value={metar?.altim || "-"}
-            />
-            <MetricLine
-              label="MSL pressure"
-              value={pressure == null ? "-" : `${Math.round(pressure)} hPa`}
-            />
-          </div>
+        <div className="pressure-strip">
+          <MetricLine
+            icon={<Gauge size={16} />}
+            label="Altimeter"
+            value={metar?.altim || "-"}
+          />
+          <MetricLine
+            label="MSL pressure"
+            value={pressure == null ? "-" : `${Math.round(pressure)} hPa`}
+          />
         </div>
       </div>
       <WeatherDescription>{describePressure(altim, pressure)}</WeatherDescription>
@@ -254,7 +245,7 @@ export function LocalWeatherSlide({
     ? WEATHER_CODES[localWeather.weatherCode] || "Current conditions"
     : "Local weather pending";
   const humidity = localWeather?.humidity;
-  const cloudCover = localWeather?.cloudCover;
+  const feelsLike = localWeather?.apparentTemperatureC;
 
   return (
     <div className="weather-visual-layout">
@@ -278,17 +269,11 @@ export function LocalWeatherSlide({
               ? `Open-Meteo unavailable: ${localWeatherError}`
               : condition}
           </p>
-          <div className="local-weather-meter-grid">
-            <CompactMeter
-              label="Humidity"
-              value={humidity == null ? "-" : `${Math.round(humidity)}%`}
-              marker={humidity == null ? 0 : humidity / 100}
-            />
-            <CompactMeter
-              label="Cloud"
-              value={cloudCover == null ? "-" : `${Math.round(cloudCover)}%`}
-              marker={cloudCover == null ? 0 : cloudCover / 100}
-            />
+          <div className="local-weather-meta">
+            <span>Humidity {humidity == null ? "-" : `${Math.round(humidity)}%`}</span>
+            <span>
+              Feels {feelsLike == null ? "-" : `${round1(feelsLike)}°C`}
+            </span>
           </div>
         </div>
       </div>
@@ -370,6 +355,19 @@ function describePressure(altim, pressure) {
   return "Pressure is near standard range, so altimeter setting is important but not a major performance driver.";
 }
 
+function describeCeiling(ceilingFt, visibility) {
+  if (ceilingFt == null && visibility == null) {
+    return "No limiting ceiling or visibility value is available in the current METAR.";
+  }
+  if (ceilingFt != null && ceilingFt < 1000) {
+    return "Low ceiling can push arrivals toward instrument procedures and reduce visual runway flexibility.";
+  }
+  if (visibility != null && visibility < 3) {
+    return "Reduced visibility can increase spacing and make surface movement more dependent on tower guidance.";
+  }
+  return "Ceiling and visibility are comfortably above the usual VFR thresholds for airport operations.";
+}
+
 function MetricLine({ label, value, icon = null }) {
   return (
     <div className="weather-metric-line">
@@ -392,18 +390,6 @@ function ThresholdMeter({ label, value, marker, icon }) {
       <strong>{value}</strong>
       <div className="threshold-track">
         <i style={{ left: `${marker * 100}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function CompactMeter({ label, value, marker }) {
-  return (
-    <div className="compact-meter">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <div className="threshold-track">
-        <i style={{ left: `${clamp(marker, 0, 1) * 100}%` }} />
       </div>
     </div>
   );

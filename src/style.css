@@ -876,8 +876,7 @@ body {
     padding: 7px 8px;
 }
 
-.metar-token-strip small,
-.compact-meter span {
+.metar-token-strip small {
     color: var(--atc-faint);
     font-family: "JetBrains Mono", monospace;
     font-size: 8px;
@@ -1000,15 +999,10 @@ body {
     opacity: 1;
 }
 
-.weather-two-up,
 .temperature-strip {
     display: grid;
     gap: 12px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.weather-two-up--1 {
-    grid-template-columns: minmax(0, 1fr);
 }
 
 .temperature-strip {
@@ -1018,20 +1012,6 @@ body {
 .threshold-meter {
     display: grid;
     gap: 6px;
-}
-
-.compact-meter {
-    display: grid;
-    gap: 5px;
-    min-width: 0;
-}
-
-.compact-meter strong {
-    color: var(--atc-text);
-    font-family: "JetBrains Mono", monospace;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1;
 }
 
 .threshold-track {
@@ -1077,6 +1057,49 @@ body {
     width: 48px;
 }
 
+.ceiling-instrument {
+    align-items: stretch;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: 74px minmax(0, 1fr);
+}
+
+.cloud-deck {
+    align-items: center;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-text) 9%, transparent),
+            transparent var(--ceiling-pct)
+        ),
+        color-mix(in oklab, var(--atc-card) 34%, transparent);
+    border: 1px solid var(--atc-line);
+    border-radius: 16px;
+    color: var(--atc-dim);
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.cloud-deck i {
+    background: var(--atc-orange);
+    border-radius: var(--atc-radius-pill);
+    bottom: var(--ceiling-pct);
+    height: 2px;
+    left: 10px;
+    opacity: 0.75;
+    position: absolute;
+    right: 10px;
+}
+
+.ceiling-readouts {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+}
+
 .wind-vector-card {
     align-items: stretch;
     border-top: 1px solid var(--atc-line);
@@ -1086,7 +1109,7 @@ body {
     padding-top: 4px;
 }
 
-.wind-vector-card > div:not(.wind-vector-arrow) {
+.wind-vector-card > div:not(.wind-compass) {
     display: grid;
     gap: 5px;
     min-width: 0;
@@ -1141,19 +1164,27 @@ body {
 }
 
 .wind-compass span:nth-child(1) {
+    left: 50%;
     top: 4px;
+    transform: translateX(-50%);
 }
 
 .wind-compass span:nth-child(2) {
     right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .wind-compass span:nth-child(3) {
     bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .wind-compass span:nth-child(4) {
     left: 5px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .wind-compass i {
@@ -1172,37 +1203,6 @@ body {
     display: grid;
     gap: 12px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.pressure-instrument {
-    align-items: stretch;
-    display: grid;
-    gap: 14px;
-    grid-template-columns: 72px minmax(0, 1fr);
-}
-
-.pressure-dial {
-    align-items: center;
-    aspect-ratio: 1;
-    background:
-        conic-gradient(
-            from -132deg,
-            color-mix(in oklab, var(--atc-orange) 74%, transparent)
-                calc(var(--pressure-pct) * 264deg),
-            color-mix(in oklab, var(--atc-line) 90%, transparent) 0 264deg,
-            transparent 0
-        ),
-        radial-gradient(
-            circle,
-            color-mix(in oklab, var(--atc-card) 80%, transparent) 0 55%,
-            transparent 56%
-        );
-    border: 1px solid var(--atc-line);
-    border-radius: 999px;
-    color: var(--atc-orange);
-    display: flex;
-    justify-content: center;
-    min-width: 0;
 }
 
 .thermal-band {
@@ -1267,11 +1267,21 @@ body {
     justify-content: start;
 }
 
-.local-weather-meter-grid {
-    display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.local-weather-meta {
+    border-top: 1px solid var(--atc-line);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
     margin-top: 12px;
+    padding-top: 10px;
+}
+
+.local-weather-meta span {
+    color: var(--atc-dim);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .temperature-strip .weather-metric-line {

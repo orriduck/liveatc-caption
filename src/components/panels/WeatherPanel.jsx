@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useLocalWeather } from "../../hooks/useLocalWeather.js";
 import {
+  CeilingSlide,
   FlightRulesSlide,
   LocalWeatherSlide,
   MetarSlide,
@@ -49,6 +50,13 @@ export default function WeatherPanel({
         title: "Flight rules",
         eyebrow: "Operational context",
         content: <FlightRulesSlide metar={metar} />,
+      },
+      {
+        id: "ceiling",
+        label: "Ceiling",
+        title: "Ceiling / visibility",
+        eyebrow: "Cloud deck",
+        content: <CeilingSlide metar={metar} />,
       },
       {
         id: "wind",
