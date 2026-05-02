@@ -127,14 +127,10 @@ export function WindSlide({ metar, localWeather }) {
   return (
     <div className="weather-slide-stack">
       <WindVector speed={speed} gust={gust} direction={direction} />
-      <SegmentBars value={speed} max={40} />
-      {gust != null ? <SegmentBars value={gust} max={50} tone="orange" /> : null}
       <p className="weather-context-copy">
         {direction == null
-          ? "Variable wind reported near the field. Watch tower instructions for runway-specific flow."
-          : `Wind from ${Math.round(direction)}° at ${Math.round(
-              speed,
-            )} kt${gust == null ? "" : ` with gusts to ${Math.round(gust)} kt`}.`}
+          ? "Variable wind makes runway planning less predictable. Tower may switch flows or issue runway-specific guidance."
+          : describeWind(speed, gust)}
       </p>
     </div>
   );
@@ -164,9 +160,7 @@ export function TemperatureSlide({ metar, localWeather }) {
         />
       </div>
       <p className="weather-context-copy">
-        {spread != null && spread < 3
-          ? "Small temperature-dewpoint spread can support fog, haze, or low cloud development."
-          : "Temperature and dewpoint are separated enough that fog risk is lower near the field."}
+        {describeTemperature(temp, spread)}
       </p>
     </div>
   );
@@ -177,26 +171,19 @@ export function PressureSlide({ metar, localWeather }) {
   const pressure = localWeather?.pressureMslHpa;
 
   return (
-    <div className="weather-visual-layout">
-      <div className="pressure-dial">
-        <Gauge size={42} />
-        <strong>{altim == null ? "-" : `${round2(altim)} inHg`}</strong>
-      </div>
-      <div className="weather-slide-stack">
-        <MetricLine label="Altimeter" value={metar?.altim || "-"} />
+    <div className="weather-slide-stack">
+      <div className="pressure-strip">
         <MetricLine
-          label="Sea-level pressure"
+          icon={<Gauge size={16} />}
+          label="Altimeter"
+          value={metar?.altim || "-"}
+        />
+        <MetricLine
+          label="MSL pressure"
           value={pressure == null ? "-" : `${Math.round(pressure)} hPa`}
         />
-        <MetricLine
-          label="Surface pressure"
-          value={
-            localWeather?.surfacePressureHpa == null
-              ? "-"
-              : `${Math.round(localWeather.surfacePressureHpa)} hPa`
-          }
-        />
       </div>
+      <p className="weather-context-copy">{describePressure(altim, pressure)}</p>
     </div>
   );
 }
@@ -262,6 +249,44 @@ function WindVector({ speed, gust, direction }) {
   );
 }
 
+function describeWind(speed, gust) {
+  const effective = Math.max(speed ?? 0, gust ?? 0);
+  if (effective >= 30) {
+    return "Strong winds or gusts can reduce arrival rates, increase go-around risk, and force stricter runway selection.";
+  }
+  if (effective >= 15) {
+    return "Moderate wind is workable, but crosswind components and gust spread can affect spacing and runway configuration.";
+  }
+  return "Light wind usually gives the airport more runway flexibility and keeps arrival and departure flow stable.";
+}
+
+function describeTemperature(temp, spread) {
+  if (spread != null && spread < 3) {
+    return "A small temperature-dewpoint spread can support fog, haze, or low cloud development near the field.";
+  }
+  if (temp != null && temp >= 32) {
+    return "Hot air reduces aircraft performance, which can lengthen takeoff rolls and affect climb margins.";
+  }
+  if (temp != null && temp <= 0) {
+    return "Cold conditions can improve density altitude, but icing, braking action, and deicing become operational concerns.";
+  }
+  return "Temperature and dewpoint are separated enough that fog risk is lower near the field.";
+}
+
+function describePressure(altim, pressure) {
+  const hpa = pressure ?? (altim != null ? altim * 33.8639 : null);
+  if (hpa == null) {
+    return "Pressure data helps crews set altimeters and judge density-altitude effects around the airport.";
+  }
+  if (hpa < 1000) {
+    return "Lower pressure increases density altitude and can come with unsettled weather, reducing performance margins.";
+  }
+  if (hpa > 1020) {
+    return "Higher pressure generally improves aircraft performance and often accompanies more stable weather.";
+  }
+  return "Pressure is near standard range, so altimeter setting is important but not a major performance driver.";
+}
+
 function MetricLine({ label, value, icon = null }) {
   return (
     <div className="weather-metric-line">
@@ -289,17 +314,6 @@ function ThresholdMeter({ label, value, marker, icon }) {
   );
 }
 
-function SegmentBars({ value, max, tone = "cyan" }) {
-  const active = Math.round((Math.min(Math.max(value, 0), max) / max) * 18);
-  return (
-    <div className={`segment-bars segment-bars--${tone}`} aria-hidden="true">
-      {Array.from({ length: 18 }).map((_, index) => (
-        <span key={index} className={index < active ? "active" : ""} />
-      ))}
-    </div>
-  );
-}
-
 function getCeilingFeet(metar) {
   const layer = metar?.rawClouds?.find((item) =>
     ["BKN", "OVC", "VV"].includes(item.cover),
@@ -313,4 +327,3 @@ const toNumber = (value) => {
 };
 
 const round1 = (value) => Number(value).toFixed(1);
-const round2 = (value) => Number(value).toFixed(2);

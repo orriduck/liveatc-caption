@@ -786,7 +786,7 @@ body {
 }
 
 .threshold-track {
-  background: linear-gradient(90deg, #e12aa2 0 24%, #ff453a 24% 48%, #2f8cff 48% 74%, #19c37d 74% 100%);
+  background: linear-gradient(90deg, rgba(255, 90, 31, 0.22), rgba(255, 90, 31, 0.74));
   border-radius: var(--atc-radius-pill);
   height: 6px;
   position: relative;
@@ -794,7 +794,7 @@ body {
 
 .threshold-track i {
   background: var(--atc-bg);
-  border: 2px solid #19c37d;
+  border: 2px solid var(--atc-orange);
   border-radius: 50%;
   height: 13px;
   position: absolute;
@@ -803,7 +803,6 @@ body {
   width: 13px;
 }
 
-.pressure-dial,
 .local-weather-glyph {
   align-items: center;
   aspect-ratio: 1;
@@ -818,15 +817,6 @@ body {
   justify-content: center;
   min-width: 0;
   position: relative;
-}
-
-.pressure-dial::before {
-  background: repeating-conic-gradient(from 0deg, color-mix(in oklab, var(--atc-text) 32%, transparent) 0 3deg, transparent 3deg 10deg);
-  border-radius: inherit;
-  content: "";
-  inset: 12px;
-  opacity: 0.45;
-  position: absolute;
 }
 
 .wind-vector-card {
@@ -875,53 +865,15 @@ body {
   transform-origin: center;
 }
 
-.pressure-dial strong {
-  color: var(--atc-text);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  font-weight: 800;
-  position: relative;
-  z-index: 1;
-}
-
-.segment-bars {
-  display: grid;
-  gap: 4px;
-  grid-template-columns: repeat(18, 1fr);
-  height: 20px;
-}
-
-.segment-bars span {
-  align-self: end;
-  background: color-mix(in oklab, var(--atc-faint) 28%, transparent);
-  border-radius: 999px;
-  height: 11px;
-}
-
-.segment-bars span.active {
-  background: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.22);
-}
-
-.segment-bars--orange span.active {
-  background: var(--atc-orange);
-  box-shadow: 0 0 10px rgba(255, 90, 31, 0.24);
-}
-
-.pressure-dial strong {
-  font-size: 14px;
-  text-align: center;
-}
-
-.pressure-dial svg {
-  color: var(--atc-orange);
-  position: relative;
-  z-index: 1;
-}
-
 .local-weather-glyph {
   color: #ffd24a;
   text-shadow: 0 0 24px rgba(255, 210, 74, 0.25);
+}
+
+.pressure-strip {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .temperature-strip .weather-metric-line {
