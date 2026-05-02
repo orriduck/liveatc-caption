@@ -889,11 +889,19 @@ body {
 }
 
 .local-weather-row {
-  align-items: center;
+  align-items: start;
   display: grid;
   gap: 14px;
   grid-template-columns: 48px minmax(0, 1fr);
   min-height: 142px;
+}
+
+.local-weather-row .local-weather-glyph {
+  margin-top: 2px;
+}
+
+.local-weather-row .weather-slide-stack {
+  justify-content: start;
 }
 
 .temperature-strip .weather-metric-line {
