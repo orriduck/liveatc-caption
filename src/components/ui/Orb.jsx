@@ -158,7 +158,16 @@ export default function Orb({
       lightCol = mix(backgroundColor, lightCol, v0);
       lightCol = clamp(lightCol, 0.0, 1.0);
 
-      vec3 finalCol = mix(darkCol, lightCol, bgLuminance);
+      float mask = v2 * v3;
+      vec3 maskColor = mix(vec3(0.0), backgroundColor, bgLuminance);
+      vec3 innerColor = mix(darkCol, lightCol, bgLuminance);
+      vec3 blendedColor = mix(maskColor, innerColor, v3 * v3);
+      float dimFactor = 1.0 - bgLuminance;
+      // In light mode: gate v0 by v3 so interior pixels (v3=0) contribute nothing,
+      // preventing the ring glow from filling the transparent interior as a grey disc.
+      // In dark mode (dimFactor=1): effectiveV0 = v0, original behavior preserved.
+      float effectiveV0 = mix(v0 * v3, v0, dimFactor);
+      vec3 finalCol = mix(maskColor * mask * dimFactor, blendedColor, effectiveV0);
 
       return extractAlpha(finalCol);
     }
