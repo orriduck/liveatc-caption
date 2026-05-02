@@ -23,6 +23,7 @@ export function useAircraftPositions(icao, lat, lon) {
   const wasActiveRef = useRef(false);
   const hiddenSinceRef = useRef(0);
   const consecutiveFailuresRef = useRef(0);
+  const altitudeHistoryRef = useRef(new Map());
 
   useEffect(() => {
     let disposed = false;
@@ -71,7 +72,10 @@ export function useAircraftPositions(icao, lat, lon) {
             positionTime: parseAdsbPositionTime(a, wideJson.now, receiveTime),
             receiveTime,
           };
-          parsed.verticalState = determineVerticalState(parsed);
+          parsed.verticalState = determineVerticalState(
+            parsed,
+            altitudeHistoryRef.current.get(parsed.icao24) ?? null,
+          );
           return parsed;
         };
         const addSnapshots = (list) => {
@@ -83,6 +87,13 @@ export function useAircraftPositions(icao, lat, lon) {
         };
         addSnapshots(closeJson.ac);
         addSnapshots(wideJson.ac);
+        // Persist altitude for slope-based classification on next poll
+        for (const a of seen.values()) {
+          altitudeHistoryRef.current.set(a.icao24, {
+            altitude: a.altitude,
+            receiveTime: a.receiveTime,
+          });
+        }
         setAircraft(
           trackerRef.current.update(
             [...seen.values()],

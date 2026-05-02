@@ -7,35 +7,53 @@ export const DESCENDING = "Descending";
 export const FLAT = "Flat";
 
 // Hysteresis window — prevents flicker when rate oscillates around zero.
-const HYSTERESIS_ENTER_FPM = 120;
-const HYSTERESIS_EXIT_FPM = 50;
+const HYSTERESIS_ENTER_FPM = 100;
+const HYSTERESIS_EXIT_FPM = 40;
 
 // Minimum altitude delta between current and MCP/FMS selected altitude
 // for the intent signal to override a near-zero vertical rate.
 const INTENT_MIN_DELTA_FT = 250;
 
+// Minimum altitude change over time to infer climb/descent when the
+// instantaneous rate is 0 (common with many Mode‑S transponders).
+const ALTITUDE_SLOPE_THRESHOLD_FPM = 60;
+const ALTITUDE_SLOPE_MIN_PERIOD_MS = 6_000; // need ≥6s of data
+const ALTITUDE_SLOPE_MIN_DELTA_FT = 60; // need ≥60 ft change
+
 /**
  * Classify a single aircraft's vertical movement.
  *
- * Uses `geom_rate` (GPS/WGS84) as the PRIMARY rate source because it is immune
- * to QNH noise. Falls back to `baro_rate` when `geom_rate` is missing.
+ * Uses `geom_rate` (GPS/WGS84) as the PRIMARY rate source because it is
+ * immune to QNH noise. Falls back to `baro_rate`.
  *
- * When the instantaneous rate sits inside the hysteresis dead-zone this
- * function checks *intent* — if the autopilot/FMS has a target altitude that
- * differs meaningfully from the current barometric altitude we trust the
- * direction of the intended flight phase even during a momentary level-off.
+ * When the instantaneous rate sits inside the hysteresis dead-zone the
+ * function checks two fallbacks:
  *
- * @param {object} ac  Aircraft object containing `geomRate`, `baroRate`,
- *                     `altitude` (baro), `navAltitudeMcp` (FMS sel alt),
- *                     `onGround`.
+ * 1. **Intent** — if the autopilot/FMS target altitude differs meaningfully
+ *    from the current barometric altitude, trust the direction even during a
+ *    momentary level-off.
+ * 2. **Altitude slope over time** — if an aircraft has consistently gained
+ *    or lost altitude over several poll cycles (>6 s, >60 ft delta), use
+ *    that trend as a slow-but-correct classifier. This covers aircraft
+ *    whose transponders report `baro_rate = 0` during shallow climbs or
+ *    descents.
+ *
+ * @param {object} ac       Aircraft object with `geomRate`, `baroRate`,
+ *                          `altitude`, `navAltitudeMcp`, `onGround`,
+ *                          `receiveTime`, `icao24`.
+ * @param {object|null} prev Optional previous record for the same aircraft
+ *                          from the last poll. Must have `altitude` and
+ *                          `receiveTime`.
  * @returns {VerticalState}
  */
-export function determineVerticalState(ac) {
+export function determineVerticalState(ac, prev = null) {
   if (ac?.onGround) return FLAT;
 
   // Primary rate: GPS geom_rate, fallback baro_rate
   const rate = toFiniteNumber(ac?.geomRate) ?? toFiniteNumber(ac?.baroRate);
-  if (rate == null) return FLAT;
+  if (rate == null) {
+    return classifyAltitudeSlope(ac, prev);
+  }
 
   // Strong unambiguous rate — return immediately
   if (rate > HYSTERESIS_ENTER_FPM) return ASCENDING;
@@ -52,5 +70,33 @@ export function determineVerticalState(ac) {
     }
   }
 
-  return FLAT;
+  // Rate is ambiguous — check slope
+  return classifyAltitudeSlope(ac, prev);
+}
+
+function classifyAltitudeSlope(ac, prev) {
+  const currentAlt = toFiniteNumber(ac?.altitude);
+  const currentTime = toFiniteNumber(ac?.receiveTime);
+  const prevAlt = toFiniteNumber(prev?.altitude);
+  const prevTime = toFiniteNumber(prev?.receiveTime);
+
+  if (
+    currentAlt == null ||
+    currentTime == null ||
+    prevAlt == null ||
+    prevTime == null
+  ) {
+    return FLAT;
+  }
+
+  const periodMs = currentTime - prevTime;
+  if (periodMs <= 0 || periodMs < ALTITUDE_SLOPE_MIN_PERIOD_MS) return FLAT;
+
+  const deltaFt = currentAlt - prevAlt;
+  if (Math.abs(deltaFt) < ALTITUDE_SLOPE_MIN_DELTA_FT) return FLAT;
+
+  const slopeFpm = Math.abs(deltaFt) / (periodMs / 60_000);
+  if (slopeFpm < ALTITUDE_SLOPE_THRESHOLD_FPM) return FLAT;
+
+  return deltaFt > 0 ? ASCENDING : DESCENDING;
 }
