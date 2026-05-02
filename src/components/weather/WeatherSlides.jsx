@@ -206,11 +206,11 @@ export function LocalWeatherSlide({
 
   return (
     <div className="weather-visual-layout">
-      <div className="weather-slide-stack">
-        <div className="weather-slide-readout local-weather-readout">
-          <div className="local-weather-glyph">
-            {localWeather?.isDay ? <Sun size={42} /> : <Moon size={42} />}
-          </div>
+      <div className="local-weather-row">
+        <div className="local-weather-glyph">
+          {localWeather?.isDay ? <Sun size={42} /> : <Moon size={42} />}
+        </div>
+        <div className="weather-slide-stack">
           <MetricLine
             label={`${airportCode || "Airport"} local`}
             value={
@@ -221,12 +221,12 @@ export function LocalWeatherSlide({
                 : `${round1(localWeather.temperatureC)}°C`
             }
           />
-        </div>
-        <WeatherDescription>
+          <p className="weather-context-copy">
           {localWeatherError
             ? `Open-Meteo unavailable: ${localWeatherError}`
             : condition}
-        </WeatherDescription>
+          </p>
+        </div>
       </div>
     </div>
   );
