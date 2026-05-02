@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   createAircraftPositionClient,
   createFlightRouteClient,
+  createLocalWeatherClient,
   createMetarClient,
   createRateLimiter,
   DEFAULT_AIRCRAFT_POLL_MS,
@@ -151,6 +152,31 @@ try {
   assert.equal(calls.length, 1);
   assert.equal(calls[0], "/api/proxy/aircraft/positions/42.3656/-71.0096/15");
   assert.equal(payload.ac[0].hex, "a1b2c3");
+}
+
+{
+  const calls = [];
+  const client = createLocalWeatherClient({
+    fetchImpl: async (url) => {
+      calls.push(url);
+      return createJsonResponse({
+        current: {
+          temperature_2m: 16.4,
+          weather_code: 0,
+          wind_speed_10m: 12,
+        },
+      });
+    },
+  });
+
+  const payload = await client.fetchCurrentWeather({
+    lat: 42.3656,
+    lon: -71.0096,
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0], "/api/proxy/local-weather/42.3656/-71.0096");
+  assert.equal(payload.current.temperature_2m, 16.4);
 }
 
 {

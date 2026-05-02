@@ -23,3 +23,4 @@ assert.deepEqual(config.rewrites?.slice(0, 3), [
 assert.equal(existsSync(new URL('../../api/proxy/metar/[icao].js', import.meta.url)), false)
 assert.equal(existsSync(new URL('../../api/proxy/aircraft/positions/[...params].js', import.meta.url)), false)
 assert.equal(existsSync(new URL('../app/api/proxy/flight-routes/callsign/[callsign]/route.js', import.meta.url)), true)
+assert.equal(existsSync(new URL('../app/api/proxy/local-weather/[lat]/[lon]/route.js', import.meta.url)), true)

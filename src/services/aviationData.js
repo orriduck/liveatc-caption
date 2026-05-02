@@ -70,6 +70,7 @@ export const DEFAULT_CLOSE_RANGE_NM = 3;
 const DEFAULT_METAR_BASE = "/api/proxy/metar";
 const DEFAULT_AIRCRAFT_POSITIONS_BASE = "/api/proxy/aircraft/positions";
 const DEFAULT_FLIGHT_ROUTE_BASE = "/api/proxy/flight-routes/callsign";
+const DEFAULT_LOCAL_WEATHER_BASE = "/api/proxy/local-weather";
 
 const createTimeoutSignal = (timeoutMs) =>
   typeof AbortSignal !== "undefined" && AbortSignal.timeout
@@ -114,6 +115,43 @@ export const createMetarClient = ({
       return fetchJson(
         auditedFetch,
         `${baseUrl}/${encodeURIComponent(normalized)}`,
+        {
+          timeoutMs: 10_000,
+        },
+      );
+    },
+  };
+};
+
+export const createLocalWeatherClient = ({
+  fetchImpl = globalThis.fetch?.bind(globalThis),
+  baseUrl = env.NEXT_PUBLIC_LOCAL_WEATHER_BASE || DEFAULT_LOCAL_WEATHER_BASE,
+} = {}) => {
+  if (!fetchImpl) throw new Error("Local weather client requires fetch support");
+
+  const auditedFetch = withAuditLogging(fetchImpl, {
+    service: "Open-Meteo/CurrentWeather",
+    getParams(url) {
+      const p = url.split("/");
+      return {
+        lat: p[p.length - 2],
+        lon: p[p.length - 1],
+      };
+    },
+  });
+
+  return {
+    fetchCurrentWeather({ lat, lon }) {
+      const numericLat = Number(lat);
+      const numericLon = Number(lon);
+      if (!Number.isFinite(numericLat) || !Number.isFinite(numericLon)) {
+        return null;
+      }
+      return fetchJson(
+        auditedFetch,
+        `${baseUrl}/${encodeURIComponent(String(numericLat))}/${encodeURIComponent(
+          String(numericLon),
+        )}`,
         {
           timeoutMs: 10_000,
         },
@@ -292,3 +330,4 @@ export const createFlightRouteClient = ({
 export const metarClient = createMetarClient();
 export const aircraftPositionClient = createAircraftPositionClient();
 export const flightRouteClient = createFlightRouteClient();
+export const localWeatherClient = createLocalWeatherClient();

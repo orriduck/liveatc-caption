@@ -29,8 +29,8 @@ export function useMetar(icao) {
         setParsed({
           wind: formatWind(m),
           vis: m.visib ? `${m.visib} SM` : "-",
-          temp: m.temp != null ? `${m.temp}deg C` : "-",
-          dew: m.dewp != null ? `${m.dewp}deg C` : "-",
+          temp: m.temp != null ? `${m.temp}°C` : "-",
+          dew: m.dewp != null ? `${m.dewp}°C` : "-",
           altim: m.altim ? `${m.altim} inHg` : "-",
           ceiling: formatCeiling(m),
           wxString: m.wxString || "",
@@ -42,6 +42,7 @@ export function useMetar(icao) {
           rawAltim: m.altim != null ? Number(m.altim) : null,
           rawWspd: m.wspd ?? null,
           rawWgst: m.wgst ?? null,
+          rawClouds: Array.isArray(m.clouds) ? m.clouds : [],
           rawWdir:
             m.wdir === "VRB" ? null : m.wdir != null ? Number(m.wdir) : null,
           rawWvrb: m.wdir === "VRB",

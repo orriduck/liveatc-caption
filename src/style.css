@@ -622,9 +622,69 @@ body {
   min-height: 250px;
 }
 
-.weather-view-frame {
+.weather-carousel-panel {
+  padding-bottom: 13px;
+}
+
+.weather-carousel-heading {
+  min-height: 48px;
+}
+
+.weather-carousel-heading h2 {
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weather-carousel-track {
+  display: flex;
   flex: 1 1 auto;
+  gap: 0;
   min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.weather-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.weather-carousel-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  padding-top: 8px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.weather-slide-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  justify-content: space-between;
+  min-height: 0;
+}
+
+.weather-slide-readout {
+  min-height: 74px;
+}
+
+.weather-slide-description {
+  border-top: 1px solid var(--atc-line);
+  margin-top: 11px;
+  padding-top: 10px;
+}
+
+.weather-visual-layout {
+  align-items: center;
+  display: block;
+  min-height: 142px;
 }
 
 .metar-code {
@@ -637,6 +697,11 @@ body {
   max-height: 156px;
   overflow: auto;
   white-space: pre-wrap;
+}
+
+.weather-metar-code {
+  margin-top: 2px;
+  max-height: 134px;
 }
 
 .panel-error {
@@ -653,6 +718,201 @@ body {
   gap: 7px 18px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 14px 0 0;
+}
+
+.weather-metric-line {
+  border-top: 1px solid var(--atc-line);
+  display: grid;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.weather-metric-line span,
+.threshold-meter span {
+  align-items: center;
+  color: var(--atc-faint);
+  display: inline-flex;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  gap: 6px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.weather-metric-line strong,
+.threshold-meter strong {
+  color: var(--atc-text);
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.weather-context-copy {
+  color: color-mix(in oklab, var(--atc-text) 70%, transparent);
+  font-size: 12px;
+  line-height: 1.38;
+  margin: 0;
+}
+
+.flight-rule-banner {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.flight-rule-banner span {
+  border-radius: 10px;
+  color: white;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  padding: 7px 10px;
+}
+
+.flight-rule-banner strong {
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.weather-two-up,
+.temperature-strip {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.weather-two-up--1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.temperature-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.threshold-meter {
+  display: grid;
+  gap: 6px;
+}
+
+.threshold-track {
+  background: linear-gradient(90deg, rgba(255, 90, 31, 0.22), rgba(255, 90, 31, 0.74));
+  border-radius: var(--atc-radius-pill);
+  height: 6px;
+  position: relative;
+}
+
+.threshold-track i {
+  background: var(--atc-bg);
+  border: 2px solid var(--atc-orange);
+  border-radius: 50%;
+  height: 13px;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 13px;
+}
+
+.local-weather-glyph {
+  align-items: center;
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--atc-orange) 14%, transparent), transparent 58%),
+    color-mix(in oklab, var(--atc-card) 36%, transparent);
+  border: 1px solid var(--atc-line);
+  border-radius: 999px;
+  color: var(--atc-text);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 48px;
+  min-width: 0;
+  position: relative;
+  width: 48px;
+}
+
+.wind-vector-card {
+  align-items: stretch;
+  border-top: 1px solid var(--atc-line);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 34px repeat(3, minmax(0, 1fr));
+  padding-top: 9px;
+}
+
+.wind-vector-card > div:not(.wind-vector-arrow) {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.wind-vector-card span {
+  color: var(--atc-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.wind-vector-card strong {
+  color: var(--atc-text);
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wind-vector-arrow {
+  align-items: center;
+  aspect-ratio: 1;
+  background: color-mix(in oklab, var(--atc-orange) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--atc-orange) 35%, var(--atc-line));
+  border-radius: 999px;
+  color: var(--atc-orange);
+  display: flex;
+  justify-content: center;
+  transform-origin: center;
+}
+
+.local-weather-glyph {
+  color: #ffd24a;
+  text-shadow: 0 0 24px rgba(255, 210, 74, 0.25);
+}
+
+.pressure-strip {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.local-weather-row {
+  align-items: start;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  min-height: 142px;
+}
+
+.local-weather-row .local-weather-glyph {
+  margin-top: 2px;
+}
+
+.local-weather-row .weather-slide-stack {
+  justify-content: start;
+}
+
+.temperature-strip .weather-metric-line {
+  min-width: 0;
+}
+
+.temperature-strip .weather-metric-line strong {
+  font-size: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .weather-readout div {
@@ -686,6 +946,10 @@ body {
   justify-content: center;
   margin-top: 12px;
   position: relative;
+}
+
+.weather-carousel-dots {
+  margin-top: 9px;
 }
 
 .weather-view-dots button {
