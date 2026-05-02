@@ -198,6 +198,9 @@ export default function AirportCaptionScreen({
 
         <main className="airport-dashboard">
           <WeatherPanel
+            airportCode={airportCodeLabel}
+            airportLat={airportLat}
+            airportLon={airportLon}
             metar={metar}
             metarRaw={metarRaw}
             metarLoading={metarLoading}

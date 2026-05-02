@@ -622,9 +622,59 @@ body {
   min-height: 250px;
 }
 
-.weather-view-frame {
+.weather-carousel-panel {
+  padding-bottom: 13px;
+}
+
+.weather-carousel-heading {
+  min-height: 48px;
+}
+
+.weather-carousel-heading h2 {
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weather-carousel-track {
+  display: flex;
   flex: 1 1 auto;
+  gap: 0;
   min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.weather-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.weather-carousel-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  padding-top: 8px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.weather-slide-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.weather-visual-layout {
+  align-items: center;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(104px, 0.42fr) minmax(0, 1fr);
+  min-height: 142px;
 }
 
 .metar-code {
@@ -637,6 +687,11 @@ body {
   max-height: 156px;
   overflow: auto;
   white-space: pre-wrap;
+}
+
+.weather-metar-code {
+  margin-top: 2px;
+  max-height: 134px;
 }
 
 .panel-error {
@@ -653,6 +708,232 @@ body {
   gap: 7px 18px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 14px 0 0;
+}
+
+.weather-metric-line {
+  border-top: 1px solid var(--atc-line);
+  display: grid;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.weather-metric-line span,
+.threshold-meter span {
+  align-items: center;
+  color: var(--atc-faint);
+  display: inline-flex;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  gap: 6px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.weather-metric-line strong,
+.threshold-meter strong {
+  color: var(--atc-text);
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.weather-context-copy {
+  color: color-mix(in oklab, var(--atc-text) 70%, transparent);
+  font-size: 12px;
+  line-height: 1.38;
+  margin: 0;
+}
+
+.flight-rule-banner {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.flight-rule-banner span {
+  border-radius: 10px;
+  color: white;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  padding: 7px 10px;
+}
+
+.flight-rule-banner strong {
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.weather-two-up,
+.temperature-readout {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.threshold-meter {
+  display: grid;
+  gap: 6px;
+}
+
+.threshold-track {
+  background: linear-gradient(90deg, #e12aa2 0 24%, #ff453a 24% 48%, #2f8cff 48% 74%, #19c37d 74% 100%);
+  border-radius: var(--atc-radius-pill);
+  height: 6px;
+  position: relative;
+}
+
+.threshold-track i {
+  background: var(--atc-bg);
+  border: 2px solid #19c37d;
+  border-radius: 50%;
+  height: 13px;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 13px;
+}
+
+.wind-rose,
+.pressure-dial,
+.cloud-cover-orbit,
+.local-weather-glyph {
+  align-items: center;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--atc-orange) 14%, transparent), transparent 58%),
+    color-mix(in oklab, var(--atc-card) 36%, transparent);
+  border: 1px solid var(--atc-line);
+  border-radius: 999px;
+  color: var(--atc-text);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  position: relative;
+}
+
+.wind-rose::before,
+.pressure-dial::before {
+  background: repeating-conic-gradient(from 0deg, color-mix(in oklab, var(--atc-text) 32%, transparent) 0 3deg, transparent 3deg 10deg);
+  border-radius: inherit;
+  content: "";
+  inset: 12px;
+  opacity: 0.45;
+  position: absolute;
+}
+
+.wind-rose-arrow {
+  color: var(--atc-orange);
+  display: grid;
+  place-items: center;
+  position: relative;
+  transform-origin: center;
+  z-index: 1;
+}
+
+.wind-rose span,
+.pressure-dial strong,
+.cloud-cover-orbit span {
+  color: var(--atc-text);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+
+.segment-bars {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(18, 1fr);
+  height: 20px;
+}
+
+.segment-bars span {
+  align-self: end;
+  background: color-mix(in oklab, var(--atc-faint) 28%, transparent);
+  border-radius: 999px;
+  height: 11px;
+}
+
+.segment-bars span.active {
+  background: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.22);
+}
+
+.segment-bars--orange span.active {
+  background: var(--atc-orange);
+  box-shadow: 0 0 10px rgba(255, 90, 31, 0.24);
+}
+
+.cloud-cover-orbit {
+  flex-direction: row;
+  gap: 8px;
+  margin-inline: auto;
+  width: min(128px, 42%);
+}
+
+.cloud-cover-orbit svg {
+  color: var(--atc-orange);
+}
+
+.cloud-cover-orbit span {
+  font-size: 20px;
+}
+
+.cloud-layer-list,
+.local-weather-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.cloud-layer-list span,
+.local-weather-grid span {
+  border: 1px solid var(--atc-line);
+  border-radius: var(--atc-radius-pill);
+  color: var(--atc-dim);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  padding: 5px 8px;
+  text-transform: uppercase;
+}
+
+.dew-spread-meter {
+  display: grid;
+  gap: 7px;
+}
+
+.dew-spread-meter span {
+  color: var(--atc-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.dew-spread-meter strong {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.pressure-dial strong {
+  font-size: 14px;
+  text-align: center;
+}
+
+.pressure-dial svg {
+  color: var(--atc-orange);
+  position: relative;
+  z-index: 1;
+}
+
+.local-weather-glyph {
+  color: #ffd24a;
+  text-shadow: 0 0 24px rgba(255, 210, 74, 0.25);
 }
 
 .weather-readout div {
@@ -686,6 +967,10 @@ body {
   justify-content: center;
   margin-top: 12px;
   position: relative;
+}
+
+.weather-carousel-dots {
+  margin-top: 9px;
 }
 
 .weather-view-dots button {
