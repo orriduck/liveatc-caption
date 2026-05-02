@@ -845,6 +845,58 @@ body {
     max-height: 134px;
 }
 
+.metar-instrument {
+    display: grid;
+    gap: 10px;
+}
+
+.metar-token-strip {
+    display: grid;
+    gap: 7px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metar-token-strip:empty {
+    display: none;
+}
+
+.metar-token-strip span {
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-text) 6%, transparent),
+            transparent
+        ),
+        color-mix(in oklab, var(--atc-card) 28%, transparent);
+    border: 1px solid var(--atc-line);
+    border-radius: 11px;
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 7px 8px;
+}
+
+.metar-token-strip small,
+.compact-meter span {
+    color: var(--atc-faint);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.metar-token-strip strong {
+    color: var(--atc-text);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .panel-error {
     color: var(--atc-red);
     font-family: "JetBrains Mono", monospace;
@@ -924,6 +976,30 @@ body {
     line-height: 1.05;
 }
 
+.flight-rule-rail {
+    background: color-mix(in oklab, var(--atc-card) 34%, transparent);
+    border: 1px solid var(--atc-line);
+    border-radius: var(--atc-radius-pill);
+    display: grid;
+    gap: 4px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: -3px 0 12px;
+    padding: 4px;
+}
+
+.flight-rule-rail i {
+    background: color-mix(in oklab, var(--rule-color) 22%, transparent);
+    border-radius: var(--atc-radius-pill);
+    height: 7px;
+    opacity: 0.55;
+}
+
+.flight-rule-rail i.active {
+    background: var(--rule-color);
+    box-shadow: 0 0 14px color-mix(in oklab, var(--rule-color) 44%, transparent);
+    opacity: 1;
+}
+
 .weather-two-up,
 .temperature-strip {
     display: grid;
@@ -942,6 +1018,20 @@ body {
 .threshold-meter {
     display: grid;
     gap: 6px;
+}
+
+.compact-meter {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+}
+
+.compact-meter strong {
+    color: var(--atc-text);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
 }
 
 .threshold-track {
@@ -991,9 +1081,9 @@ body {
     align-items: stretch;
     border-top: 1px solid var(--atc-line);
     display: grid;
-    gap: 10px;
-    grid-template-columns: 34px repeat(3, minmax(0, 1fr));
-    padding-top: 9px;
+    gap: 12px;
+    grid-template-columns: 62px repeat(3, minmax(0, 1fr));
+    padding-top: 4px;
 }
 
 .wind-vector-card > div:not(.wind-vector-arrow) {
@@ -1017,16 +1107,59 @@ body {
     white-space: nowrap;
 }
 
-.wind-vector-arrow {
+.wind-compass {
     align-items: center;
     aspect-ratio: 1;
-    background: color-mix(in oklab, var(--atc-orange) 12%, transparent);
+    background:
+        radial-gradient(
+            circle,
+            color-mix(in oklab, var(--atc-orange) 15%, transparent) 0 23%,
+            transparent 24% 100%
+        ),
+        repeating-conic-gradient(
+            from -1deg,
+            color-mix(in oklab, var(--atc-line-strong) 64%, transparent) 0 2deg,
+            transparent 2deg 45deg
+        ),
+        color-mix(in oklab, var(--atc-card) 34%, transparent);
     border: 1px solid
         color-mix(in oklab, var(--atc-orange) 35%, var(--atc-line));
     border-radius: 999px;
     color: var(--atc-orange);
     display: flex;
     justify-content: center;
+    min-width: 0;
+    position: relative;
+    transform-origin: center;
+}
+
+.wind-compass span {
+    color: var(--atc-faint);
+    font-size: 7px;
+    letter-spacing: 0;
+    position: absolute;
+}
+
+.wind-compass span:nth-child(1) {
+    top: 4px;
+}
+
+.wind-compass span:nth-child(2) {
+    right: 5px;
+}
+
+.wind-compass span:nth-child(3) {
+    bottom: 4px;
+}
+
+.wind-compass span:nth-child(4) {
+    left: 5px;
+}
+
+.wind-compass i {
+    display: flex;
+    filter: drop-shadow(0 0 8px color-mix(in oklab, var(--atc-orange) 50%, transparent));
+    transform: rotate(var(--wind-bearing));
     transform-origin: center;
 }
 
@@ -1039,6 +1172,83 @@ body {
     display: grid;
     gap: 12px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pressure-instrument {
+    align-items: stretch;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: 72px minmax(0, 1fr);
+}
+
+.pressure-dial {
+    align-items: center;
+    aspect-ratio: 1;
+    background:
+        conic-gradient(
+            from -132deg,
+            color-mix(in oklab, var(--atc-orange) 74%, transparent)
+                calc(var(--pressure-pct) * 264deg),
+            color-mix(in oklab, var(--atc-line) 90%, transparent) 0 264deg,
+            transparent 0
+        ),
+        radial-gradient(
+            circle,
+            color-mix(in oklab, var(--atc-card) 80%, transparent) 0 55%,
+            transparent 56%
+        );
+    border: 1px solid var(--atc-line);
+    border-radius: 999px;
+    color: var(--atc-orange);
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+}
+
+.thermal-band {
+    align-items: center;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    margin: 0 0 12px;
+}
+
+.thermal-band span {
+    color: var(--atc-faint);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.thermal-band i {
+    background: linear-gradient(90deg, #60a5fa, var(--atc-orange));
+    border-radius: var(--atc-radius-pill);
+    height: 7px;
+    position: relative;
+}
+
+.thermal-band i::before,
+.thermal-band i b {
+    border-radius: 50%;
+    content: "";
+    height: 13px;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 13px;
+}
+
+.thermal-band i::before {
+    background: var(--atc-orange);
+    border: 2px solid color-mix(in oklab, var(--atc-bg) 80%, white);
+    left: var(--temp-pct);
+}
+
+.thermal-band i b {
+    background: color-mix(in oklab, var(--atc-mint) 82%, white);
+    border: 2px solid color-mix(in oklab, var(--atc-bg) 80%, white);
+    left: var(--dew-pct);
 }
 
 .local-weather-row {
@@ -1055,6 +1265,13 @@ body {
 
 .local-weather-row .weather-slide-stack {
     justify-content: start;
+}
+
+.local-weather-meter-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 12px;
 }
 
 .temperature-strip .weather-metric-line {

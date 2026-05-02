@@ -61,10 +61,24 @@ const WEATHER_CODES = {
 };
 
 export function MetarSlide({ metarRaw, metarLoading, metarError }) {
+  const tokens = getMetarTokens(metarRaw);
+
   return (
     <div className="weather-slide-stack">
-      <div className="metar-code weather-metar-code">
-        {metarRaw || (metarLoading ? "Loading METAR..." : "No METAR available.")}
+      <div className="metar-instrument">
+        <div className="metar-token-strip" aria-hidden={!tokens.length}>
+          {tokens.length
+            ? tokens.map((item) => (
+                <span key={item.label}>
+                  <small>{item.label}</small>
+                  <strong>{item.value}</strong>
+                </span>
+              ))
+            : null}
+        </div>
+        <div className="metar-code weather-metar-code">
+          {metarRaw || (metarLoading ? "Loading METAR..." : "No METAR available.")}
+        </div>
       </div>
       {metarError ? <div className="panel-error">{metarError}</div> : null}
     </div>
@@ -101,6 +115,15 @@ export function FlightRulesSlide({ metar }) {
         <div className="flight-rule-banner">
           <span style={{ background: rules.color }}>{code}</span>
           <strong style={{ color: rules.color }}>{rules.label}</strong>
+        </div>
+        <div className="flight-rule-rail" aria-hidden="true">
+          {["VFR", "MVFR", "IFR", "LIFR"].map((item) => (
+            <i
+              key={item}
+              className={item === code ? "active" : ""}
+              style={{ "--rule-color": FLIGHT_RULES[item].color }}
+            />
+          ))}
         </div>
         {detailMeters.length ? (
           <div className={`weather-two-up weather-two-up--${detailMeters.length}`}>
@@ -144,10 +167,26 @@ export function TemperatureSlide({ metar, localWeather }) {
   const temp = toNumber(metar?.rawTemp) ?? localWeather?.temperatureC;
   const dew = toNumber(metar?.rawDewp) ?? null;
   const spread = temp != null && dew != null ? Math.max(0, temp - dew) : null;
+  const tempPct = temp == null ? 0.5 : clamp((temp + 20) / 60, 0.04, 0.96);
+  const dewPct = dew == null ? null : clamp((dew + 20) / 60, 0.04, 0.96);
 
   return (
     <div className="weather-slide-stack">
       <div className="weather-slide-readout">
+        <div
+          className="thermal-band"
+          style={{
+            "--temp-pct": `${tempPct * 100}%`,
+            "--dew-pct": `${(dewPct ?? tempPct) * 100}%`,
+          }}
+          aria-hidden="true"
+        >
+          <span>cold</span>
+          <i>
+            <b />
+          </i>
+          <span>hot</span>
+        </div>
         <div className="temperature-strip">
           <MetricLine
             label="Temperature"
@@ -173,20 +212,31 @@ export function TemperatureSlide({ metar, localWeather }) {
 export function PressureSlide({ metar, localWeather }) {
   const altim = metar?.rawAltim;
   const pressure = localWeather?.pressureMslHpa;
+  const hpa = pressure ?? (altim != null ? altim * 33.8639 : null);
+  const pressurePct = hpa == null ? 0.5 : clamp((hpa - 980) / 60, 0.03, 0.97);
 
   return (
     <div className="weather-slide-stack">
       <div className="weather-slide-readout">
-        <div className="pressure-strip">
-          <MetricLine
-            icon={<Gauge size={16} />}
-            label="Altimeter"
-            value={metar?.altim || "-"}
-          />
-          <MetricLine
-            label="MSL pressure"
-            value={pressure == null ? "-" : `${Math.round(pressure)} hPa`}
-          />
+        <div className="pressure-instrument">
+          <div
+            className="pressure-dial"
+            style={{ "--pressure-pct": `${pressurePct}` }}
+            aria-hidden="true"
+          >
+            <Gauge size={18} />
+          </div>
+          <div className="pressure-strip">
+            <MetricLine
+              icon={<Gauge size={16} />}
+              label="Altimeter"
+              value={metar?.altim || "-"}
+            />
+            <MetricLine
+              label="MSL pressure"
+              value={pressure == null ? "-" : `${Math.round(pressure)} hPa`}
+            />
+          </div>
         </div>
       </div>
       <WeatherDescription>{describePressure(altim, pressure)}</WeatherDescription>
@@ -203,6 +253,8 @@ export function LocalWeatherSlide({
   const condition = localWeather
     ? WEATHER_CODES[localWeather.weatherCode] || "Current conditions"
     : "Local weather pending";
+  const humidity = localWeather?.humidity;
+  const cloudCover = localWeather?.cloudCover;
 
   return (
     <div className="weather-visual-layout">
@@ -222,10 +274,22 @@ export function LocalWeatherSlide({
             }
           />
           <p className="weather-context-copy">
-          {localWeatherError
-            ? `Open-Meteo unavailable: ${localWeatherError}`
-            : condition}
+            {localWeatherError
+              ? `Open-Meteo unavailable: ${localWeatherError}`
+              : condition}
           </p>
+          <div className="local-weather-meter-grid">
+            <CompactMeter
+              label="Humidity"
+              value={humidity == null ? "-" : `${Math.round(humidity)}%`}
+              marker={humidity == null ? 0 : humidity / 100}
+            />
+            <CompactMeter
+              label="Cloud"
+              value={cloudCover == null ? "-" : `${Math.round(cloudCover)}%`}
+              marker={cloudCover == null ? 0 : cloudCover / 100}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -236,10 +300,17 @@ function WindVector({ speed, gust, direction }) {
   return (
     <div className="wind-vector-card">
       <div
-        className="wind-vector-arrow"
-        style={{ transform: `rotate(${direction ?? 0}deg)` }}
+        className="wind-compass"
+        style={{ "--wind-bearing": `${direction ?? 0}deg` }}
+        aria-label={direction == null ? "Variable wind" : `Wind from ${Math.round(direction)} degrees`}
       >
-        <Navigation size={21} fill="currentColor" />
+        <span>N</span>
+        <span>E</span>
+        <span>S</span>
+        <span>W</span>
+        <i>
+          <Navigation size={20} fill="currentColor" />
+        </i>
       </div>
       <div>
         <span>Direction</span>
@@ -326,6 +397,39 @@ function ThresholdMeter({ label, value, marker, icon }) {
   );
 }
 
+function CompactMeter({ label, value, marker }) {
+  return (
+    <div className="compact-meter">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <div className="threshold-track">
+        <i style={{ left: `${clamp(marker, 0, 1) * 100}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function getMetarTokens(raw) {
+  const parts = String(raw || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return [];
+  const reportPrefix = /^(METAR|SPECI)$/i.test(parts[0]);
+  const station = reportPrefix ? parts[1] : parts[0];
+  const issued = reportPrefix ? parts[2] : parts[1];
+
+  const wind = parts.find((item) => /^(VRB|\d{3})\d{2,3}(G\d{2,3})?KT$/.test(item));
+  const visibility = parts.find((item) => /^(\d{1,2}|\d{1,2}SM|P\d{1,2}SM|\d\/\dSM)$/.test(item));
+
+  return [
+    { label: "Station", value: station || "-" },
+    { label: "Issued", value: issued || "-" },
+    { label: "Wind", value: wind || "-" },
+    { label: "Vis", value: visibility || "-" },
+  ];
+}
+
 function getCeilingFeet(metar) {
   const layer = metar?.rawClouds?.find((item) =>
     ["BKN", "OVC", "VV"].includes(item.cover),
@@ -339,3 +443,5 @@ const toNumber = (value) => {
 };
 
 const round1 = (value) => Number(value).toFixed(1);
+
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
