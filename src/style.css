@@ -742,7 +742,7 @@ body {
 .weather-metric-line strong,
 .threshold-meter strong {
   color: var(--atc-text);
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 800;
   line-height: 1;
 }
@@ -752,6 +752,12 @@ body {
   font-size: 12px;
   line-height: 1.38;
   margin: 0;
+}
+
+.weather-context-copy.weather-slide-description {
+  color: color-mix(in oklab, var(--atc-text) 86%, transparent);
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 .flight-rule-banner {
@@ -857,7 +863,7 @@ body {
 
 .wind-vector-card strong {
   color: var(--atc-text);
-  font-size: 15px;
+  font-size: 1.1875rem;
   font-weight: 850;
   line-height: 1;
   overflow: hidden;
@@ -909,7 +915,6 @@ body {
 }
 
 .temperature-strip .weather-metric-line strong {
-  font-size: 18px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
