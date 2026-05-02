@@ -18,6 +18,7 @@ export default function BackgroundRays() {
         noiseAmount={0.06}
         distortion={0.04}
         saturation={0.9}
+        pulsating={true}
       />
     </div>
   );

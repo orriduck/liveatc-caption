@@ -15,11 +15,9 @@ import {
   BARO_RATE_THRESHOLD_FPM,
 } from "../../constants/aircraft.js";
 
-const getAircraftColor = (ac, showArrow, theme) => {
+const getAircraftColor = (ac, showArrow) => {
   if (ac.onGround) return AIRCRAFT_COLORS.ground;
-  if (!showArrow || ac.baroRate == null) {
-    return theme === "light" ? "#475569" : AIRCRAFT_COLORS.level;
-  }
+  if (!showArrow || ac.baroRate == null) return AIRCRAFT_COLORS.level;
   if (ac.baroRate >= BARO_RATE_THRESHOLD_FPM) return AIRCRAFT_COLORS.ascending;
   if (ac.baroRate < -BARO_RATE_THRESHOLD_FPM) return AIRCRAFT_COLORS.descending;
   return AIRCRAFT_COLORS.level;
@@ -90,7 +88,7 @@ export default function AircraftPosition({
 
   const speedKt = Number(aircraft.velocity ?? 0);
   const showArrow = speedKt >= SLOW_AIRCRAFT_THRESHOLD_KT;
-  const color = getAircraftColor(aircraft, showArrow, theme);
+  const color = getAircraftColor(aircraft, showArrow);
   const rot = Math.round(aircraft.track || 0);
   const label = (aircraft.callsign || aircraft.icao24 || "").trim();
   const routeLabel = (aircraft.flightRouteLabel || "").trim();
