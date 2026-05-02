@@ -74,7 +74,7 @@ export function MetarSlide({ metarRaw, metarLoading, metarError }) {
 export function FlightRulesSlide({ metar }) {
   const code = metar?.flightCategory || "VFR";
   const rules = FLIGHT_RULES[code] || FLIGHT_RULES.VFR;
-  const visibility = metar?.rawVisib ?? null;
+  const visibility = toNumber(metar?.rawVisib);
   const ceilingFt = getCeilingFeet(metar);
   const detailMeters = [
     ceilingFt == null
@@ -318,7 +318,7 @@ function getCeilingFeet(metar) {
   const layer = metar?.rawClouds?.find((item) =>
     ["BKN", "OVC", "VV"].includes(item.cover),
   );
-  return layer?.base != null ? Number(layer.base) : null;
+  return toNumber(layer?.base);
 }
 
 const toNumber = (value) => {
