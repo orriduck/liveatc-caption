@@ -229,6 +229,22 @@ const normalizeCallsign = (callsign) =>
 function AircraftDataLoadingOverlay({ active }) {
   const [visible, setVisible] = useState(active);
   const [exiting, setExiting] = useState(false);
+  const [isLightTheme, setIsLightTheme] = useState(false);
+
+  useEffect(() => {
+    const syncTheme = () => {
+      setIsLightTheme(document.documentElement.getAttribute("data-theme") !== "dark");
+    };
+    syncTheme();
+
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let fadeTimer;
@@ -267,10 +283,10 @@ function AircraftDataLoadingOverlay({ active }) {
     >
       <div className="adsb-loading-orb-shell" aria-hidden="true">
         <Orb
-          backgroundColor="#0a0a0b"
+          backgroundColor={isLightTheme ? "#f8fafc" : "#0a0a0b"}
           color1="#ff5a1f"
-          color2="#ffb15f"
-          color3="#5f160b"
+          color2={isLightTheme ? "#ffd29a" : "#ffb15f"}
+          color3={isLightTheme ? "#fff4ea" : "#5f160b"}
           forceHoverState={false}
           hoverIntensity={0}
           hue={0}

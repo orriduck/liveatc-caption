@@ -1,6 +1,7 @@
 "use client";
 
-import { Monitor, Moon, Search, Sun } from "lucide-react";
+import Link from "next/link";
+import { Info, Monitor, Moon, Search, Sun } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HOME_AIRPORT_COUNTRY } from "../../config/homeAirportDirectory.js";
 import { airportDirectoryClient } from "../../services/airportDirectory.js";
@@ -17,6 +18,8 @@ import {
 import { Badge } from "../ui/badge.jsx";
 import { Button } from "../ui/button.jsx";
 import { Input } from "../ui/input.jsx";
+import BackgroundRays from "../effects/BackgroundRays.jsx";
+import Logo from "../brand/Logo.jsx";
 
 const featuredAirports = [
   {
@@ -224,25 +227,40 @@ export default function SearchScreen({ onOpenAirport }) {
 
   return (
     <div className="search-screen min-h-screen text-atc-text">
+      <BackgroundRays />
       <main className="grid min-h-screen place-items-start px-5 py-6 sm:place-items-center sm:p-10 lg:p-14">
         <section className="w-full max-w-[860px]">
           <div className="mb-4 flex items-center justify-between gap-2.5 font-mono text-[11px] uppercase tracking-[1.4px] text-atc-dim">
             <div className="flex items-center gap-2.5">
+              <Logo size={20} className="text-atc-text" />
               <span className="text-atc-text">ADSBao</span>
               <span className="text-atc-orange">/</span>
               <span>Airport search</span>
             </div>
-            <Button
-              type="button"
-              variant="atcChip"
-              size="sm"
-              className="theme-chip gap-1.5 text-[12px] tracking-[0.2px]"
-              title={themeTitle}
-              onClick={cycleTheme}
-            >
-              <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>{themePreference}</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                asChild
+                variant="atcChip"
+                size="sm"
+                className="theme-chip gap-1.5 text-[12px] capitalize tracking-[0.2px]"
+              >
+                <Link href="/about" title="About ADSBao">
+                  <Info className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>About</span>
+                </Link>
+              </Button>
+              <Button
+                type="button"
+                variant="atcChip"
+                size="sm"
+                className="theme-chip gap-1.5 text-[12px] capitalize tracking-[0.2px]"
+                title={themeTitle}
+                onClick={cycleTheme}
+              >
+                <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{themePreference}</span>
+              </Button>
+            </div>
           </div>
 
           <form
@@ -260,7 +278,7 @@ export default function SearchScreen({ onOpenAirport }) {
               onChange={(event) => setQ(event.target.value)}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
-              className="flex-1 p-0 text-2xl font-extrabold tracking-normal text-atc-text sm:text-3xl"
+              className="flex-1 p-0 text-lg font-extrabold tracking-normal text-atc-text sm:text-xl"
               placeholder="Search by ICAO, IATA, city, or airport name"
             />
             <kbd className="search-kbd hidden shrink-0 items-center rounded-[var(--atc-radius-control)] px-2 py-1 font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">

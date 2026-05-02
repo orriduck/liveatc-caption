@@ -6,7 +6,9 @@ const METERS_PER_DEGREE_LAT = 111_320
 export const VISUAL_DELAY_MS = 750
 export const CORRECTION_DURATION_MS = 750
 export const SLOW_AIRCRAFT_THRESHOLD_KT = 30
+export const CRUISE_SPEED_THRESHOLD_KT = 100
 export const FAST_EXTRAPOLATION_LIMIT_MS = 4_000
+export const CRUISE_EXTRAPOLATION_LIMIT_MS = 30_000
 export const SLOW_FULL_SPEED_WINDOW_MS = 500
 export const SLOW_EXTRAPOLATION_SCALE = 0.25
 
@@ -27,9 +29,9 @@ export const parseAdsbPositionTime = (aircraft, responseNow, receiveTime = Date.
 
 export const getAircraftExtrapolationLimitMs = (aircraft) => {
   const velocity = Math.max(0, toFiniteNumber(aircraft?.velocity) ?? 0)
-  return aircraft?.onGround || velocity < SLOW_AIRCRAFT_THRESHOLD_KT
-    ? FAST_EXTRAPOLATION_LIMIT_MS
-    : FAST_EXTRAPOLATION_LIMIT_MS
+  if (aircraft?.onGround || velocity < SLOW_AIRCRAFT_THRESHOLD_KT) return FAST_EXTRAPOLATION_LIMIT_MS
+  if (velocity >= CRUISE_SPEED_THRESHOLD_KT) return CRUISE_EXTRAPOLATION_LIMIT_MS
+  return FAST_EXTRAPOLATION_LIMIT_MS
 }
 
 const getEffectiveElapsedMs = (aircraft, elapsedMs) => {

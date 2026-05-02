@@ -21,6 +21,7 @@ export function useAircraftPositions(icao, lat, lon) {
   const timerRef = useRef(null);
   const wasActiveRef = useRef(false);
   const hiddenSinceRef = useRef(0);
+  const consecutiveFailuresRef = useRef(0);
 
   useEffect(() => {
     let disposed = false;
@@ -78,10 +79,14 @@ export function useAircraftPositions(icao, lat, lon) {
         setAircraft(
           trackerRef.current.update([...seen.values()], { lat, lon }, receiveTime),
         );
+        consecutiveFailuresRef.current = 0;
         setLastUpdated(new Date());
         setInitialLoading(false);
       } catch (e) {
-        console.warn("ADS-B fetch failed:", e.message);
+        consecutiveFailuresRef.current++;
+        const isTimeout = e.name === "TimeoutError" || /timed out|signal timed out/i.test(e.message);
+        const kind = isTimeout ? "timeout" : e.message || "unknown";
+        console.warn(`[${icao}] ADS-B fetch failed (${kind}, consecutive: ${consecutiveFailuresRef.current})`);
       } finally {
         if (!disposed) setLoading(false);
       }
@@ -90,6 +95,7 @@ export function useAircraftPositions(icao, lat, lon) {
     const start = () => {
       stop();
       trackerRef.current.clear();
+      consecutiveFailuresRef.current = 0;
       setInitialLoading(true);
       setLastUpdated(null);
       poll();

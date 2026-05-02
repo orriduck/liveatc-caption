@@ -20,3 +20,7 @@ docs/superpowers
 *.log
 *.local
 dist-ssr
+
+# Playwright operations
+.playwright-mcp
+*.lock

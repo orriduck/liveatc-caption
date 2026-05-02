@@ -189,7 +189,7 @@ export const createAircraftPositionClient = ({
         auditedFetch,
         `${baseUrl}/${encodedLat}/${encodedLon}/${encodedDist}`,
         {
-          timeoutMs: 14_000,
+          timeoutMs: DEFAULT_AIRCRAFT_POLL_MS,
         },
       );
     },
