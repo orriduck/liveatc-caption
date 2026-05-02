@@ -10,16 +10,14 @@ import {
   calculateAircraftVisualPosition,
   SLOW_AIRCRAFT_THRESHOLD_KT,
 } from "../../utils/aircraftMotion.js";
-import {
-  AIRCRAFT_COLORS,
-  BARO_RATE_THRESHOLD_FPM,
-} from "../../constants/aircraft.js";
+import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
+import { ASCENDING, DESCENDING } from "../../utils/aircraftVertical.js";
 
 const getAircraftColor = (ac, showArrow) => {
   if (ac.onGround) return AIRCRAFT_COLORS.ground;
-  if (!showArrow || ac.baroRate == null) return AIRCRAFT_COLORS.level;
-  if (ac.baroRate >= BARO_RATE_THRESHOLD_FPM) return AIRCRAFT_COLORS.ascending;
-  if (ac.baroRate < -BARO_RATE_THRESHOLD_FPM) return AIRCRAFT_COLORS.descending;
+  if (!showArrow) return AIRCRAFT_COLORS.level;
+  if (ac.verticalState === ASCENDING) return AIRCRAFT_COLORS.ascending;
+  if (ac.verticalState === DESCENDING) return AIRCRAFT_COLORS.descending;
   return AIRCRAFT_COLORS.level;
 };
 
@@ -177,9 +175,7 @@ function Label({
       ) : (
         <div className="aircraft-label-title">{label}</div>
       )}
-      {renderTelemetry && (
-        <Telemetry velocity={velocity} altitude={altitude} />
-      )}
+      {renderTelemetry && <Telemetry velocity={velocity} altitude={altitude} />}
     </div>
   );
 }

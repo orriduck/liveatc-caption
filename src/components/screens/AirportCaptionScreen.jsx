@@ -13,10 +13,9 @@ import { useAirportWiki } from "../../hooks/useAirportWiki.js";
 import { useFlightRoutes } from "../../hooks/useFlightRoutes.js";
 import { useMetar } from "../../hooks/useMetar.js";
 import { useScrollParallax } from "../../hooks/useScrollParallax.js";
-import { BARO_RATE_THRESHOLD_FPM } from "../../constants/aircraft.js";
+import { ASCENDING, DESCENDING } from "../../utils/aircraftVertical.js";
 import { AIRPORT_FALLBACKS, COORDS } from "../../data/airportFallbacks.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
-import { SLOW_AIRCRAFT_THRESHOLD_KT } from "../../utils/aircraftMotion.js";
 import { formatLocalFlightRouteLabel } from "../../utils/flightRouteDisplay.js";
 
 const AirportMap = dynamic(() => import("../map/AirportMap"), {
@@ -107,18 +106,9 @@ export default function AirportCaptionScreen({
     () =>
       aircraft.reduce(
         (counts, item) => {
-          const showArrow = (item.velocity ?? 0) >= SLOW_AIRCRAFT_THRESHOLD_KT;
-          if (!item.onGround && showArrow && item.baroRate != null) {
-            if (item.baroRate > BARO_RATE_THRESHOLD_FPM) {
-              counts.ascending += 1;
-              return counts;
-            }
-            if (item.baroRate < -BARO_RATE_THRESHOLD_FPM) {
-              counts.descending += 1;
-              return counts;
-            }
-          }
-          counts.level += 1;
+          if (item.verticalState === ASCENDING) counts.ascending += 1;
+          else if (item.verticalState === DESCENDING) counts.descending += 1;
+          else counts.level += 1;
           return counts;
         },
         { ascending: 0, descending: 0, level: 0 },
@@ -233,7 +223,9 @@ function AircraftDataLoadingOverlay({ active }) {
 
   useEffect(() => {
     const syncTheme = () => {
-      setIsLightTheme(document.documentElement.getAttribute("data-theme") !== "dark");
+      setIsLightTheme(
+        document.documentElement.getAttribute("data-theme") !== "dark",
+      );
     };
     syncTheme();
 

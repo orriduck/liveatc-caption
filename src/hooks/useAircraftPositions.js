@@ -9,6 +9,7 @@ import {
 } from "../services/aviationData.js";
 import { parseAdsbPositionTime } from "../utils/aircraftMotion.js";
 import { createAircraftIntentTracker } from "../utils/aircraftTrafficIntent.js";
+import { determineVerticalState } from "../utils/aircraftVertical.js";
 
 const HIDDEN_POLL_GRACE_MS = 5_000;
 
@@ -54,19 +55,25 @@ export function useAircraftPositions(icao, lat, lon) {
         if (disposed) return;
         const receiveTime = Date.now();
         const seen = new Map();
-        const parseAircraft = (a) => ({
-          icao24: a.hex || "",
-          callsign: (a.flight || a.r || "").trim(),
-          lat: a.lat,
-          lon: a.lon,
-          altitude: a.alt_baro ?? a.alt_geom ?? null,
-          baroRate: a.baro_rate ?? null,
-          onGround: a.gnd ?? false,
-          velocity: a.gs ?? null,
-          track: a.track ?? 0,
-          positionTime: parseAdsbPositionTime(a, wideJson.now, receiveTime),
-          receiveTime,
-        });
+        const parseAircraft = (a) => {
+          const parsed = {
+            icao24: a.hex || "",
+            callsign: (a.flight || a.r || "").trim(),
+            lat: a.lat,
+            lon: a.lon,
+            altitude: a.alt_baro ?? a.alt_geom ?? null,
+            baroRate: a.baro_rate ?? null,
+            geomRate: a.geom_rate ?? null,
+            navAltitudeMcp: a.nav_altitude_mcp ?? null,
+            onGround: a.gnd ?? false,
+            velocity: a.gs ?? null,
+            track: a.track ?? 0,
+            positionTime: parseAdsbPositionTime(a, wideJson.now, receiveTime),
+            receiveTime,
+          };
+          parsed.verticalState = determineVerticalState(parsed);
+          return parsed;
+        };
         const addSnapshots = (list) => {
           for (const a of list || []) {
             if (a.lat == null || a.lon == null) continue;
@@ -77,16 +84,24 @@ export function useAircraftPositions(icao, lat, lon) {
         addSnapshots(closeJson.ac);
         addSnapshots(wideJson.ac);
         setAircraft(
-          trackerRef.current.update([...seen.values()], { lat, lon }, receiveTime),
+          trackerRef.current.update(
+            [...seen.values()],
+            { lat, lon },
+            receiveTime,
+          ),
         );
         consecutiveFailuresRef.current = 0;
         setLastUpdated(new Date());
         setInitialLoading(false);
       } catch (e) {
         consecutiveFailuresRef.current++;
-        const isTimeout = e.name === "TimeoutError" || /timed out|signal timed out/i.test(e.message);
+        const isTimeout =
+          e.name === "TimeoutError" ||
+          /timed out|signal timed out/i.test(e.message);
         const kind = isTimeout ? "timeout" : e.message || "unknown";
-        console.warn(`[${icao}] ADS-B fetch failed (${kind}, consecutive: ${consecutiveFailuresRef.current})`);
+        console.warn(
+          `[${icao}] ADS-B fetch failed (${kind}, consecutive: ${consecutiveFailuresRef.current})`,
+        );
       } finally {
         if (!disposed) setLoading(false);
       }
