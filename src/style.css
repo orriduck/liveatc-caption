@@ -121,6 +121,11 @@
     --glass-card-inset: rgba(255, 255, 255, 0.3);
     --traffic-level-color: #64748b;
 
+    --aircraft-ascending: #ea580c;
+    --aircraft-descending: #16a34a;
+    --aircraft-level: #475569;
+    --aircraft-ground: #15803d;
+
     --atc-radius-pill: 999px;
     --atc-radius-panel: 20px;
     --atc-radius-control: 12px;
@@ -166,6 +171,11 @@
     --glass-card-border: rgba(255, 255, 255, 0.13);
     --glass-card-inset: rgba(255, 255, 255, 0.14);
     --traffic-level-color: #94a3b8;
+
+    --aircraft-ascending: #fb923c;
+    --aircraft-descending: #2dd4bf;
+    --aircraft-level: #94a3b8;
+    --aircraft-ground: #34d399;
 
     --atc-radius-pill: 999px;
     --atc-radius-panel: 20px;
@@ -319,6 +329,116 @@ body {
         color-mix(in oklab, var(--atc-orange) 16%, transparent),
         color-mix(in oklab, var(--atc-card) 72%, transparent)
     );
+}
+
+.about-screen {
+    background:
+        radial-gradient(
+            circle at 22% 12%,
+            color-mix(in oklab, var(--atc-orange) 22%, transparent),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 78% 80%,
+            color-mix(in oklab, var(--atc-line) 50%, transparent),
+            transparent 34%
+        ),
+        linear-gradient(
+            135deg,
+            color-mix(in oklab, var(--atc-orange) 8%, transparent),
+            transparent 38%
+        ),
+        var(--atc-bg);
+}
+
+.background-rays {
+    inset: 0;
+    pointer-events: none;
+    position: fixed;
+    z-index: 0;
+}
+
+.background-rays .light-rays-container {
+    mix-blend-mode: screen;
+    opacity: 0.55;
+}
+
+[data-theme="light"] .background-rays .light-rays-container {
+    mix-blend-mode: multiply;
+    opacity: 0.35;
+}
+
+.search-screen,
+.about-screen {
+    isolation: isolate;
+    position: relative;
+}
+
+.search-screen > main,
+.about-screen > main {
+    position: relative;
+    z-index: 1;
+}
+
+.about-chip {
+    background: color-mix(in oklab, var(--atc-card) 72%, transparent);
+    border-color: color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
+    font-family: var(--font-sans);
+}
+
+.about-hero {
+    background:
+        radial-gradient(
+            circle at 100% 0%,
+            color-mix(in oklab, var(--atc-orange) 18%, transparent),
+            transparent 42%
+        ),
+        linear-gradient(
+            145deg,
+            color-mix(in oklab, var(--atc-card) 92%, transparent),
+            color-mix(in oklab, var(--atc-elev) 92%, transparent)
+        );
+    border: 1px solid
+        color-mix(in oklab, var(--atc-line-strong) 78%, transparent);
+    box-shadow:
+        0 30px 90px color-mix(in oklab, var(--atc-bg) 62%, transparent),
+        inset 0 1px 0
+            color-mix(in oklab, var(--atc-line-strong) 50%, transparent);
+}
+
+.about-hero::before {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in oklab, var(--atc-orange) 78%, transparent),
+        transparent
+    );
+    content: "";
+    height: 1px;
+    inset: 0 0 auto 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.about-title {
+    font-family: var(--font-sans);
+    font-size: clamp(44px, 8vw, 88px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+}
+
+.about-title .font-display {
+    font-weight: 400;
+    letter-spacing: -0.02em;
+}
+
+.about-source {
+    background: color-mix(in oklab, var(--atc-card) 62%, transparent);
+    border-color: color-mix(in oklab, var(--atc-line-strong) 70%, transparent);
+}
+
+.about-source:hover {
+    background: color-mix(in oklab, var(--atc-card) 80%, transparent);
 }
 
 .airport-screen {
