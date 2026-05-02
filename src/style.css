@@ -257,6 +257,117 @@ body {
   overflow: hidden;
 }
 
+.adsb-loading-overlay {
+  align-items: center;
+  background:
+    radial-gradient(circle at 50% 44%, rgba(255, 90, 31, 0.13), transparent 22%),
+    radial-gradient(circle at 52% 50%, color-mix(in oklab, var(--atc-bg) 18%, transparent), color-mix(in oklab, var(--atc-bg) 78%, transparent) 58%, color-mix(in oklab, var(--atc-bg) 92%, transparent) 100%);
+  -webkit-backdrop-filter: brightness(0.58) saturate(0.78);
+  backdrop-filter: brightness(0.58) saturate(0.78);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  inset: 0;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 0.7s ease, backdrop-filter 0.7s ease;
+  z-index: 15;
+}
+
+.adsb-loading-overlay.is-exiting {
+  animation: adsb-loading-fade-out 1.1s ease forwards;
+  -webkit-backdrop-filter: brightness(1) saturate(1);
+  backdrop-filter: brightness(1) saturate(1);
+}
+
+.adsb-loading-overlay::before {
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 90, 31, 0.12), transparent),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 7px);
+  content: "";
+  inset: 0;
+  mix-blend-mode: screen;
+  opacity: 0.28;
+  position: absolute;
+  transform: translateX(-100%);
+  transition: opacity 0.7s ease;
+  animation: adsb-scan-sweep 3.8s ease-in-out infinite;
+}
+
+.adsb-loading-overlay.is-exiting::before {
+  animation: adsb-loading-scan-fade-out 1.1s ease forwards;
+}
+
+.adsb-loading-orb-shell {
+  aspect-ratio: 1;
+  filter:
+    drop-shadow(0 0 26px rgba(255, 90, 31, 0.2))
+    drop-shadow(0 0 48px rgba(52, 211, 153, 0.14));
+  isolation: isolate;
+  position: relative;
+  transition: transform 0.7s ease, opacity 0.7s ease;
+  width: clamp(150px, 18vw, 240px);
+}
+
+.adsb-loading-overlay.is-exiting .adsb-loading-orb-shell {
+  animation: adsb-loading-orb-fade-out 1.1s ease forwards;
+}
+
+.adsb-loading-status {
+  align-items: center;
+  color: var(--atc-faint);
+  display: flex;
+  flex-direction: column;
+  font-family: "JetBrains Mono", monospace;
+  gap: 5px;
+  letter-spacing: 1.6px;
+  position: relative;
+  text-transform: uppercase;
+  transition: opacity 0.42s ease, transform 0.42s ease;
+  text-shadow: 0 0 18px color-mix(in oklab, var(--atc-bg) 88%, transparent);
+}
+
+.adsb-loading-overlay.is-exiting .adsb-loading-status {
+  animation: adsb-loading-status-fade-out 0.72s ease forwards;
+}
+
+.adsb-loading-status span {
+  color: var(--atc-orange);
+  font-size: 10px;
+}
+
+.adsb-loading-status strong {
+  color: var(--atc-text);
+  font-size: 12px;
+}
+
+@keyframes adsb-scan-sweep {
+  0%, 24% { transform: translateX(-110%); }
+  58%, 100% { transform: translateX(110%); }
+}
+
+@keyframes adsb-loading-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes adsb-loading-scan-fade-out {
+  from { opacity: 0.28; }
+  to { opacity: 0; }
+}
+
+@keyframes adsb-loading-orb-fade-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.94); }
+}
+
+@keyframes adsb-loading-status-fade-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(6px); }
+}
+
 .mobile-map-dim {
   background: linear-gradient(180deg, color-mix(in oklab, var(--atc-bg) 12%, transparent), color-mix(in oklab, var(--atc-bg) 88%, transparent));
   display: none;
@@ -1193,6 +1304,29 @@ body {
   .map-ctrl-bar,
   .map-action-drawer,
   .ctrl-btn {
+    transition: none;
+  }
+
+  .adsb-loading-overlay::before,
+  .adsb-loading-overlay.is-exiting,
+  .adsb-loading-overlay.is-exiting::before,
+  .adsb-loading-overlay.is-exiting .adsb-loading-orb-shell,
+  .adsb-loading-overlay.is-exiting .adsb-loading-status,
+  .orb-container canvas {
+    animation: none;
+  }
+
+  .adsb-loading-overlay.is-exiting,
+  .adsb-loading-overlay.is-exiting::before,
+  .adsb-loading-overlay.is-exiting .adsb-loading-orb-shell,
+  .adsb-loading-overlay.is-exiting .adsb-loading-status {
+    opacity: 0;
+  }
+
+  .adsb-loading-overlay,
+  .adsb-loading-overlay::before,
+  .adsb-loading-orb-shell,
+  .adsb-loading-status {
     transition: none;
   }
 

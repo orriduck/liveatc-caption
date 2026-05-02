@@ -15,6 +15,7 @@ const HIDDEN_POLL_GRACE_MS = 5_000;
 export function useAircraftPositions(icao, lat, lon) {
   const [aircraft, setAircraft] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const trackerRef = useRef(createAircraftIntentTracker());
   const timerRef = useRef(null);
@@ -78,6 +79,7 @@ export function useAircraftPositions(icao, lat, lon) {
           trackerRef.current.update([...seen.values()], { lat, lon }, receiveTime),
         );
         setLastUpdated(new Date());
+        setInitialLoading(false);
       } catch (e) {
         console.warn("ADS-B fetch failed:", e.message);
       } finally {
@@ -88,6 +90,8 @@ export function useAircraftPositions(icao, lat, lon) {
     const start = () => {
       stop();
       trackerRef.current.clear();
+      setInitialLoading(true);
+      setLastUpdated(null);
       poll();
       timerRef.current = setInterval(poll, DEFAULT_AIRCRAFT_POLL_MS);
     };
@@ -116,6 +120,8 @@ export function useAircraftPositions(icao, lat, lon) {
     } else {
       wasActiveRef.current = false;
       stop();
+      setInitialLoading(false);
+      setLastUpdated(null);
     }
     document.addEventListener("visibilitychange", handleVisibility);
 
@@ -126,5 +132,5 @@ export function useAircraftPositions(icao, lat, lon) {
     };
   }, [icao, lat, lon]);
 
-  return { aircraft, loading, lastUpdated };
+  return { aircraft, loading, initialLoading, lastUpdated };
 }

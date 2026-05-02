@@ -1,12 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MobileStatusBar from "../panels/MobileStatusBar";
 import TrafficPanel from "../panels/TrafficPanel";
 import WeatherPanel from "../panels/WeatherPanel";
 import WikiPanel from "../panels/WikiPanel";
 import MapControlBar from "../ui/MapControlBar";
+import Orb from "../ui/Orb";
 import { useAircraftPositions } from "../../hooks/useAircraftPositions.js";
 import { useAirportWiki } from "../../hooks/useAirportWiki.js";
 import { useFlightRoutes } from "../../hooks/useFlightRoutes.js";
@@ -26,6 +27,8 @@ const AirportMap = dynamic(() => import("../map/AirportMap"), {
     </div>
   ),
 });
+
+const ADSB_LOADING_FADE_MS = 1100;
 
 export default function AirportCaptionScreen({
   icao = "",
@@ -53,11 +56,11 @@ export default function AirportCaptionScreen({
     loading: metarLoading,
     error: metarError,
   } = useMetar(normalizedIcao);
-  const { aircraft, lastUpdated } = useAircraftPositions(
-    normalizedIcao,
-    airportLat,
-    airportLon,
-  );
+  const {
+    aircraft,
+    initialLoading: aircraftInitialLoading,
+    lastUpdated,
+  } = useAircraftPositions(normalizedIcao, airportLat, airportLon);
   const { routesByCallsign } = useFlightRoutes(aircraft);
 
   const aircraftWithRoutes = useMemo(
@@ -149,6 +152,7 @@ export default function AirportCaptionScreen({
       </div>
 
       <div className="airport-map-warmth absolute inset-0 z-10 bg-[radial-gradient(circle_at_18%_14%,rgba(255,90,31,0.14),transparent_28%)]" />
+      <AircraftDataLoadingOverlay active={aircraftInitialLoading} />
       <div className="mobile-map-dim" />
       <div className="mobile-top-mask" />
       <div className="mobile-compact-title" aria-hidden="true">
@@ -218,6 +222,65 @@ const normalizeCallsign = (callsign) =>
     .trim()
     .toUpperCase()
     .replace(/\s+/g, "");
+
+function AircraftDataLoadingOverlay({ active }) {
+  const [visible, setVisible] = useState(active);
+  const [exiting, setExiting] = useState(false);
+
+  useEffect(() => {
+    let fadeTimer;
+
+    if (active) {
+      setVisible(true);
+      setExiting(false);
+      return undefined;
+    }
+
+    if (visible) {
+      setExiting(true);
+      fadeTimer = window.setTimeout(() => {
+        setVisible(false);
+        setExiting(false);
+      }, ADSB_LOADING_FADE_MS);
+    }
+
+    return () => {
+      if (fadeTimer) window.clearTimeout(fadeTimer);
+    };
+  }, [active, visible]);
+
+  if (!visible) return null;
+
+  return (
+    <div
+      className={`adsb-loading-overlay ${exiting ? "is-exiting" : ""}`}
+      aria-label="Loading ADS-B aircraft data"
+      onAnimationEnd={(event) => {
+        if (event.currentTarget !== event.target || !exiting) return;
+        setVisible(false);
+        setExiting(false);
+      }}
+      role="status"
+    >
+      <div className="adsb-loading-orb-shell" aria-hidden="true">
+        <Orb
+          backgroundColor="#0a0a0b"
+          color1="#ff5a1f"
+          color2="#ffb15f"
+          color3="#5f160b"
+          forceHoverState={false}
+          hoverIntensity={0}
+          hue={0}
+          rotateOnHover
+        />
+      </div>
+      <div className="adsb-loading-status">
+        <span>adsb.lol</span>
+        <strong>SYNCING TRAFFIC</strong>
+      </div>
+    </div>
+  );
+}
 
 const fmtUpdated = (date) => {
   if (!date) return "-";
