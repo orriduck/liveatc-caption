@@ -41,5 +41,5 @@
     "eslint-config-next": "^16.0.10",
     "tailwindcss": "^4.2.4"
   },
-  "license": "GPL-3.0-or-later"
+  "license": "MIT"
 }

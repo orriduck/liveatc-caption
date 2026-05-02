@@ -210,7 +210,7 @@ export default function AboutPage() {
                   orriduck / ADSBao
                 </strong>
                 <small className="mt-0.5 block text-[12px] text-atc-dim">
-                  Public source, MIT-leaning. Issues and PRs welcome.
+                  Public source under the MIT License. Issues and PRs welcome.
                 </small>
               </div>
             </div>
