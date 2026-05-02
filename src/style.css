@@ -766,10 +766,18 @@ body {
 }
 
 .weather-two-up,
-.temperature-readout {
+.temperature-strip {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.weather-two-up--1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.temperature-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .threshold-meter {
@@ -795,9 +803,7 @@ body {
   width: 13px;
 }
 
-.wind-rose,
 .pressure-dial,
-.cloud-cover-orbit,
 .local-weather-glyph {
   align-items: center;
   aspect-ratio: 1;
@@ -814,7 +820,6 @@ body {
   position: relative;
 }
 
-.wind-rose::before,
 .pressure-dial::before {
   background: repeating-conic-gradient(from 0deg, color-mix(in oklab, var(--atc-text) 32%, transparent) 0 3deg, transparent 3deg 10deg);
   border-radius: inherit;
@@ -824,18 +829,53 @@ body {
   position: absolute;
 }
 
-.wind-rose-arrow {
-  color: var(--atc-orange);
+.wind-vector-card {
+  align-items: stretch;
+  border-top: 1px solid var(--atc-line);
   display: grid;
-  place-items: center;
-  position: relative;
-  transform-origin: center;
-  z-index: 1;
+  gap: 10px;
+  grid-template-columns: 34px repeat(3, minmax(0, 1fr));
+  padding-top: 9px;
 }
 
-.wind-rose span,
-.pressure-dial strong,
-.cloud-cover-orbit span {
+.wind-vector-card > div:not(.wind-vector-arrow) {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.wind-vector-card span {
+  color: var(--atc-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.wind-vector-card strong {
+  color: var(--atc-text);
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wind-vector-arrow {
+  align-items: center;
+  aspect-ratio: 1;
+  background: color-mix(in oklab, var(--atc-orange) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--atc-orange) 35%, var(--atc-line));
+  border-radius: 999px;
+  color: var(--atc-orange);
+  display: flex;
+  justify-content: center;
+  transform-origin: center;
+}
+
+.pressure-dial strong {
   color: var(--atc-text);
   font-family: "JetBrains Mono", monospace;
   font-size: 11px;
@@ -868,58 +908,6 @@ body {
   box-shadow: 0 0 10px rgba(255, 90, 31, 0.24);
 }
 
-.cloud-cover-orbit {
-  flex-direction: row;
-  gap: 8px;
-  margin-inline: auto;
-  width: min(128px, 42%);
-}
-
-.cloud-cover-orbit svg {
-  color: var(--atc-orange);
-}
-
-.cloud-cover-orbit span {
-  font-size: 20px;
-}
-
-.cloud-layer-list,
-.local-weather-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.cloud-layer-list span,
-.local-weather-grid span {
-  border: 1px solid var(--atc-line);
-  border-radius: var(--atc-radius-pill);
-  color: var(--atc-dim);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.5px;
-  padding: 5px 8px;
-  text-transform: uppercase;
-}
-
-.dew-spread-meter {
-  display: grid;
-  gap: 7px;
-}
-
-.dew-spread-meter span {
-  color: var(--atc-faint);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 1.1px;
-  text-transform: uppercase;
-}
-
-.dew-spread-meter strong {
-  font-size: 18px;
-  line-height: 1;
-}
-
 .pressure-dial strong {
   font-size: 14px;
   text-align: center;
@@ -934,6 +922,17 @@ body {
 .local-weather-glyph {
   color: #ffd24a;
   text-shadow: 0 0 24px rgba(255, 210, 74, 0.25);
+}
+
+.temperature-strip .weather-metric-line {
+  min-width: 0;
+}
+
+.temperature-strip .weather-metric-line strong {
+  font-size: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .weather-readout div {

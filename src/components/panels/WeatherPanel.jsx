@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useLocalWeather } from "../../hooks/useLocalWeather.js";
 import {
-  CloudLayerSlide,
   FlightRulesSlide,
   LocalWeatherSlide,
   MetarSlide,
@@ -57,13 +56,6 @@ export default function WeatherPanel({
         title: "Wind speed",
         eyebrow: "Surface flow",
         content: <WindSlide metar={metar} localWeather={localWeather} />,
-      },
-      {
-        id: "clouds",
-        label: "Clouds",
-        title: "Cloud layers",
-        eyebrow: "Ceiling / cover",
-        content: <CloudLayerSlide metar={metar} localWeather={localWeather} />,
       },
       {
         id: "temp",

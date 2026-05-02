@@ -1,9 +1,7 @@
 "use client";
 
-import NumberFlow from "@number-flow/react";
 import {
   Cloud,
-  CloudSun,
   Droplets,
   Eye,
   Gauge,
@@ -11,7 +9,6 @@ import {
   Moon,
   Sun,
   Thermometer,
-  Wind,
 } from "lucide-react";
 
 const FLIGHT_RULES = {
@@ -79,6 +76,24 @@ export function FlightRulesSlide({ metar }) {
   const rules = FLIGHT_RULES[code] || FLIGHT_RULES.VFR;
   const visibility = metar?.rawVisib ?? null;
   const ceilingFt = getCeilingFeet(metar);
+  const detailMeters = [
+    ceilingFt == null
+      ? null
+      : {
+          icon: <Cloud size={16} />,
+          label: "Ceiling",
+          marker: Math.min(1, ceilingFt / 3000),
+          value: `${ceilingFt.toLocaleString()} ft`,
+        },
+    visibility == null
+      ? null
+      : {
+          icon: <Eye size={16} />,
+          label: "Visibility",
+          marker: Math.min(1, visibility / 5),
+          value: `${visibility >= 10 ? "10+" : visibility} SM`,
+        },
+  ].filter(Boolean);
 
   return (
     <div className="weather-slide-stack">
@@ -87,20 +102,19 @@ export function FlightRulesSlide({ metar }) {
         <strong style={{ color: rules.color }}>{rules.label}</strong>
       </div>
       <p className="weather-context-copy">{rules.context}</p>
-      <div className="weather-two-up">
-        <ThresholdMeter
-          icon={<Cloud size={16} />}
-          label="Ceiling"
-          marker={ceilingFt == null ? 1 : Math.min(1, ceilingFt / 3000)}
-          value={ceilingFt == null ? "None" : `${ceilingFt.toLocaleString()} ft`}
-        />
-        <ThresholdMeter
-          icon={<Eye size={16} />}
-          label="Visibility"
-          marker={visibility == null ? 1 : Math.min(1, visibility / 5)}
-          value={visibility == null ? "-" : `${visibility >= 10 ? "10+" : visibility} SM`}
-        />
-      </div>
+      {detailMeters.length ? (
+        <div className={`weather-two-up weather-two-up--${detailMeters.length}`}>
+          {detailMeters.map((item) => (
+            <ThresholdMeter
+              key={item.label}
+              icon={item.icon}
+              label={item.label}
+              marker={item.marker}
+              value={item.value}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -111,60 +125,17 @@ export function WindSlide({ metar, localWeather }) {
   const direction = metar?.rawWvrb ? null : toNumber(metar?.rawWdir) ?? localWeather?.windDirection;
 
   return (
-    <div className="weather-visual-layout">
-      <div className="wind-rose" aria-label="Wind direction visualization">
-        <div
-          className="wind-rose-arrow"
-          style={{ transform: `rotate(${direction ?? 0}deg)` }}
-        >
-          <Navigation size={28} fill="currentColor" />
-        </div>
-        <span>{direction == null ? "VRB" : `${Math.round(direction)}deg`}</span>
-      </div>
-      <div className="weather-slide-stack">
-        <MetricLine
-          label="Wind"
-          value={`${Math.round(speed)} kt`}
-          icon={<Wind size={16} />}
-        />
-        <SegmentBars value={speed} max={40} />
-        <MetricLine
-          label="Gusts"
-          value={gust == null ? "None" : `${Math.round(gust)} kt`}
-          icon={<Wind size={16} />}
-        />
-        <SegmentBars value={gust ?? 0} max={50} tone="orange" />
-      </div>
-    </div>
-  );
-}
-
-export function CloudLayerSlide({ metar, localWeather }) {
-  const layers = metar?.rawClouds || [];
-  const cloudCover = localWeather?.cloudCover;
-
-  return (
     <div className="weather-slide-stack">
-      <MetricLine
-        label="Ceiling"
-        value={metar?.ceiling || "-"}
-        icon={<Cloud size={16} />}
-      />
-      <div className="cloud-cover-orbit">
-        <CloudSun size={42} />
-        <NumberFlow value={Math.round(cloudCover ?? 0)} suffix="%" />
-      </div>
-      <div className="cloud-layer-list">
-        {layers.length ? (
-          layers.slice(0, 3).map((layer, index) => (
-            <span key={`${layer.cover}-${layer.base}-${index}`}>
-              {layer.cover} {layer.base ? `${Number(layer.base).toLocaleString()} ft` : ""}
-            </span>
-          ))
-        ) : (
-          <span>CLR / no reported cloud layers</span>
-        )}
-      </div>
+      <WindVector speed={speed} gust={gust} direction={direction} />
+      <SegmentBars value={speed} max={40} />
+      {gust != null ? <SegmentBars value={gust} max={50} tone="orange" /> : null}
+      <p className="weather-context-copy">
+        {direction == null
+          ? "Variable wind reported near the field. Watch tower instructions for runway-specific flow."
+          : `Wind from ${Math.round(direction)}° at ${Math.round(
+              speed,
+            )} kt${gust == null ? "" : ` with gusts to ${Math.round(gust)} kt`}.`}
+      </p>
     </div>
   );
 }
@@ -176,22 +147,21 @@ export function TemperatureSlide({ metar, localWeather }) {
 
   return (
     <div className="weather-slide-stack">
-      <div className="temperature-readout">
+      <div className="temperature-strip">
         <MetricLine
           label="Temperature"
-          value={temp == null ? "-" : `${round1(temp)}deg C`}
+          value={temp == null ? "-" : `${round1(temp)}°C`}
           icon={<Thermometer size={16} />}
         />
         <MetricLine
           label="Dew point"
-          value={dew == null ? "-" : `${round1(dew)}deg C`}
+          value={dew == null ? "-" : `${round1(dew)}°C`}
           icon={<Droplets size={16} />}
         />
-      </div>
-      <div className="dew-spread-meter">
-        <span>Spread</span>
-        <strong>{spread == null ? "-" : `${round1(spread)}deg C`}</strong>
-        <SegmentBars value={spread ?? 0} max={18} />
+        <MetricLine
+          label="Spread"
+          value={spread == null ? "-" : `${round1(spread)}°C`}
+        />
       </div>
       <p className="weather-context-copy">
         {spread != null && spread < 3
@@ -254,24 +224,39 @@ export function LocalWeatherSlide({
               ? localWeatherLoading
                 ? "Loading..."
                 : "-"
-              : `${round1(localWeather.temperatureC)}deg C`
+              : `${round1(localWeather.temperatureC)}°C`
           }
         />
         <p className="weather-context-copy">
           {localWeatherError
             ? `Open-Meteo unavailable: ${localWeatherError}`
-            : `${condition}. Feels like ${
-                localWeather?.apparentTemperatureC == null
-                  ? "-"
-                  : `${round1(localWeather.apparentTemperatureC)}deg C`
-              }, humidity ${localWeather?.humidity ?? "-"}%.`}
+            : condition}
         </p>
-        <div className="local-weather-grid">
-          <span>Cloud {localWeather?.cloudCover ?? "-"}%</span>
-          <span>Wind {Math.round(localWeather?.windSpeedKt ?? 0)} kt</span>
-          <span>Rain {round2(localWeather?.rainIn ?? 0)} in</span>
-          <span>{localWeather?.source || "Open-Meteo"}</span>
-        </div>
+      </div>
+    </div>
+  );
+}
+
+function WindVector({ speed, gust, direction }) {
+  return (
+    <div className="wind-vector-card">
+      <div
+        className="wind-vector-arrow"
+        style={{ transform: `rotate(${direction ?? 0}deg)` }}
+      >
+        <Navigation size={21} fill="currentColor" />
+      </div>
+      <div>
+        <span>Direction</span>
+        <strong>{direction == null ? "VRB" : `${Math.round(direction)}°`}</strong>
+      </div>
+      <div>
+        <span>Wind</span>
+        <strong>{Math.round(speed)} kt</strong>
+      </div>
+      <div>
+        <span>Gust</span>
+        <strong>{gust == null ? "None" : `${Math.round(gust)} kt`}</strong>
       </div>
     </div>
   );
