@@ -38,6 +38,29 @@ Frontend runs on `http://localhost:3000` by default.
 | `src/utils/airport.js` | Shared airport display helpers (`airportSubtitle`) |
 | `src/data/airportFallbacks.js` | Fallback airport metadata and coordinates |
 
+## Styling — Tailwind first
+
+This project uses **Tailwind CSS v4**. When adding or changing styles, reach for Tailwind utilities in JSX *before* writing custom CSS in `src/style.css`. Custom CSS is reserved for cases utilities can't express cleanly.
+
+Decision order when styling something:
+
+1. **Tailwind utility classes** in JSX (`flex`, `gap-2`, `text-[12px]`, `bg-atc-card`, etc.) — preferred default.
+2. **Tailwind arbitrary values** (`bg-[var(--tone-card-soft)]`, `rounded-[var(--atc-radius-panel)]`) when a one-off needs an existing CSS variable.
+3. **Custom CSS in `src/style.css`** only for things utilities can't do, e.g.:
+   - Multi-layer gradient backgrounds and `color-mix()` blends.
+   - `::before` / `::after` decorative pseudo-elements.
+   - Theme-aware overrides under `[data-theme="..."]` selectors.
+   - Animations (`@keyframes`) and `prefers-reduced-motion` blocks.
+   - Leaflet/marker DOM that we don't own and can't pass classes to.
+
+When you do write custom CSS, follow the existing DRY patterns:
+
+- **Use the existing tokens.** `:root` defines `--atc-*` (theme colors) and `--tone-*` (composed `color-mix` blends like `--tone-card-soft`, `--tone-border-firm`, `--tone-orange-warm`). Reuse them instead of re-typing `color-mix(in oklab, var(--atc-card) 62%, transparent)`. If you need a new tone variant, add a token in `:root` rather than inlining it at the use site.
+- **Merge selectors that share a declaration block** with comma-separated lists (e.g. `.search-row, .about-source { ... }`) — don't duplicate the rule.
+- **Tailwind v4 quirks**: `normal-case` no longer exists; use `capitalize` (or rewrite the source text) when you need to override an inherited `uppercase`. Theme tokens declared in `@theme inline` at the top of `style.css` become utility classes (e.g. `bg-atc-card`); add new theme colors there if you want utility access.
+
+Watch the dev server (`pnpm run dev`) for layout regressions after touching `style.css` — many panels share the same surface tokens, so a token edit ripples broadly by design.
+
 ## Build
 
 ```bash

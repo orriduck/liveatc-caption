@@ -126,6 +126,35 @@
     --aircraft-level: #475569;
     --aircraft-ground: #15803d;
 
+    /* Tone tokens — composed from theme colors via color-mix.
+       Defined once in :root because their inputs are themeable;
+       both light and dark inherit the same expressions. */
+    --tone-card-soft: color-mix(in oklab, var(--atc-card) 62%, transparent);
+    --tone-card-mid: color-mix(in oklab, var(--atc-card) 72%, transparent);
+    --tone-card-warm: color-mix(in oklab, var(--atc-card) 76%, transparent);
+    --tone-card-strong: color-mix(in oklab, var(--atc-card) 84%, transparent);
+    --tone-card-bright: color-mix(in oklab, var(--atc-card) 92%, transparent);
+    --tone-elev-strong: color-mix(in oklab, var(--atc-elev) 88%, transparent);
+    --tone-elev-bright: color-mix(in oklab, var(--atc-elev) 92%, transparent);
+    --tone-orange-wash: color-mix(in oklab, var(--atc-orange) 8%, transparent);
+    --tone-orange-warm: color-mix(in oklab, var(--atc-orange) 16%, transparent);
+    --tone-orange-strong: color-mix(in oklab, var(--atc-orange) 22%, transparent);
+    --tone-orange-edge: color-mix(in oklab, var(--atc-orange) 78%, transparent);
+    --tone-bg-soft: color-mix(in oklab, var(--atc-bg) 62%, transparent);
+    --tone-line-soft: color-mix(in oklab, var(--atc-line) 50%, transparent);
+    --tone-border-soft: color-mix(in oklab, var(--atc-line-strong) 58%, transparent);
+    --tone-border-mid: color-mix(in oklab, var(--atc-line-strong) 70%, transparent);
+    --tone-border-strong: color-mix(
+        in oklab,
+        var(--atc-line-strong) 78%,
+        transparent
+    );
+    --tone-border-firm: color-mix(
+        in oklab,
+        var(--atc-line-strong) 82%,
+        transparent
+    );
+
     --atc-radius-pill: 999px;
     --atc-radius-panel: 20px;
     --atc-radius-control: 12px;
@@ -259,46 +288,73 @@ body {
     transform: translateY(-6px);
 }
 
-.search-screen {
+/* Shared screen background — search + about share the same atmosphere */
+.search-screen,
+.about-screen {
     background:
         radial-gradient(
             circle at 22% 12%,
-            color-mix(in oklab, var(--atc-orange) 22%, transparent),
+            var(--tone-orange-strong),
             transparent 32%
         ),
         radial-gradient(
             circle at 78% 80%,
-            color-mix(in oklab, var(--atc-line) 50%, transparent),
+            var(--tone-line-soft),
             transparent 34%
         ),
-        linear-gradient(
-            135deg,
-            color-mix(in oklab, var(--atc-orange) 8%, transparent),
-            transparent 38%
-        ),
+        linear-gradient(135deg, var(--tone-orange-wash), transparent 38%),
         var(--atc-bg);
+    isolation: isolate;
+    position: relative;
 }
 
-.theme-chip {
-    background: color-mix(in oklab, var(--atc-card) 72%, transparent);
-    border: 1px solid
-        color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
+.search-screen > main,
+.about-screen > main {
+    position: relative;
+    z-index: 1;
+}
+
+/* Pill chips — theme toggle + about link share one surface */
+.theme-chip,
+.about-chip {
+    background: var(--tone-card-mid);
+    border: 1px solid var(--tone-border-firm);
     font-family: var(--font-sans);
+}
+
+/* Selectable rows — featured search rows + about data-source rows */
+.search-row,
+.about-source {
+    background: var(--tone-card-soft);
+    border: 1px solid var(--tone-border-strong);
+    border-radius: var(--atc-radius-panel);
+}
+
+.search-row:hover,
+.about-source:hover {
+    background: var(--tone-card-warm);
+}
+
+.search-row--featured:first-child,
+.search-row--featured {
+    background: linear-gradient(
+        100deg,
+        var(--tone-orange-warm),
+        var(--tone-card-mid)
+    );
 }
 
 .search-input {
     background: linear-gradient(
         145deg,
-        color-mix(in oklab, var(--atc-card) 84%, transparent),
-        color-mix(in oklab, var(--atc-elev) 88%, transparent)
+        var(--tone-card-strong),
+        var(--tone-elev-strong)
     );
-    border: 1px solid
-        color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
+    border: 1px solid var(--tone-border-firm);
     border-radius: var(--atc-radius-panel);
     box-shadow:
-        0 26px 90px color-mix(in oklab, var(--atc-bg) 62%, transparent),
-        inset 0 1px 0
-            color-mix(in oklab, var(--atc-line-strong) 58%, transparent);
+        0 26px 90px var(--tone-bg-soft),
+        inset 0 1px 0 var(--tone-border-soft);
 }
 
 .search-input:focus-within {
@@ -309,46 +365,6 @@ body {
 .search-kbd {
     background: transparent;
     border: 1px solid var(--atc-line-strong);
-}
-
-.search-row {
-    background: color-mix(in oklab, var(--atc-card) 62%, transparent);
-    border: 1px solid
-        color-mix(in oklab, var(--atc-line-strong) 78%, transparent);
-    border-radius: var(--atc-radius-panel);
-}
-
-.search-row:hover {
-    background: color-mix(in oklab, var(--atc-card) 76%, transparent);
-}
-
-.search-row--featured:first-child,
-.search-row--featured {
-    background: linear-gradient(
-        100deg,
-        color-mix(in oklab, var(--atc-orange) 16%, transparent),
-        color-mix(in oklab, var(--atc-card) 72%, transparent)
-    );
-}
-
-.about-screen {
-    background:
-        radial-gradient(
-            circle at 22% 12%,
-            color-mix(in oklab, var(--atc-orange) 22%, transparent),
-            transparent 32%
-        ),
-        radial-gradient(
-            circle at 78% 80%,
-            color-mix(in oklab, var(--atc-line) 50%, transparent),
-            transparent 34%
-        ),
-        linear-gradient(
-            135deg,
-            color-mix(in oklab, var(--atc-orange) 8%, transparent),
-            transparent 38%
-        ),
-        var(--atc-bg);
 }
 
 .background-rays {
@@ -368,24 +384,6 @@ body {
     opacity: 0.35;
 }
 
-.search-screen,
-.about-screen {
-    isolation: isolate;
-    position: relative;
-}
-
-.search-screen > main,
-.about-screen > main {
-    position: relative;
-    z-index: 1;
-}
-
-.about-chip {
-    background: color-mix(in oklab, var(--atc-card) 72%, transparent);
-    border-color: color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
-    font-family: var(--font-sans);
-}
-
 .about-hero {
     background:
         radial-gradient(
@@ -395,13 +393,12 @@ body {
         ),
         linear-gradient(
             145deg,
-            color-mix(in oklab, var(--atc-card) 92%, transparent),
-            color-mix(in oklab, var(--atc-elev) 92%, transparent)
+            var(--tone-card-bright),
+            var(--tone-elev-bright)
         );
-    border: 1px solid
-        color-mix(in oklab, var(--atc-line-strong) 78%, transparent);
+    border: 1px solid var(--tone-border-strong);
     box-shadow:
-        0 30px 90px color-mix(in oklab, var(--atc-bg) 62%, transparent),
+        0 30px 90px var(--tone-bg-soft),
         inset 0 1px 0
             color-mix(in oklab, var(--atc-line-strong) 50%, transparent);
 }
@@ -410,7 +407,7 @@ body {
     background: linear-gradient(
         90deg,
         transparent,
-        color-mix(in oklab, var(--atc-orange) 78%, transparent),
+        var(--tone-orange-edge),
         transparent
     );
     content: "";
@@ -430,15 +427,6 @@ body {
 .about-title .font-display {
     font-weight: 400;
     letter-spacing: -0.02em;
-}
-
-.about-source {
-    background: color-mix(in oklab, var(--atc-card) 62%, transparent);
-    border-color: color-mix(in oklab, var(--atc-line-strong) 70%, transparent);
-}
-
-.about-source:hover {
-    background: color-mix(in oklab, var(--atc-card) 80%, transparent);
 }
 
 .airport-screen {
