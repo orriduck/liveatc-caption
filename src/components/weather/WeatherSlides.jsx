@@ -115,30 +115,21 @@ export function CeilingSlide({ metar }) {
   const visibility = toNumber(metar?.rawVisib);
   const ceilingFt = getCeilingFeet(metar);
   const ceilingLabel = metar?.ceiling || (ceilingFt == null ? "CLR" : `${ceilingFt.toLocaleString()} ft`);
-  const ceilingPct = ceilingFt == null ? 1 : clamp(ceilingFt / 10000, 0.06, 1);
-  const visibilityPct = visibility == null ? 0 : clamp(visibility / 10, 0.06, 1);
 
   return (
     <div className="weather-slide-stack">
       <div className="weather-slide-readout">
-        <div className="ceiling-instrument">
-          <div className="cloud-deck" aria-hidden="true">
-            <Cloud size={18} />
-            <i style={{ "--ceiling-pct": `${ceilingPct * 100}%` }} />
-          </div>
-          <div className="ceiling-readouts">
-            <MetricLine
-              icon={<Cloud size={16} />}
-              label="Ceiling"
-              value={ceilingLabel}
-            />
-            <ThresholdMeter
-              icon={<Eye size={16} />}
-              label="Visibility"
-              marker={visibilityPct}
-              value={visibility == null ? "-" : `${visibility >= 10 ? "10+" : visibility} SM`}
-            />
-          </div>
+        <div className="ceiling-readouts">
+          <MetricLine
+            icon={<Cloud size={15} />}
+            label="Ceiling"
+            value={ceilingLabel}
+          />
+          <MetricLine
+            icon={<Eye size={15} />}
+            label="Visibility"
+            value={visibility == null ? "-" : `${visibility >= 10 ? "10+" : visibility} SM`}
+          />
         </div>
       </div>
       <WeatherDescription>{describeCeiling(ceilingFt, visibility)}</WeatherDescription>
@@ -376,21 +367,6 @@ function MetricLine({ label, value, icon = null }) {
         {label}
       </span>
       <strong>{value}</strong>
-    </div>
-  );
-}
-
-function ThresholdMeter({ label, value, marker, icon }) {
-  return (
-    <div className="threshold-meter">
-      <span>
-        {icon}
-        {label}
-      </span>
-      <strong>{value}</strong>
-      <div className="threshold-track">
-        <i style={{ left: `${marker * 100}%` }} />
-      </div>
     </div>
   );
 }

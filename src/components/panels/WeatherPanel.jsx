@@ -30,70 +30,78 @@ export default function WeatherPanel({
   } = useLocalWeather(airportLat, airportLon);
 
   const slides = useMemo(
-    () => [
-      {
-        id: "metar",
-        label: "METAR",
-        title: "METAR report",
-        eyebrow: "METAR / Weather",
-        content: (
-          <MetarSlide
-            metarRaw={metarRaw}
-            metarLoading={metarLoading}
-            metarError={metarError}
-          />
-        ),
-      },
-      {
-        id: "rules",
-        label: "Rules",
-        title: "Flight rules",
-        eyebrow: "Operational context",
-        content: <FlightRulesSlide metar={metar} />,
-      },
-      {
-        id: "ceiling",
-        label: "Ceiling",
-        title: "Ceiling / visibility",
-        eyebrow: "Cloud deck",
-        content: <CeilingSlide metar={metar} />,
-      },
-      {
-        id: "wind",
-        label: "Wind",
-        title: "Wind speed",
-        eyebrow: "Surface flow",
-        content: <WindSlide metar={metar} localWeather={localWeather} />,
-      },
-      {
-        id: "temp",
-        label: "Temp",
-        title: "Temp / dew",
-        eyebrow: "Thermal spread",
-        content: <TemperatureSlide metar={metar} localWeather={localWeather} />,
-      },
-      {
-        id: "pressure",
-        label: "Pressure",
-        title: "Pressure",
-        eyebrow: "Altimeter",
-        content: <PressureSlide metar={metar} localWeather={localWeather} />,
-      },
-      {
-        id: "local",
-        label: "Local",
-        title: "Local weather",
-        eyebrow: "Open-Meteo",
-        content: (
-          <LocalWeatherSlide
-            airportCode={airportCode}
-            localWeather={localWeather}
-            localWeatherError={localWeatherError}
-            localWeatherLoading={localWeatherLoading}
-          />
-        ),
-      },
-    ],
+    () => {
+      const ceilingFt = getCeilingFeet(metar);
+      const hasVisibility = metar?.rawVisib != null && Number.isFinite(Number(metar.rawVisib));
+      const shouldShowCeiling = ceilingFt != null || hasVisibility;
+
+      return [
+        {
+          id: "metar",
+          label: "METAR",
+          title: "METAR report",
+          eyebrow: "METAR / Weather",
+          content: (
+            <MetarSlide
+              metarRaw={metarRaw}
+              metarLoading={metarLoading}
+              metarError={metarError}
+            />
+          ),
+        },
+        {
+          id: "rules",
+          label: "Rules",
+          title: "Flight rules",
+          eyebrow: "Operational context",
+          content: <FlightRulesSlide metar={metar} />,
+        },
+        shouldShowCeiling
+          ? {
+              id: "ceiling",
+              label: "Ceiling",
+              title: "Ceiling / visibility",
+              eyebrow: "Cloud deck",
+              content: <CeilingSlide metar={metar} />,
+            }
+          : null,
+        {
+          id: "wind",
+          label: "Wind",
+          title: "Wind speed",
+          eyebrow: "Surface flow",
+          content: <WindSlide metar={metar} localWeather={localWeather} />,
+        },
+        {
+          id: "temp",
+          label: "Temp",
+          title: "Temp / dew",
+          eyebrow: "Thermal spread",
+          content: <TemperatureSlide metar={metar} localWeather={localWeather} />,
+        },
+        {
+          id: "pressure",
+          label: "Pressure",
+          title: "Pressure",
+          eyebrow: "Altimeter",
+          content: <PressureSlide metar={metar} localWeather={localWeather} />,
+        },
+        {
+          id: "local",
+          label: "Local",
+          title: "Local weather",
+          eyebrow: "Open-Meteo",
+          content: (
+            <LocalWeatherSlide
+              airportCode={airportCode}
+              localWeather={localWeather}
+              localWeatherError={localWeatherError}
+              localWeatherLoading={localWeatherLoading}
+            />
+          ),
+        },
+      ].filter(Boolean);
+    },
     [
       airportCode,
       localWeather,
@@ -170,6 +178,14 @@ export default function WeatherPanel({
       </div>
     </section>
   );
+}
+
+function getCeilingFeet(metar) {
+  const layer = metar?.rawClouds?.find((item) =>
+    ["BKN", "OVC", "VV"].includes(item.cover),
+  );
+  const number = Number(layer?.base);
+  return Number.isFinite(number) ? number : null;
 }
 
 function formatObsTime(value) {
