@@ -97,24 +97,26 @@ export function FlightRulesSlide({ metar }) {
 
   return (
     <div className="weather-slide-stack">
-      <div className="flight-rule-banner">
-        <span style={{ background: rules.color }}>{code}</span>
-        <strong style={{ color: rules.color }}>{rules.label}</strong>
-      </div>
-      <p className="weather-context-copy">{rules.context}</p>
-      {detailMeters.length ? (
-        <div className={`weather-two-up weather-two-up--${detailMeters.length}`}>
-          {detailMeters.map((item) => (
-            <ThresholdMeter
-              key={item.label}
-              icon={item.icon}
-              label={item.label}
-              marker={item.marker}
-              value={item.value}
-            />
-          ))}
+      <div className="weather-slide-readout">
+        <div className="flight-rule-banner">
+          <span style={{ background: rules.color }}>{code}</span>
+          <strong style={{ color: rules.color }}>{rules.label}</strong>
         </div>
-      ) : null}
+        {detailMeters.length ? (
+          <div className={`weather-two-up weather-two-up--${detailMeters.length}`}>
+            {detailMeters.map((item) => (
+              <ThresholdMeter
+                key={item.label}
+                icon={item.icon}
+                label={item.label}
+                marker={item.marker}
+                value={item.value}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
+      <WeatherDescription>{rules.context}</WeatherDescription>
     </div>
   );
 }
@@ -126,12 +128,14 @@ export function WindSlide({ metar, localWeather }) {
 
   return (
     <div className="weather-slide-stack">
-      <WindVector speed={speed} gust={gust} direction={direction} />
-      <p className="weather-context-copy">
+      <div className="weather-slide-readout">
+        <WindVector speed={speed} gust={gust} direction={direction} />
+      </div>
+      <WeatherDescription>
         {direction == null
           ? "Variable wind makes runway planning less predictable. Tower may switch flows or issue runway-specific guidance."
           : describeWind(speed, gust)}
-      </p>
+      </WeatherDescription>
     </div>
   );
 }
@@ -143,25 +147,25 @@ export function TemperatureSlide({ metar, localWeather }) {
 
   return (
     <div className="weather-slide-stack">
-      <div className="temperature-strip">
-        <MetricLine
-          label="Temperature"
-          value={temp == null ? "-" : `${round1(temp)}°C`}
-          icon={<Thermometer size={16} />}
-        />
-        <MetricLine
-          label="Dew point"
-          value={dew == null ? "-" : `${round1(dew)}°C`}
-          icon={<Droplets size={16} />}
-        />
-        <MetricLine
-          label="Spread"
-          value={spread == null ? "-" : `${round1(spread)}°C`}
-        />
+      <div className="weather-slide-readout">
+        <div className="temperature-strip">
+          <MetricLine
+            label="Temperature"
+            value={temp == null ? "-" : `${round1(temp)}°C`}
+            icon={<Thermometer size={16} />}
+          />
+          <MetricLine
+            label="Dew point"
+            value={dew == null ? "-" : `${round1(dew)}°C`}
+            icon={<Droplets size={16} />}
+          />
+          <MetricLine
+            label="Spread"
+            value={spread == null ? "-" : `${round1(spread)}°C`}
+          />
+        </div>
       </div>
-      <p className="weather-context-copy">
-        {describeTemperature(temp, spread)}
-      </p>
+      <WeatherDescription>{describeTemperature(temp, spread)}</WeatherDescription>
     </div>
   );
 }
@@ -172,18 +176,20 @@ export function PressureSlide({ metar, localWeather }) {
 
   return (
     <div className="weather-slide-stack">
-      <div className="pressure-strip">
-        <MetricLine
-          icon={<Gauge size={16} />}
-          label="Altimeter"
-          value={metar?.altim || "-"}
-        />
-        <MetricLine
-          label="MSL pressure"
-          value={pressure == null ? "-" : `${Math.round(pressure)} hPa`}
-        />
+      <div className="weather-slide-readout">
+        <div className="pressure-strip">
+          <MetricLine
+            icon={<Gauge size={16} />}
+            label="Altimeter"
+            value={metar?.altim || "-"}
+          />
+          <MetricLine
+            label="MSL pressure"
+            value={pressure == null ? "-" : `${Math.round(pressure)} hPa`}
+          />
+        </div>
       </div>
-      <p className="weather-context-copy">{describePressure(altim, pressure)}</p>
+      <WeatherDescription>{describePressure(altim, pressure)}</WeatherDescription>
     </div>
   );
 }
@@ -200,25 +206,27 @@ export function LocalWeatherSlide({
 
   return (
     <div className="weather-visual-layout">
-      <div className="local-weather-glyph">
-        {localWeather?.isDay ? <Sun size={58} /> : <Moon size={58} />}
-      </div>
       <div className="weather-slide-stack">
-        <MetricLine
-          label={`${airportCode || "Airport"} local`}
-          value={
-            localWeather?.temperatureC == null
-              ? localWeatherLoading
-                ? "Loading..."
-                : "-"
-              : `${round1(localWeather.temperatureC)}°C`
-          }
-        />
-        <p className="weather-context-copy">
+        <div className="weather-slide-readout local-weather-readout">
+          <div className="local-weather-glyph">
+            {localWeather?.isDay ? <Sun size={42} /> : <Moon size={42} />}
+          </div>
+          <MetricLine
+            label={`${airportCode || "Airport"} local`}
+            value={
+              localWeather?.temperatureC == null
+                ? localWeatherLoading
+                  ? "Loading..."
+                  : "-"
+                : `${round1(localWeather.temperatureC)}°C`
+            }
+          />
+        </div>
+        <WeatherDescription>
           {localWeatherError
             ? `Open-Meteo unavailable: ${localWeatherError}`
             : condition}
-        </p>
+        </WeatherDescription>
       </div>
     </div>
   );
@@ -247,6 +255,10 @@ function WindVector({ speed, gust, direction }) {
       </div>
     </div>
   );
+}
+
+function WeatherDescription({ children }) {
+  return <p className="weather-context-copy weather-slide-description">{children}</p>;
 }
 
 function describeWind(speed, gust) {

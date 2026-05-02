@@ -665,15 +665,25 @@ body {
 .weather-slide-stack {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
+  height: 100%;
+  justify-content: space-between;
   min-height: 0;
+}
+
+.weather-slide-readout {
+  min-height: 74px;
+}
+
+.weather-slide-description {
+  border-top: 1px solid var(--atc-line);
+  margin-top: 11px;
+  padding-top: 10px;
 }
 
 .weather-visual-layout {
   align-items: center;
-  display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(104px, 0.42fr) minmax(0, 1fr);
+  display: block;
   min-height: 142px;
 }
 
@@ -748,6 +758,7 @@ body {
   align-items: center;
   display: flex;
   gap: 10px;
+  margin-bottom: 12px;
 }
 
 .flight-rule-banner span {
@@ -805,7 +816,6 @@ body {
 
 .local-weather-glyph {
   align-items: center;
-  aspect-ratio: 1;
   background:
     radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--atc-orange) 14%, transparent), transparent 58%),
     color-mix(in oklab, var(--atc-card) 36%, transparent);
@@ -815,8 +825,10 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  height: 48px;
   min-width: 0;
   position: relative;
+  width: 48px;
 }
 
 .wind-vector-card {
@@ -874,6 +886,13 @@ body {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.local-weather-readout {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 48px minmax(0, 1fr);
 }
 
 .temperature-strip .weather-metric-line {
