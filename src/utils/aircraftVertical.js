@@ -100,3 +100,36 @@ function classifyAltitudeSlope(ac, prev) {
 
   return deltaFt > 0 ? ASCENDING : DESCENDING;
 }
+
+/**
+ * Constrain a vertical-state classification using flight-route knowledge.
+ *
+ * When a flight route is known, the phase of flight is bounded:
+ * - If the **destination** matches the current airport, the aircraft
+ *   *must* be arriving here. It can only be Descending or Flat — never
+ *   Ascending.
+ * - If the **origin** matches the current airport, the aircraft
+ *   *must* be departing from here. It can only be Ascending or Flat —
+ *   never Descending.
+ *
+ * This takes priority over the sensor-derived classification because the
+ * route table is the ground truth for intent. It overrides only the
+ * physically-impossible direction.
+ *
+ * @param {"Ascending" | "Descending" | "Flat"} state
+ * @param {object | null} route   Flight route with `origin.icao`, `destination.icao`
+ * @param {string} currentIcao    ICAO of the currently-viewed airport
+ * @returns {"Ascending" | "Descending" | "Flat"}
+ */
+export function constrainVerticalByRoute(state, route, currentIcao) {
+  if (!route || !currentIcao) return state;
+
+  const originIcao = (route.origin?.icao || "").toUpperCase();
+  const destIcao = (route.destination?.icao || "").toUpperCase();
+  const icao = currentIcao.toUpperCase();
+
+  if (destIcao === icao && state === ASCENDING) return FLAT;
+  if (originIcao === icao && state === DESCENDING) return FLAT;
+
+  return state;
+}

@@ -13,7 +13,11 @@ import { useAirportWiki } from "../../hooks/useAirportWiki.js";
 import { useFlightRoutes } from "../../hooks/useFlightRoutes.js";
 import { useMetar } from "../../hooks/useMetar.js";
 import { useScrollParallax } from "../../hooks/useScrollParallax.js";
-import { ASCENDING, DESCENDING } from "../../utils/aircraftVertical.js";
+import {
+  ASCENDING,
+  DESCENDING,
+  constrainVerticalByRoute,
+} from "../../utils/aircraftVertical.js";
 import { AIRPORT_FALLBACKS, COORDS } from "../../data/airportFallbacks.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 import { formatLocalFlightRouteLabel } from "../../utils/flightRouteDisplay.js";
@@ -78,6 +82,11 @@ export default function AirportCaptionScreen({
             route,
             localAirport,
             item.trafficIntent,
+          ),
+          verticalState: constrainVerticalByRoute(
+            item.verticalState,
+            route,
+            normalizedIcao,
           ),
         };
       }),
