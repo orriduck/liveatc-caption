@@ -8,12 +8,9 @@ import AreaMarker, { AIRPORT_AREA_RADIUS_NM } from "./AreaMarker.jsx";
 import AirportMarker from "./AirportMarker.jsx";
 import GroundStatsCounter from "./GroundStatsCounter.jsx";
 import AircraftPosition from "./AircraftPosition.jsx";
-import { SLOW_AIRCRAFT_THRESHOLD_KT } from "../../utils/aircraftMotion.js";
-import {
-  ZOOM_APPROACH,
-  isGroundLikeAircraft,
-} from "../../utils/airportMapDisplay.js";
+import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
+import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
 
 const trafficLegend = [
   { id: "departure", label: "DEP", color: AIRCRAFT_COLORS.departure },
@@ -91,22 +88,15 @@ export default function AirportMap({
     }
   }, [lat, lon, zoom]);
 
-  const onlyMovingAtApproach = Number(zoom) === ZOOM_APPROACH;
+  const atApproachZoom = Number(zoom) === ZOOM_APPROACH;
   const visibleAircraft = useMemo(() => {
-    if (!onlyMovingAtApproach) {
-      return aircraft.filter((ac) => ac.lat != null && ac.lon != null);
-    }
     return aircraft.filter((ac) => {
       if (ac.lat == null || ac.lon == null) return false;
-      const speedKt = Number(ac.velocity ?? 0);
-      const isMoving = speedKt >= SLOW_AIRCRAFT_THRESHOLD_KT;
-      const isGroundLike = isGroundLikeAircraft(ac, {
-        airportAreaRadiusNm: AIRPORT_AREA_RADIUS_NM,
-        slowAircraftThresholdKt: SLOW_AIRCRAFT_THRESHOLD_KT,
-      });
-      return !isGroundLike && isMoving;
+      if (!atApproachZoom) return true;
+      const distNm = getDistanceNm(lat, lon, ac.lat, ac.lon);
+      return distNm == null || distNm > AIRPORT_AREA_RADIUS_NM;
     });
-  }, [aircraft, onlyMovingAtApproach]);
+  }, [aircraft, atApproachZoom, lat, lon]);
 
   const latStr = lat
     ? `${Math.abs(lat).toFixed(2)}${lat >= 0 ? "N" : "S"}`
@@ -147,6 +137,7 @@ export default function AirportMap({
             lat={lat}
             lon={lon}
             zoom={zoom}
+            icao={icao}
             aircraft={aircraft}
           />
           {visibleAircraft.map((ac) => (
