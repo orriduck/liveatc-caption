@@ -11,14 +11,14 @@ import {
   SLOW_AIRCRAFT_THRESHOLD_KT,
 } from "../../utils/aircraftMotion.js";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
-import { ASCENDING, DESCENDING } from "../../utils/aircraftVertical.js";
+import { DEPARTURE, ARRIVAL } from "../../utils/aircraftMovement.js";
 
 const getAircraftColor = (ac, showArrow) => {
   if (ac.onGround) return AIRCRAFT_COLORS.ground;
-  if (!showArrow) return AIRCRAFT_COLORS.level;
-  if (ac.verticalState === ASCENDING) return AIRCRAFT_COLORS.ascending;
-  if (ac.verticalState === DESCENDING) return AIRCRAFT_COLORS.descending;
-  return AIRCRAFT_COLORS.level;
+  if (!showArrow) return AIRCRAFT_COLORS.unknown;
+  if (ac.movement === DEPARTURE) return AIRCRAFT_COLORS.departure;
+  if (ac.movement === ARRIVAL) return AIRCRAFT_COLORS.arrival;
+  return AIRCRAFT_COLORS.unknown;
 };
 
 const isFiniteNumber = (value) => Number.isFinite(Number(value));

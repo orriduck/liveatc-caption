@@ -1,6 +1,6 @@
 export const AIRCRAFT_COLORS = {
-  ascending: "var(--aircraft-ascending)",
-  descending: "var(--aircraft-descending)",
-  level: "var(--aircraft-level)",
+  departure: "var(--aircraft-departure)",
+  arrival: "var(--aircraft-arrival)",
+  unknown: "var(--aircraft-unknown)",
   ground: "var(--aircraft-ground)",
 };

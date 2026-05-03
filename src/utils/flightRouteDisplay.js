@@ -1,3 +1,5 @@
+import { ARRIVAL, DEPARTURE } from './aircraftMovement.js'
+
 const airportCode = (airport) =>
   String(airport?.iata || airport?.icao || '').trim().toUpperCase()
 
@@ -21,20 +23,20 @@ export const formatFlightRouteLabel = (route) => {
   return origin && destination ? `${origin} -> ${destination}` : ''
 }
 
-export const formatLocalFlightRouteLabel = (route, airport, trafficIntent) => {
+export const formatLocalFlightRouteLabel = (route, airport, movement) => {
   if (!route || !airport) return ''
 
-  if (trafficIntent === 'arrival' && !airportMatches(route.destination, airport)) {
+  if (movement === ARRIVAL && !airportMatches(route.destination, airport)) {
     return ''
   }
 
-  if (trafficIntent === 'departure' && !airportMatches(route.origin, airport)) {
+  if (movement === DEPARTURE && !airportMatches(route.origin, airport)) {
     return ''
   }
 
   if (
-    trafficIntent !== 'arrival'
-    && trafficIntent !== 'departure'
+    movement !== ARRIVAL
+    && movement !== DEPARTURE
     && !airportMatches(route.origin, airport)
     && !airportMatches(route.destination, airport)
   ) {

@@ -8,8 +8,6 @@ import {
   DEFAULT_WIDE_RANGE_NM,
 } from "../services/aviationData.js";
 import { parseAdsbPositionTime } from "../utils/aircraftMotion.js";
-import { createAircraftIntentTracker } from "../utils/aircraftTrafficIntent.js";
-import { determineVerticalState } from "../utils/aircraftVertical.js";
 
 const HIDDEN_POLL_GRACE_MS = 5_000;
 
@@ -18,12 +16,10 @@ export function useAircraftPositions(icao, lat, lon) {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const trackerRef = useRef(createAircraftIntentTracker());
   const timerRef = useRef(null);
   const wasActiveRef = useRef(false);
   const hiddenSinceRef = useRef(0);
   const consecutiveFailuresRef = useRef(0);
-  const altitudeHistoryRef = useRef(new Map());
 
   useEffect(() => {
     let disposed = false;
@@ -33,7 +29,6 @@ export function useAircraftPositions(icao, lat, lon) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-      trackerRef.current.clear();
       if (!disposed) setAircraft([]);
     };
 
@@ -72,10 +67,6 @@ export function useAircraftPositions(icao, lat, lon) {
             positionTime: parseAdsbPositionTime(a, wideJson.now, receiveTime),
             receiveTime,
           };
-          parsed.verticalState = determineVerticalState(
-            parsed,
-            altitudeHistoryRef.current.get(parsed.icao24) ?? null,
-          );
           return parsed;
         };
         const addSnapshots = (list) => {
@@ -87,20 +78,7 @@ export function useAircraftPositions(icao, lat, lon) {
         };
         addSnapshots(closeJson.ac);
         addSnapshots(wideJson.ac);
-        // Persist altitude for slope-based classification on next poll
-        for (const a of seen.values()) {
-          altitudeHistoryRef.current.set(a.icao24, {
-            altitude: a.altitude,
-            receiveTime: a.receiveTime,
-          });
-        }
-        setAircraft(
-          trackerRef.current.update(
-            [...seen.values()],
-            { lat, lon },
-            receiveTime,
-          ),
-        );
+        setAircraft([...seen.values()]);
         consecutiveFailuresRef.current = 0;
         setLastUpdated(new Date());
         setInitialLoading(false);
@@ -120,7 +98,6 @@ export function useAircraftPositions(icao, lat, lon) {
 
     const start = () => {
       stop();
-      trackerRef.current.clear();
       consecutiveFailuresRef.current = 0;
       setInitialLoading(true);
       setLastUpdated(null);
@@ -138,7 +115,6 @@ export function useAircraftPositions(icao, lat, lon) {
       hiddenSinceRef.current = 0;
       if (wasActiveRef.current && hiddenDuration > HIDDEN_POLL_GRACE_MS) {
         setAircraft([]);
-        trackerRef.current.clear();
         start();
       } else if (wasActiveRef.current) {
         poll();

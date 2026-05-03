@@ -4,6 +4,7 @@ import {
   formatFlightRouteLabel,
   formatLocalFlightRouteLabel,
 } from './flightRouteDisplay.js'
+import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement.js'
 
 {
   const label = formatFlightRouteLabel({
@@ -35,11 +36,11 @@ import {
   }
 
   assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, 'arrival'),
+    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, ARRIVAL),
     'LAX -> BOS',
   )
   assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, 'departure'),
+    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, DEPARTURE),
     '',
   )
 }
@@ -51,11 +52,11 @@ import {
   }
 
   assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, 'departure'),
+    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, DEPARTURE),
     'BOS -> ATL',
   )
   assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, 'arrival'),
+    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, ARRIVAL),
     '',
   )
 }
@@ -67,7 +68,7 @@ import {
   }
 
   assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, 'unknown'),
+    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, UNKNOWN),
     '',
   )
 }

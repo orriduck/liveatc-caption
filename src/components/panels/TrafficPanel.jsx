@@ -5,7 +5,7 @@ import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 
 export default function TrafficPanel({
   aircraft = [],
-  trafficCounts = { ascending: 0, descending: 0, level: 0 },
+  trafficCounts = { departure: 0, arrival: 0, unknown: 0 },
 }) {
   return (
     <section className="glass-panel traffic-panel">
@@ -19,18 +19,18 @@ export default function TrafficPanel({
       <div className="traffic-counts">
         <Metric label="Total" value={aircraft.length} color="var(--atc-text)" />
         <Metric
-          label="Ascending"
-          value={trafficCounts.ascending}
-          color={AIRCRAFT_COLORS.ascending}
+          label="Departures"
+          value={trafficCounts.departure}
+          color={AIRCRAFT_COLORS.departure}
         />
         <Metric
-          label="Descending"
-          value={trafficCounts.descending}
-          color={AIRCRAFT_COLORS.descending}
+          label="Arrivals"
+          value={trafficCounts.arrival}
+          color={AIRCRAFT_COLORS.arrival}
         />
         <Metric
-          label="Level"
-          value={trafficCounts.level}
+          label="Unknown"
+          value={trafficCounts.unknown}
           color="var(--traffic-level-color)"
         />
       </div>

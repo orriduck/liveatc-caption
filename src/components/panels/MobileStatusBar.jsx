@@ -10,7 +10,7 @@ const INTERVAL_MS = 4200;
 
 export default function MobileStatusBar({
   metar,
-  trafficCounts = { ascending: 0, descending: 0, level: 0 },
+  trafficCounts = { departure: 0, arrival: 0, unknown: 0 },
 }) {
   const [phase, setPhase] = useState("idle");
   const [activeView, setActiveView] = useState("metar");
@@ -111,14 +111,14 @@ export default function MobileStatusBar({
       >
         <div className="status-kicker">Traffic</div>
         <div className="status-main">
-          <span style={{ color: AIRCRAFT_COLORS.ascending }}>
-            ↑ <NumberFlow value={trafficCounts.ascending} />
+          <span style={{ color: AIRCRAFT_COLORS.departure }}>
+            ↑ <NumberFlow value={trafficCounts.departure} />
           </span>
-          <span style={{ color: AIRCRAFT_COLORS.descending }}>
-            ↓ <NumberFlow value={trafficCounts.descending} />
+          <span style={{ color: AIRCRAFT_COLORS.arrival }}>
+            ↓ <NumberFlow value={trafficCounts.arrival} />
           </span>
-          <span style={{ color: AIRCRAFT_COLORS.level }}>
-            → <NumberFlow value={trafficCounts.level} />
+          <span style={{ color: AIRCRAFT_COLORS.unknown }}>
+            → <NumberFlow value={trafficCounts.unknown} />
           </span>
         </div>
       </div>

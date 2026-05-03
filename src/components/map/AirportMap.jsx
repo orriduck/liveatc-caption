@@ -16,9 +16,9 @@ import {
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 
 const trafficLegend = [
-  { id: "ascending", label: "ASC", color: AIRCRAFT_COLORS.ascending },
-  { id: "level", label: "LEVEL", color: AIRCRAFT_COLORS.level },
-  { id: "descending", label: "DESC", color: AIRCRAFT_COLORS.descending },
+  { id: "departure", label: "DEP", color: AIRCRAFT_COLORS.departure },
+  { id: "unknown", label: "UNKN", color: AIRCRAFT_COLORS.unknown },
+  { id: "arrival", label: "ARR", color: AIRCRAFT_COLORS.arrival },
 ];
 
 const resolveCurrentTheme = () =>
