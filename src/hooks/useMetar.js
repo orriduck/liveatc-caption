@@ -69,7 +69,7 @@ export function useMetar(icao) {
 function formatWind(m) {
   if (!m.wdir && !m.wspd) return "-";
   const dir =
-    m.wdir === "VRB" ? "VRB" : `${String(m.wdir ?? 0).padStart(3, "0")}deg`;
+    m.wdir === "VRB" ? "VRB" : `${String(m.wdir ?? 0).padStart(3, "0")}°`;
   const spd = `${m.wspd ?? 0} kt`;
   return m.wgst ? `${dir} / ${spd} G${m.wgst}kt` : `${dir} / ${spd}`;
 }
