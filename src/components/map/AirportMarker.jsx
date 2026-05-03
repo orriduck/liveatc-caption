@@ -13,7 +13,8 @@ export default function AirportMarker({ lat, lon, icao = "", airport = null }) {
   );
 
   useEffect(() => {
-    if (!map || !lat || !lon || !container) return undefined;
+    if (!map || !map.getContainer || !lat || !lon || !container)
+      return undefined;
     const marker = L.marker([lat, lon], {
       interactive: false,
       icon: L.divIcon({

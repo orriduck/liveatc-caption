@@ -15,7 +15,7 @@ export default function AreaMarker({ lat, lon, zoom, theme = "dark" }) {
   const wideRef = useRef(null);
 
   useEffect(() => {
-    if (!map || !lat || !lon) return undefined;
+    if (!map || !map.getContainer || !lat || !lon) return undefined;
 
     const stroke =
       theme === "light" ? "rgba(18,21,26,0.22)" : "rgba(255,255,255,0.28)";

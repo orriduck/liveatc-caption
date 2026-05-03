@@ -32,7 +32,7 @@ export default function GroundStatsCounter({ lat, lon, zoom, aircraft = [] }) {
   }, [aircraft, visible]);
 
   useEffect(() => {
-    if (!map || !visible || !container) {
+    if (!map || !map.getContainer || !visible || !container) {
       markerRef.current?.remove();
       markerRef.current = null;
       return undefined;

@@ -39,7 +39,7 @@ export default function AircraftPosition({
   });
 
   useEffect(() => {
-    if (!map || !container) return undefined;
+    if (!map || !map.getContainer || !container) return undefined;
     const now = Date.now();
     motionRef.current = beginAircraftMotionState(aircraft, now);
     const visualPos = calculateAircraftVisualPosition(motionRef.current, now);

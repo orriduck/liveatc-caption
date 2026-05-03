@@ -25,7 +25,7 @@ export default function MapTileLayers({ theme = "dark", showLabels = true }) {
   const labelRef = useRef(null);
 
   useEffect(() => {
-    if (!map) return undefined;
+    if (!map || !map.getContainer) return undefined;
     const variant = TILE_VARIANTS[theme] || TILE_VARIANTS.dark;
 
     baseRef.current?.removeFrom(map);
