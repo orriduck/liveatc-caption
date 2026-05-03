@@ -14,10 +14,11 @@ import { useFlightRoutes } from "../../hooks/useFlightRoutes.js";
 import { useMetar } from "../../hooks/useMetar.js";
 import { useScrollParallax } from "../../hooks/useScrollParallax.js";
 import {
-  ASCENDING,
-  DESCENDING,
-  constrainVerticalByRoute,
-} from "../../utils/aircraftVertical.js";
+  DEPARTURE,
+  ARRIVAL,
+  UNKNOWN,
+  resolveMovement,
+} from "../../utils/aircraftMovement.js";
 import { AIRPORT_FALLBACKS, COORDS } from "../../data/airportFallbacks.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 import { formatLocalFlightRouteLabel } from "../../utils/flightRouteDisplay.js";
@@ -71,22 +72,16 @@ export default function AirportCaptionScreen({
       aircraft.map((item) => {
         const key = normalizeCallsign(item.callsign);
         const route = routesByCallsign[key] || null;
-        const localAirport = {
-          iata: airportCodeLabel,
-          icao: normalizedIcao,
-        };
+        const localAirport = { iata: airportCodeLabel, icao: normalizedIcao };
+        const movement = resolveMovement(route, normalizedIcao, airportCodeLabel);
         return {
           ...item,
           flightRoute: route,
+          movement,
           flightRouteLabel: formatLocalFlightRouteLabel(
             route,
             localAirport,
-            item.trafficIntent,
-          ),
-          verticalState: constrainVerticalByRoute(
-            item.verticalState,
-            route,
-            normalizedIcao,
+            movement,
           ),
         };
       }),
@@ -113,16 +108,16 @@ export default function AirportCaptionScreen({
 
   const trafficCounts = useMemo(
     () =>
-      aircraft.reduce(
+      aircraftWithRoutes.reduce(
         (counts, item) => {
-          if (item.verticalState === ASCENDING) counts.ascending += 1;
-          else if (item.verticalState === DESCENDING) counts.descending += 1;
-          else counts.level += 1;
+          if (item.movement === DEPARTURE) counts.departure += 1;
+          else if (item.movement === ARRIVAL) counts.arrival += 1;
+          else counts.unknown += 1;
           return counts;
         },
-        { ascending: 0, descending: 0, level: 0 },
+        { departure: 0, arrival: 0, unknown: 0 },
       ),
-    [aircraft],
+    [aircraftWithRoutes],
   );
 
   return (

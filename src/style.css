@@ -121,9 +121,9 @@
     --glass-card-inset: rgba(255, 255, 255, 0.3);
     --traffic-level-color: #64748b;
 
-    --aircraft-ascending: #ea580c;
-    --aircraft-descending: #16a34a;
-    --aircraft-level: #475569;
+    --aircraft-departure: #ea580c;
+    --aircraft-arrival: #16a34a;
+    --aircraft-unknown: #475569;
     --aircraft-ground: #15803d;
 
     /* Tone tokens — composed from theme colors via color-mix.
@@ -201,9 +201,9 @@
     --glass-card-inset: rgba(255, 255, 255, 0.14);
     --traffic-level-color: #94a3b8;
 
-    --aircraft-ascending: #fb923c;
-    --aircraft-descending: #2dd4bf;
-    --aircraft-level: #94a3b8;
+    --aircraft-departure: #fb923c;
+    --aircraft-arrival: #2dd4bf;
+    --aircraft-unknown: #94a3b8;
     --aircraft-ground: #34d399;
 
     --atc-radius-pill: 999px;
