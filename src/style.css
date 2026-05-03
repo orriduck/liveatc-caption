@@ -1840,7 +1840,7 @@ body {
     justify-content: center;
     letter-spacing: 0.55px;
     line-height: 1;
-    min-width: 46px;
+    min-width: 60px;
     padding: 3px 5px;
     text-shadow: 0 0 6px var(--map-label-glow);
     white-space: nowrap;
